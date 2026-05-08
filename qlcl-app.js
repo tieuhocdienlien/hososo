@@ -3401,6 +3401,145 @@ function _hbWordBlob(html){
 }
 
 // ═══ RENDER 1 HS HỌC BẠ ═══
+// ═══════════════════════════════════════════════════════════════
+// XUẤT HỌC BẠ WORD — TEMPLATE-BASED (2026-05-08)
+// Dùng docxtemplater + PizZip → output .docx CHUẨN theo Phụ lục 1 TT 27/2020
+// Template lưu tại: templates-hocba/Mau-HocBa-Lop{1..5}.docx
+// ═══════════════════════════════════════════════════════════════
+
+// Build data object để truyền cho docxtemplater
+function _buildHocBaData(s){
+  var g = grades[s.ma] || {};
+  var kq = cTT(s.ma, s.khoi);
+  var nx = nhanXet[s.ma] || {};
+  var k = parseInt(s.khoi);
+  var sj = (SUBJ[String(k)] || SUBJ['1']).filter(function(x){ return x[1] !== 'mon_Tiếng_dân_tộc'; });
+  var school = localStorage.getItem('school_name_full') || 'Trường Tiểu học Diễn Liên';
+  var xa = 'Xã Quảng Châu';
+  var tinh = 'Tỉnh Nghệ An';
+  var nam_hoc = '2025-2026';
+  var ht = localStorage.getItem('hieu_truong') || '';
+  var gvcn = nx.gvcn || '';
+  var now = new Date();
+  var mucDatMap = {HTT:'T', HT:'Đ', CHT:'C'};
+  var allNL = _getAllNL(k);
+  var nlChung = allNL.slice(0, 3);
+  var nlDacThu = allNL.slice(3);
+
+  return {
+    ten: s.ten || '',
+    ten_upper: (s.ten || '').toUpperCase(),
+    ma_dinh_danh: nx.ma_dinh_danh || s.ma || '',
+    lop: s.lop || '',
+    ngay_sinh: s.ns || '',
+    gioi_tinh: s.gt || '',
+    dan_toc: nx.dan_toc || 'Kinh',
+    quoc_tich: 'Việt Nam',
+    noi_sinh: nx.noi_sinh || '',
+    que_quan: nx.que_quan || '',
+    noi_o: s.cho_o || nx.noi_o || '',
+    ho_cha: nx.ho_cha || '',
+    ho_me: nx.ho_me || '',
+    giam_ho: nx.giam_ho || '',
+    truong: school,
+    xa: xa,
+    tinh: tinh,
+    nam_hoc: nam_hoc,
+    hieu_truong: ht,
+    gvcn: gvcn,
+    chieu_cao: nx.chieu_cao || '',
+    can_nang: nx.can_nang || '',
+    nghi_phep: nx.nghi_phep || '0',
+    nghi_kphep: nx.nghi_kphep || '0',
+    ngay_thang_nam: xa + ', ngày ' + now.getDate() + ' tháng ' + (now.getMonth()+1) + ' năm ' + now.getFullYear(),
+    danh_gia_kq: kqText(kq) || '',
+    khen_thuong: nx.khen_text || '',
+    hoan_thanh_ct: nx.hoan_thanh_text || ('Hoàn thành chương trình lớp ' + s.lop),
+
+    mon_hoc: sj.map(function(mn){
+      var mv = g[mn[1]] || '';
+      var dv = _hasDiem(mn, k) && mn[2] ? (g[mn[2]] || '') : '';
+      var gvMon = nx['gv_' + mn[1]] || ((mn[1] === 'mon_Toán' || mn[1] === 'mon_Tiếng_Việt') ? gvcn : '');
+      return {
+        ten_mon: mn[0],
+        muc_dat: mucDatMap[mv] || mv || '',
+        diem: dv ? String(dv) : '',
+        nhan_xet: nx['nx_' + mn[1]] || '',
+        gv_ky: gvMon
+      };
+    }),
+
+    pham_chat: PC.map(function(pc, i){
+      return {
+        ten_pc: pc[0],
+        muc_dat: g[pc[1]] || '',
+        nhan_xet: i === 0 ? (nx.nx_pham_chat || '') : ''
+      };
+    }),
+
+    nl_chung: nlChung.map(function(nl, i){
+      return {
+        ten_nl: nl[0],
+        muc_dat: g[nl[1]] || '',
+        nhan_xet: i === 0 ? (nx.nx_nl_chung || '') : ''
+      };
+    }),
+
+    nl_dac_thu: nlDacThu.map(function(nl, i){
+      return {
+        ten_nl: nl[0],
+        muc_dat: g[nl[1]] || '',
+        nhan_xet: i === 0 ? (nx.nx_nl_dacthu || '') : ''
+      };
+    })
+  };
+}
+
+// Generate 1 file .docx blob từ template + data của 1 HS
+async function _genHocBaDocx(s){
+  if (typeof PizZip === 'undefined') throw new Error('Thiếu thư viện PizZip — kiểm tra CDN');
+  if (typeof window.docxtemplater === 'undefined') throw new Error('Thiếu thư viện docxtemplater — kiểm tra CDN');
+
+  var khoi = parseInt(s.khoi) || 1;
+  if (khoi < 1 || khoi > 5) khoi = 1;
+  var tplUrl = 'templates-hocba/Mau-HocBa-Lop' + khoi + '.docx';
+
+  var resp = await fetch(tplUrl);
+  if (!resp.ok) throw new Error('Không tải được template: ' + tplUrl + ' (HTTP ' + resp.status + ')');
+  var arrayBuffer = await resp.arrayBuffer();
+
+  var zip = new PizZip(arrayBuffer);
+  var DocxTemplater = window.docxtemplater;
+  var doc = new DocxTemplater(zip, {
+    paragraphLoop: true,
+    linebreaks: true
+  });
+
+  doc.render(_buildHocBaData(s));
+
+  return doc.getZip().generate({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+}
+
+// Generate file zip chứa nhiều .docx (cho hbExportWord cả lớp)
+async function _genHocBaZipAll(students){
+  var outZip = new PizZip();
+  for (var i = 0; i < students.length; i++) {
+    var s = students[i];
+    try {
+      var blob = await _genHocBaDocx(s);
+      var ab = await blob.arrayBuffer();
+      var safeName = (s.ten || ('HS_' + i)).replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+      outZip.file('HocBa_' + safeName + '_' + (s.lop || '') + '.docx', ab);
+    } catch (e) {
+      console.error('Lỗi xuất HS', s.ten, e);
+    }
+  }
+  return outZip.generate({type: 'blob', mimeType: 'application/zip'});
+}
+
 function _renderHocBa1HS(s, showCover){
   var g=grades[s.ma]||{}, kq=cTT(s.ma,s.khoi), nx=nhanXet[s.ma]||{};
   var k=parseInt(s.khoi), sj=(SUBJ[String(k)]||SUBJ['1']).filter(function(x){return x[1]!=='mon_Tiếng_dân_tộc';});
@@ -3553,32 +3692,42 @@ function _renderHocBa1HS(s, showCover){
   return h;
 }
 
-// ═══ XUẤT HỌC BẠ WORD — CẢ LỚP ═══
-function hbExportWord(){
+// ═══ XUẤT HỌC BẠ WORD — CẢ LỚP (zip nhiều .docx) ═══
+async function hbExportWord(){
   var lop=T('hb-lop').value;if(!lop){toast('⚠️ Chọn lớp','warn');return;}
   var list=hbFiltered;if(!list.length){toast('⚠️ Không có HS','warn');return;}
-  var isLop1=(parseInt(lop)===1);
-  var html='';
-  list.forEach(function(s,idx){
-    if(idx>0) html+='<br clear="all" style="page-break-before:always">';
-    html+=_renderHocBa1HS(s, isLop1);
-  });
-  _dl(_hbWordBlob(html),'HocBa_Lop'+lop+'_'+new Date().toISOString().slice(0,10)+'.doc');
-  toast('📄 Xuất học bạ '+list.length+' HS — Lớp '+lop,'ok');
+  loader('Đang tạo '+list.length+' học bạ...');
+  try{
+    var zipBlob = await _genHocBaZipAll(list);
+    _dl(zipBlob, 'HocBa_Lop'+lop+'_'+new Date().toISOString().slice(0,10)+'.zip');
+    loader();
+    toast('📦 Xuất '+list.length+' học bạ (.zip) — Lớp '+lop,'ok');
+  }catch(e){
+    loader();
+    console.error(e);
+    toast('❌ Lỗi xuất học bạ: '+(e.message||e),'err');
+  }
 }
 
 // ═══ XUẤT HỌC BẠ WORD — 1 HS (gọi từ modal) ═══
-function hbExportWordOne(){
+async function hbExportWordOne(){
   if(hbIdx===null){toast('⚠️ Chưa chọn HS','warn');return;}
   var s=SB[hbIdx];if(!s)return;
   // Tự động lưu nhận xét từ form trước khi xuất
   var nx=_collectHBData();
   nhanXet[s.ma]=nx;
   try{localStorage.setItem('_nhanxet',JSON.stringify(nhanXet));}catch(e){}
-  var isLop1=(parseInt(s.khoi)===1);
-  var html=_renderHocBa1HS(s, isLop1);
-  _dl(_hbWordBlob(html),'HocBa_'+s.ten.replace(/\s+/g,'_')+'_'+s.lop+'.doc');
-  toast('📄 Xuất học bạ: '+s.ten,'ok');
+  loader('Đang tạo học bạ...');
+  try{
+    var blob = await _genHocBaDocx(s);
+    _dl(blob, 'HocBa_'+s.ten.replace(/\s+/g,'_')+'_'+s.lop+'.docx');
+    loader();
+    toast('📄 Xuất học bạ: '+s.ten,'ok');
+  }catch(e){
+    loader();
+    console.error(e);
+    toast('❌ Lỗi xuất học bạ: '+(e.message||e),'err');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
