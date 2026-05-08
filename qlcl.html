@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Quản lý Chất lượng GDTH — TH Diễn Liên</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<link rel="stylesheet" href="qlcl-style.css?v=2026.05.08-dshs-auto">
+</head>
+<body>
+<div class="ldr" id="ldr"><div class="ldr-sp"></div><div class="ldr-t" id="ldr-t">Đang xử lý...</div></div>
+<div class="toast" id="toast"></div>
+
+<!-- ═══ ĐĂNG NHẬP ═══ -->
+<div id="login-screen">
+<div class="lbox">
+  <div class="lbox-logo">
+    <div class="icon">🏫</div>
+    <h2>Trường Tiểu học Diễn Liên</h2>
+  </div>
+  <div class="lbox-sub">Hệ thống Quản lý Chất lượng Giáo dục Tiểu học<br>Năm học 2025–2026</div>
+  <div class="lerr" id="lerr"></div>
+  <div class="lf"><label>Tên đăng nhập</label><input type="text" id="lu" placeholder="Nhập tên đăng nhập" autocomplete="username"></div>
+  <div class="lf"><label>Mật khẩu</label><input type="password" id="lp" placeholder="Nhập mật khẩu" autocomplete="current-password"></div>
+  <button class="lbtn" id="lbtn" onclick="doLogin()">Đăng nhập</button>
+  <div class="lmode" id="lmode"></div>
+  <div style="margin-top:14px;text-align:center;font-size:.85rem">
+    <a href="index.html" style="color:#1e40af;text-decoration:none;font-weight:600">← Về Trang chủ</a>
+  </div>
+</div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app-screen">
+<div class="app-wrap">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-header">
+    <div class="sb-brand">
+      <div class="sb-brand-icon">🏫</div>
+      <div>
+        <h1>TH Diễn Liên</h1>
+        <p>QLCL GDTH · v3.0</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-period">
+    <div class="sb-period-label">Kỳ đánh giá</div>
+    <div class="period-grid">
+      <button class="period-btn" data-pid="gk1" onclick="switchPeriod('gk1')">Giữa<br>HK1</button>
+      <button class="period-btn" data-pid="ck1" onclick="switchPeriod('ck1')">Cuối<br>HK1</button>
+      <button class="period-btn on" data-pid="gk2" onclick="switchPeriod('gk2')">Giữa<br>HK2</button>
+      <button class="period-btn" data-pid="cn" onclick="switchPeriod('cn')">Cuối<br>năm</button>
+    </div>
+    <div id="admin-lock-panel" style="display:none;margin-top:8px;padding:6px 8px;background:rgba(255,255,255,.08);border-radius:8px">
+      <div style="font-size:9px;color:rgba(255,255,255,.5);margin-bottom:5px;text-align:center">🔐 Admin: Khóa/Mở kỳ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <button onclick="_toggleLock('gk1')" class="lk-btn" id="lk-gk1" style="font-size:9px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);cursor:pointer">GHK1</button>
+        <button onclick="_toggleLock('ck1')" class="lk-btn" id="lk-ck1" style="font-size:9px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);cursor:pointer">CHK1</button>
+        <button onclick="_toggleLock('gk2')" class="lk-btn" id="lk-gk2" style="font-size:9px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);cursor:pointer">GHK2</button>
+        <button onclick="_toggleLock('cn')" class="lk-btn" id="lk-cn" style="font-size:9px;padding:4px;border-radius:5px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);cursor:pointer">CN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-nav">
+    <div class="sb-section">
+      <div class="sb-section-title">Quản lý chất lượng</div>
+      <div class="sb-item on" onclick="gp('pg-hs',this)"><span class="ico">👥</span><span>Học sinh</span><span class="badge" id="sb-tot">864</span></div>
+      <div class="sb-item lock-guest" onclick="if(needAuth('Nhập kết quả'))gp('pg-diem',this)"><span class="ico">✏️</span><span>Nhập kết quả</span></div>
+      <div class="sb-item lock-guest" onclick="if(needAuth('Trạng thái nhập điểm'))gp('pg-status',this)"><span class="ico">📊</span><span>Trạng thái</span></div>
+      <div class="sb-item lock-guest" onclick="if(needAuth('Thống kê'))gp('pg-tk',this)"><span class="ico">📈</span><span>Thống kê</span></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-title">Học bạ số</div>
+      <div class="sb-item lock-guest" onclick="if(needAuth('Quản lý học bạ'))gp('pg-hocba',this)"><span class="ico">📋</span><span>Quản lý học bạ</span></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-title">Trích xuất dữ liệu</div>
+      <div class="sb-item lock-guest" onclick="if(needAuth('Xuất báo cáo'))gp('pg-export',this)"><span class="ico">📤</span><span>Xuất báo cáo</span></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-title">Quản trị hệ thống</div>
+      <div class="sb-item ao lock-guest" onclick="if(needAdmin('Phân quyền CBGV'))gp('pg-users',this)"><span class="ico">👥</span><span>Phân quyền CBGV</span></div>
+<!-- 2026-05-06: BỎ "Nhập danh sách HS" — chuyển sang HSS Admin (single source of truth) -->
+      <div class="sb-item ao lock-guest" onclick="if(needAdmin('Cài đặt hệ thống'))gp('pg-settings',this)"><span class="ico">⚙️</span><span>Cài đặt hệ thống</span></div>
+    </div>
+  </div>
+
+  <div class="sb-footer">
+    <!-- Khi đã đăng nhập (admin/GV) -->
+    <div class="sb-user guest-hide" onclick="openChangePass()" title="Đổi mật khẩu">
+      <div class="sb-user-avatar" id="sb-avatar">A</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Admin</div>
+        <div class="sb-user-role" id="sb-urole">Quản trị viên</div>
+      </div>
+    </div>
+    <div class="guest-hide" style="display:flex;gap:6px;padding:4px 8px 0">
+      <button onclick="openChangePass()" style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:6px;padding:6px 0;font-size:10px;cursor:pointer" title="Đổi mật khẩu">🔑 Đổi MK</button>
+      <button onclick="doLogout()" style="flex:1;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:6px;padding:6px 0;font-size:10px;cursor:pointer" title="Đăng xuất">🚪 Đăng xuất</button>
+    </div>
+    <!-- Khi là Khách (chưa đăng nhập) -->
+    <div class="guest-only" style="display:none;padding:12px 10px">
+      <button onclick="showLoginScreen()" style="width:100%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;color:#fff;border-radius:8px;padding:10px 0;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(29,78,216,.4)">🔐 Đăng nhập</button>
+      <div style="text-align:center;margin-top:8px;font-size:10.5px;color:rgba(255,255,255,.6);line-height:1.4">
+        Bạn đang ở chế độ <b style="color:#fde68a">Khách</b><br>
+        Đăng nhập để sửa điểm, học bạ, báo cáo
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+<div class="topbar2">
+  <button class="mob-hamburger" onclick="toggleMobMenu()">☰</button>
+  <a href="index.html" class="back-to-hoso" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:#eff6ff;color:#1e40af;text-decoration:none;font-size:.82rem;font-weight:600;margin-right:10px;transition:all .2s" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'" title="Quay lại Trang chủ">← Trang chủ</a>
+  <span class="topbar2-title" id="page-title">Học sinh</span>
+  <span class="topbar2-period" id="cur-period-label" style="background:#e6510022;color:#e65100">Giữa HK2</span>
+  <div class="topbar2-right">
+    <div class="sync-badge" id="sync-pill" onclick="syncNow()"><div class="sync-dot" id="sdot"></div><span id="slbl">Chưa kết nối</span></div>
+  </div>
+</div>
+<div class="content">
+
+<!-- All existing pages will be placed here -->
+
+<!-- HỌC SINH -->
+<div class="page on" id="pg-hs">
+  <div class="hdr-ky" id="hdr-ky-hs">
+    <div class="hdr-ky-ico">🎓</div>
+    <div class="hdr-ky-info">
+      <div class="hdr-ky-title" id="hky-title">Quản lý Hồ sơ Học sinh</div>
+      <div class="hdr-ky-sub" id="hky-sub">Trường Tiểu học Diễn Liên · Năm học 2025–2026</div>
+    </div>
+    <div class="hdr-ky-badge" id="hky-badge"><span class="dot"></span><span id="hky-period">Giữa HK2</span></div>
+  </div>
+  <div class="cgrid">
+    <div class="ccard"><div class="cc-ico" style="background:var(--blue-xl)">📚</div><div><div class="cc-val" id="c-tot">0</div><div class="cc-lbl">Tổng HS</div></div></div>
+    <div class="ccard"><div class="cc-ico" style="background:#dbeafe">👦</div><div><div class="cc-val" id="c-nam">0</div><div class="cc-lbl">Nam</div></div></div>
+    <div class="ccard"><div class="cc-ico" style="background:#fce7f3">👧</div><div><div class="cc-val" id="c-nu">0</div><div class="cc-lbl">Nữ</div></div></div>
+    <div class="ccard"><div class="cc-ico" style="background:var(--emerald-l)">✅</div><div><div class="cc-val" id="c-nhap">0</div><div class="cc-lbl">Đã nhập</div></div></div>
+    <div class="ccard"><div class="cc-ico" style="background:var(--rose-l)">⏳</div><div><div class="cc-val" id="c-chua">0</div><div class="cc-lbl">Chưa nhập</div></div></div>
+  </div>
+  <div class="tb">
+    <div class="srch"><span class="si2">🔍</span><input type="text" id="hs-q" placeholder="Tìm tên, mã HS..." oninput="debounce(hsFil,220)"></div>
+    <select id="hs-kh" onchange="hsKhoi()"><option value="">Tất cả khối</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+    <select id="hs-lop" onchange="hsFil()"><option value="">Tất cả lớp</option></select>
+    <select id="hs-gt" onchange="hsFil()"><option value="">Giới tính</option><option>Nam</option><option>Nữ</option></select>
+    <select id="hs-nt" onchange="hsFil()"><option value="">Trạng thái</option><option value="done">Đã nhập</option><option value="todo">Chưa nhập</option></select>
+    <button class="btn bout" onclick="hsRst()">↺</button>
+    <button class="btn bo" onclick="reloadDSHS()" title="Cập nhật DSHS từ Hồ sơ số (real-time, single source of truth)">🔄 Cập nhật DSHS</button>
+    <button class="btn bg" onclick="if(needAdmin())expExcel()">⬇ Excel</button>
+    <span class="rc" id="hs-rc"></span>
+    <span style="font-size:11px;color:var(--slate3);margin-left:auto">ℹ️ Thêm/Sửa HS: vào Hồ sơ số → Admin</span>
+  </div>
+  <div class="tw"><div class="ts">
+    <table><thead><tr><th>#</th><th>Lớp</th><th>Họ và tên</th><th>Ngày sinh</th><th>GT</th><th>Chỗ ở</th></tr></thead>
+    <tbody id="hs-tb"></tbody></table>
+  </div><div class="pagi"><span class="pagi-info" id="hs-pi"></span><div class="pagi-btns" id="hs-pb"></div></div></div>
+</div>
+
+<!-- NHẬP ĐIỂM -->
+<div class="page" id="pg-diem">
+  <div class="kts" id="diem-kts">
+    <div class="kt k1 on" onclick="dK(1,this)">Khối 1</div>
+    <div class="kt k2" onclick="dK(2,this)">Khối 2</div>
+    <div class="kt k3" onclick="dK(3,this)">Khối 3</div>
+    <div class="kt k4" onclick="dK(4,this)">Khối 4</div>
+    <div class="kt k5" onclick="dK(5,this)">Khối 5</div>
+  </div>
+  <div class="tb">
+    <select id="d-lop" onchange="dFil()"><option value="">Tất cả lớp</option></select>
+    <div class="srch"><span class="si2">🔍</span><input type="text" id="d-q" placeholder="Tìm học sinh..." oninput="debounce(dFil,220)"></div>
+    <select id="d-nt" onchange="dFil()"><option value="">Tất cả</option><option value="done">Đã nhập</option><option value="todo">Chưa nhập</option></select>
+    <button class="btn bo" onclick="syncNow()">🔄 Đồng bộ</button>
+    <button class="btn bp" onclick="saveAllLop()">☁️ Lưu lên Sheets</button>
+    <span class="rc" id="d-rc"></span>
+  </div>
+  <div class="tb ao" id="d-import-admin" style="margin-bottom:6px">
+    <button class="btn bpur" onclick="createMauChuan()">📥 Xuất file mẫu</button>
+    <button class="btn bg" onclick="T('d-file-inp').click()">📤 Nhập từ Excel</button>
+    <input type="file" id="d-file-inp" accept=".xlsx,.xls,.csv" style="display:none" onchange="onDiemFile(this)">
+    <button class="btn bout" onclick="clearGradesLop()" style="color:var(--rose);border-color:var(--rose)">🗑 Xóa KQ cả lớp</button>
+    <span id="d-import-info" style="font-size:11px;color:var(--slate3)"></span>
+  </div>
+  <div class="tb gv-only" style="margin-bottom:6px" id="d-import-gv">
+    <button class="btn bpur" onclick="dlMauGV()">📥 Tải mẫu theo phân công</button>
+    <button class="btn bg" onclick="T('d-file-gv').click()">📤 Nhập kết quả từ Excel</button>
+    <input type="file" id="d-file-gv" accept=".xlsx,.xls,.csv" style="display:none" onchange="onDiemFileGV(this)">
+    <button class="btn bout" onclick="clearGradesLop()" style="color:var(--rose);border-color:var(--rose)">🗑 Xóa KQ cả lớp</button>
+    <span id="d-gv-info" style="font-size:11px;color:var(--slate3)"></span>
+  </div>
+  <div class="tw"><div class="ts" id="d-table-wrap">
+    <table><thead id="d-thead"><tr><th>Lớp</th><th>Họ tên</th><th class="c">Đang tải...</th></tr></thead>
+    <tbody id="d-tb"></tbody></table>
+  </div><div class="pagi"><span class="pagi-info" id="d-pi"></span><div class="pagi-btns" id="d-pb"></div></div></div>
+</div>
+
+<!-- HỌC BẠ -->
+<div class="page" id="pg-hocba">
+  <div class="ib purple"><strong>📋 Học bạ số</strong><p>Quản lý nhận xét học bạ, sinh nhận xét tự động bằng AI, xuất học bạ Word</p></div>
+  <div class="tb">
+    <select id="hb-lop" onchange="hbFil()"><option value="">Chọn lớp</option></select>
+    <div class="srch"><span class="si2">🔍</span><input type="text" id="hb-q" placeholder="Tìm học sinh..." oninput="debounce(hbFil,220)"></div>
+    <button class="btn bpur" onclick="hbAiBatch()">🤖 AI Nhận xét</button>
+    <button class="btn bg" onclick="hbSaveBatch()">☁️ Lưu tất cả</button>
+    <button class="btn bout" onclick="hbExportWord()">📄 Word</button>
+    <button class="btn bout" onclick="hbExportExcel()">📊 Excel</button>
+    <span class="rc" id="hb-rc"></span>
+  </div>
+  <div id="hb-list"></div>
+</div>
+
+<!-- TRẠNG THÁI -->
+<div class="page" id="pg-status"><div id="st-ct"></div></div>
+
+<!-- THỐNG KÊ -->
+<div class="page" id="pg-tk">
+  <div class="cgrid" id="tk-cards"></div>
+  <div class="cg">
+    <div class="ccrd"><div class="ctit">🎓 Kết quả giáo dục</div><div style="position:relative;height:200px"><canvas id="ch1"></canvas></div></div>
+    <div class="ccrd"><div class="ctit">🏅 Khen thưởng</div><div style="position:relative;height:200px"><canvas id="ch2"></canvas></div></div>
+  </div>
+  <div class="tw">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--slate6);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <strong style="font-size:14px;color:var(--navy)">Thống kê chi tiết</strong>
+      <div class="kts" style="margin:0" id="tk-kts">
+        <div class="kt on" onclick="tkK(0,this)">Toàn trường</div>
+        <div class="kt k1" onclick="tkK(1,this)">K1</div><div class="kt k2" onclick="tkK(2,this)">K2</div>
+        <div class="kt k3" onclick="tkK(3,this)">K3</div><div class="kt k4" onclick="tkK(4,this)">K4</div>
+        <div class="kt k5" onclick="tkK(5,this)">K5</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;padding:14px 16px">
+      <table class="stbl"><thead><tr><th>Lớp</th><th>SS</th><th>Đã nhập</th><th>HT XS</th><th>HT Tốt</th><th>HT</th><th>Chưa HT</th><th>%HT</th><th>Khen XS</th><th>Khen TB</th><th>Lên lớp</th></tr></thead>
+      <tbody id="tk-tb"></tbody></table>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--slate6);display:flex;gap:8px">
+      <button class="btn bg" onclick="if(needAdmin())expTKXL()">⬇ Excel</button>
+      <button class="btn bout" onclick="if(needAdmin())expBangCLWord()">📄 Bảng CL Word</button>
+    </div>
+  </div>
+</div>
+
+<!-- XUẤT BÁO CÁO (Phase 2 mới) -->
+<div class="page" id="pg-export">
+  <!-- Header info -->
+  <div style="background:linear-gradient(135deg,var(--blue-xl),#f0fdf4);border:2px solid #93c5fd;border-radius:var(--radius-xl);padding:20px 24px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--emerald));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📤</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--navy)">Trích xuất dữ liệu</div>
+        <div style="font-size:12px;color:var(--slate3)">Kỳ đánh giá hiện tại: <strong id="exp-period" style="color:var(--blue)">Cuối năm</strong> — Chuyển kỳ ở thanh bên trái</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--slate2);line-height:1.8">
+      Chọn loại báo cáo bên dưới để xuất. Dữ liệu được tổng hợp từ kỳ đánh giá đang chọn. Mỗi kỳ có dữ liệu riêng biệt.
+    </div>
+  </div>
+
+  <!-- Section 1: Báo cáo chung -->
+  <div style="margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="width:24px;height:24px;border-radius:6px;background:var(--blue);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">1</span>
+      Báo cáo kết quả đánh giá
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <div class="ccard admin-act" style="cursor:pointer;border-left:4px solid var(--blue);padding:18px 20px" onclick="if(needAdmin())expExcel()">
+        <div class="cc-ico" style="background:var(--blue-xl);font-size:22px">📊</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--navy)">Kết quả học tập <span class="adm-badge">Admin</span></div>
+          <div class="cc-lbl" style="margin-top:4px;line-height:1.6">Xuất danh sách HS kèm KQGD (Hoàn thành xuất sắc, Hoàn thành tốt, Hoàn thành, Chưa HT)</div>
+        </div>
+      </div>
+      <div class="ccard admin-act" style="cursor:pointer;border-left:4px solid var(--emerald);padding:18px 20px" onclick="if(needAdmin())expTKXL()">
+        <div class="cc-ico" style="background:var(--emerald-l);font-size:22px">📈</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--navy)">Thống kê chất lượng <span class="adm-badge">Admin</span></div>
+          <div class="cc-lbl" style="margin-top:4px;line-height:1.6">Tổng hợp số liệu theo từng lớp: sĩ số, tỉ lệ HT, khen thưởng, lên lớp</div>
+        </div>
+      </div>
+      <div class="ccard admin-act" style="cursor:pointer;border-left:4px solid var(--amber);padding:18px 20px" onclick="if(needAdmin())expBangCLWord()">
+        <div class="cc-ico" style="background:var(--amber-l);font-size:22px">📄</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--navy)">Bảng chất lượng (Word) <span class="adm-badge">Admin</span></div>
+          <div class="cc-lbl" style="margin-top:4px;line-height:1.6">Bảng tổng hợp chất lượng giáo dục toàn trường, in ấn trình ký</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Học bạ -->
+  <div style="margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="width:24px;height:24px;border-radius:6px;background:var(--violet);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">2</span>
+      Học bạ số
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <div class="ccard admin-act" style="cursor:pointer;border-left:4px solid var(--violet);padding:18px 20px" onclick="if(needAdmin())gp('pg-hocba')">
+        <div class="cc-ico" style="background:var(--violet-l);font-size:22px">📋</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--navy)">Xuất học bạ (Word) <span class="adm-badge">Admin</span></div>
+          <div class="cc-lbl" style="margin-top:4px;line-height:1.6">Vào module Học bạ số để xuất học bạ từng HS hoặc cả lớp theo mẫu TT27</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: CSDL ngành (Admin only) -->
+  <div style="margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      <span style="width:24px;height:24px;border-radius:6px;background:var(--rose);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">3</span>
+      Đồng bộ CSDL ngành
+      <span style="font-size:10px;color:var(--rose);background:var(--rose-l);padding:2px 8px;border-radius:10px;font-weight:600">Admin</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <div class="ccard admin-act" style="cursor:pointer;border-left:4px solid var(--rose);padding:18px 20px" onclick="if(needAdmin())showCSDLPicker()">
+        <div class="cc-ico" style="background:var(--rose-l);font-size:22px">🏛️</div>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:var(--navy)">Xuất mẫu CSDL ngành <span class="adm-badge">Admin</span></div>
+          <div class="cc-lbl" style="margin-top:4px;line-height:1.6">Xuất file Excel theo đúng mẫu Sở GD&ĐT, chọn theo từng khối lớp (1→5)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hướng dẫn chi tiết -->
+  <div style="background:var(--white);border:1.5px solid var(--slate6);border-radius:var(--radius-xl);padding:20px 24px">
+    <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px">📖 Hướng dẫn sử dụng</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px;color:var(--slate2);line-height:1.9">
+      <div>
+        <div style="font-weight:600;color:var(--blue);margin-bottom:4px">📊 Kết quả học tập</div>
+        Xuất file Excel chứa danh sách toàn bộ HS kèm kết quả giáo dục (KQGD), trạng thái lên lớp. Phù hợp để lưu trữ, báo cáo nội bộ.
+      </div>
+      <div>
+        <div style="font-weight:600;color:var(--emerald);margin-bottom:4px">📈 Thống kê chất lượng</div>
+        Tổng hợp số liệu theo từng lớp: sĩ số, đã nhập, tỉ lệ HT xuất sắc/tốt/HT/chưa HT, khen thưởng, lên lớp. Dùng cho báo cáo Hiệu trưởng.
+      </div>
+      <div>
+        <div style="font-weight:600;color:var(--amber);margin-bottom:4px">📄 Bảng chất lượng Word</div>
+        File Word bảng tổng hợp toàn trường, có chữ ký Hiệu trưởng + Người lập. In ra trình ký, nộp Sở GD&ĐT.
+      </div>
+      <div>
+        <div style="font-weight:600;color:var(--violet);margin-bottom:4px">📋 Học bạ Word</div>
+        Xuất học bạ đúng mẫu TT27 cho từng HS. Vào module "Học bạ số" → chọn lớp → xuất Word hoặc Excel.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TÀI KHOẢN -->
+<div class="page" id="pg-users">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <h2 style="font-size:16px;color:var(--navy);font-family:'Playfair Display',serif">Phân quyền Cán bộ Giáo viên</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn bg" onclick="loadUsers()">🔄 Tải lại</button>
+      <button class="btn bo" onclick="syncUsersFromDSGV()" title="Tự sinh tài khoản từ DSGV bên Hồ sơ số (skip nếu username đã tồn tại)">📥 Đồng bộ từ DSGV</button>
+      <button class="btn bp" onclick="openUM(null)">➕ Thêm</button>
+    </div>
+  </div>
+  <div id="u-syncinfo" style="margin-bottom:12px;padding:10px 14px;background:#fef3c7;border-left:3px solid #FBBF24;border-radius:6px;font-size:12px;color:#92400e;display:none"></div>
+  <div id="u-load" style="text-align:center;padding:32px;color:var(--slate3)">Đang tải...</div>
+  <div class="tw" id="u-tbl" style="display:none"><div class="ts">
+    <table><thead><tr><th>#</th><th>Đăng nhập</th><th>Họ tên</th><th>Vai trò</th><th>Lớp PT</th><th>Phân công</th><th class="c">Thao tác</th></tr></thead>
+    <tbody id="u-tb"></tbody></table>
+  </div></div>
+</div>
+
+<!-- 2026-05-06: BỎ trang "Nhập danh sách HS" — chuyển sang HSS Admin -->
+<div class="page" id="pg-import">
+  <div class="ib blue" style="max-width:620px">
+    <strong>📚 Quản lý danh sách học sinh</strong>
+    <p>Chức năng thêm / sửa / xoá / nhập DSHS đã chuyển sang
+    <strong>Hồ sơ số (Admin)</strong>.<br>
+    Mọi thay đổi DSHS từ Hồ sơ số sẽ tự động cập nhật vào QLCL.</p>
+    <p><a href="index.html" style="color:var(--blue);font-weight:600">→ Vào Hồ sơ số</a></p>
+  </div>
+</div>
+
+<!-- CÀI ĐẶT -->
+<div class="page" id="pg-settings">
+  <div class="tw" style="padding:24px">
+    <h2 style="font-size:16px;margin-bottom:14px;color:var(--navy);font-family:'Playfair Display',serif">Cài đặt hệ thống</h2>
+    <div style="background:var(--slate7);border:1.5px solid var(--slate6);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--slate)">Google Sheets</div>
+        <div style="font-size:12px;color:var(--slate3)" id="sett-status">Đang kiểm tra...</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn bg" onclick="testConn()">🔌 Kiểm tra</button>
+        <button class="btn bo" onclick="syncNow()">🔄 Đồng bộ</button>
+        <button class="btn bout" onclick="fixSheetsStructure()">🔧 Sửa cấu trúc</button>
+      </div>
+    </div>
+    <div id="conn-res"></div>
+    <div style="background:var(--white);border:1.5px solid var(--slate6);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:18px">
+      <div style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:12px">Chia sẻ</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn bp" onclick="copyGAS()">📋 Copy GAS URL</button>
+        <button class="btn bg" onclick="copyShareLink()">🔗 Link GV</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+<!-- Mobile overlay -->
+<div class="mob-overlay" id="mobOverlay" onclick="closeMobMenu()"></div>
+
+<!-- Bottom Navigation (Mobile) -->
+<div class="bottom-nav" id="bottomNav">
+  <div class="bnav-item on" onclick="bnav('pg-hs',this)"><span class="bnav-ico">👥</span><span class="bnav-lbl">Học sinh</span></div>
+  <div class="bnav-item" onclick="bnav('pg-diem',this)"><span class="bnav-ico">✏️</span><span class="bnav-lbl">Nhập KQ</span></div>
+  <div class="bnav-item" onclick="bnav('pg-tk',this)"><span class="bnav-ico">📈</span><span class="bnav-lbl">Thống kê</span></div>
+  <div class="bnav-item" onclick="bnav('pg-hocba',this)"><span class="bnav-ico">📋</span><span class="bnav-lbl">Học bạ</span></div>
+  <div class="bnav-item" onclick="bnav('pg-export',this)"><span class="bnav-ico">📤</span><span class="bnav-lbl">Xuất BC</span></div>
+</div>
+
+</div><!-- /app-wrap -->
+</div><!-- /app-screen -->
+
+<!-- MODALS (giữ nguyên từ V2) -->
+<div class="mbg" id="mBg">
+<div class="mbox">
+  <div class="mhd"><div><h2 id="mTitle">Nhập điểm</h2><p id="mSub"></p></div><button class="mcl" onclick="cm('mBg')">✕</button></div>
+  <div class="mbd" id="mBd"></div>
+  <div class="mft">
+    <div class="mft-l"><span id="mStat"></span> <button onclick="clearGrades()" class="btn bout" style="font-size:10px;padding:4px 8px;margin-left:6px;color:var(--rose);border-color:var(--rose)" title="Xóa kết quả kỳ này">🗑 Xóa KQ</button></div>
+    <div class="mft-r">
+      <span style="font-size:10px;color:var(--slate4)">Tự lưu sau 45s</span>
+      <button class="btn bout" onclick="cm('mBg')">Hủy</button>
+      <button class="btn bg" onclick="saveCld()">☁️ Lưu lên Sheets</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="mbg" id="uBg">
+<div class="mbox sm">
+  <div class="mhd"><div><h2 id="uTit">Thêm tài khoản</h2></div><button class="mcl" onclick="cm('uBg')">✕</button></div>
+  <div class="mbd">
+    <div class="uf">
+      <div class="ufi"><label>Tên đăng nhập *</label><input type="text" id="uf-u"></div>
+      <div class="ufi"><label>Mật khẩu</label><input type="text" id="uf-p"></div>
+      <div class="ufi uf-full"><label>Họ và tên *</label><input type="text" id="uf-ht"></div>
+      <div class="ufi"><label>Vai trò</label><select id="uf-r"><option value="teacher">Giáo viên</option><option value="admin">Admin</option></select></div>
+      <div class="ufi"><label>Lớp phụ trách</label><input type="text" id="uf-lop"></div>
+      <div class="ufi uf-full"><label>Phân công giảng dạy</label><textarea id="uf-pc" placeholder="Âm nhạc (1A, 1B, 2A)"></textarea></div>
+    </div>
+  </div>
+  <div class="mft">
+    <div class="mft-l" id="uErr" style="color:var(--rose)"></div>
+    <div class="mft-r"><button class="btn bout" onclick="cm('uBg')">Hủy</button><button class="btn bp" onclick="saveUser()">💾 Lưu</button></div>
+  </div>
+</div>
+</div>
+
+<div class="mbg" id="hbBg">
+<div class="mbox lg">
+  <div class="mhd pur"><div><h2 id="hbTitle">📋 Học bạ</h2><p id="hbSub"></p></div><button class="mcl" onclick="cm('hbBg')">✕</button></div>
+  <div class="mbd" id="hbBd"></div>
+  <div class="mft">
+    <div class="mft-l" id="hbStat"></div>
+    <div class="mft-r">
+      <button class="btn bout" onclick="cm('hbBg')">Đóng</button>
+      <button class="btn bout" onclick="hbExportWordOne()" style="color:var(--violet);border-color:var(--violet)">📄 Xuất Word</button>
+      <button class="btn bpur" onclick="hbAiOne()">🤖 AI Nhận xét</button>
+      <button class="btn bp" onclick="hbSaveOne()" style="background:var(--violet)">💾 Lưu</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="page" id="pg-hocba-print" style="display:none"></div>
+
+
+<!-- CSDL Picker Modal -->
+<div class="mbg" id="csdlBg">
+<div class="mbox sm">
+  <div class="mhd" style="background:linear-gradient(135deg,#991b1b,#e11d48)"><div><h2>🏛️ CSDL ngành</h2></div><button class="mcl" onclick="cm('csdlBg')">✕</button></div>
+  <div class="mbd" id="csdlBd"></div>
+</div>
+</div>
+
+
+<!-- 2026-05-06: BỎ Modal Thêm HS — chuyển sang HSS Admin -->
+
+<!-- ⭐ 2026-05-08: Modal đăng nhập popup khi Khách click chức năng cần auth -->
+<div class="mbg" id="loginBg">
+<div class="mbox sm" style="max-width:420px">
+  <div class="mhd" style="background:linear-gradient(135deg,#1e40af,#3b82f6)">
+    <div>
+      <h2 style="display:flex;align-items:center;gap:8px;color:#fff"><span style="font-size:22px">🔐</span> Cần đăng nhập</h2>
+      <p style="color:rgba(255,255,255,.85);margin-top:4px">Hãy đăng nhập để tiếp tục thực hiện chức năng <b id="lm-action">này</b></p>
+    </div>
+    <button class="mcl" onclick="cm('loginBg')" style="color:#fff">✕</button>
+  </div>
+  <div class="mbd" style="padding:18px 20px">
+    <div class="uf">
+      <div class="ufi uf-full">
+        <label>Tên đăng nhập *</label>
+        <input type="text" id="lu2" placeholder="VD: trinh2026, khue2026..." autocomplete="username"
+               onkeydown="if(event.key==='Enter')doLoginModal()">
+      </div>
+      <div class="ufi uf-full">
+        <label>Mật khẩu *</label>
+        <input type="password" id="lp2" placeholder="Nhập mật khẩu" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLoginModal()">
+      </div>
+    </div>
+    <div id="lerr2" style="display:none;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:8px 12px;border-radius:6px;margin-top:10px;font-size:13px"></div>
+    <div style="margin-top:14px;color:var(--slate4);font-size:11.5px;text-align:center;line-height:1.5">
+      💡 Tài khoản do <b>Admin</b> cấp.<br>Quên mật khẩu liên hệ Hiệu trưởng/PHT qua Zalo nhóm trường.
+    </div>
+  </div>
+  <div class="mft">
+    <div class="mft-l"></div>
+    <div class="mft-r">
+      <button class="btn bout" onclick="cm('loginBg')">Hủy</button>
+      <button class="btn bp" onclick="doLoginModal()" id="lbtn2">🔓 Đăng nhập</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Đổi mật khẩu Modal -->
+<div class="mbg" id="chPassBg">
+<div class="mbox sm" style="max-width:400px">
+  <div class="mhd" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"><div><h2>🔑 Đổi mật khẩu</h2><p id="chpass-user"></p></div><button class="mcl" onclick="cm('chPassBg')">✕</button></div>
+  <div class="mbd">
+    <div class="uf">
+      <div class="ufi uf-full"><label>Mật khẩu hiện tại *</label><input type="password" id="cp-old" placeholder="Nhập mật khẩu cũ"></div>
+      <div class="ufi uf-full"><label>Mật khẩu mới *</label><input type="password" id="cp-new" placeholder="Tối thiểu 4 ký tự"></div>
+      <div class="ufi uf-full"><label>Nhập lại mật khẩu mới *</label><input type="password" id="cp-confirm" placeholder="Nhập lại để xác nhận"></div>
+    </div>
+  </div>
+  <div class="mft">
+    <div class="mft-l" id="cpErr" style="color:var(--rose);font-size:12px"></div>
+    <div class="mft-r"><button class="btn bout" onclick="cm('chPassBg')">Hủy</button><button class="btn bp" onclick="doChangePass()">🔑 Đổi mật khẩu</button></div>
+  </div>
+</div>
+</div>
+
+<!-- 2026-05-06: BỎ Modal Sửa HS — chuyển sang HSS Admin -->
+
+<!-- DỮ LIỆU -->
+<!-- ⭐ Data HS thật của TH Diễn Liên (864 HS, khôi phục từ template QLCL standalone) -->
+<!-- 2026-05-07 Phase 3: _d_sb inline da xoa. DSHS fetch real-time tu HSS qua loadDSHSFromHSS() trong qlcl-app.js -->
+<script type="application/json" id="_d_subj">{"1":[["Toán","mon_Toán","diem_Toán",true],["Tiếng Việt","mon_Tiếng_việt","diem_Tiếng_việt",true],["Đạo đức","mon_Đạo_đức","",false],["Tự nhiên & XH","mon_Tự_nhiên_và_xã_hội","",false],["Ngoại ngữ","mon_Ngoại_ngữ","",false],["Tiếng dân tộc","mon_Tiếng_dân_tộc","",false],["Tin học","mon_TH-CN_Tin_học","",false],["Âm nhạc","mon_Nghệ_thuật_Âm_nhạc","",false],["Mĩ thuật","mon_Nghệ_thuật_Mĩ_thuật","",false],["HĐTN","mon_Hoạt_động_trải_nghiệm","",false],["Thể chất","mon_Giáo_dục_thể_chất","",false]],"2":[["Toán","mon_Toán","diem_Toán",true],["Tiếng Việt","mon_Tiếng_việt","diem_Tiếng_việt",true],["Đạo đức","mon_Đạo_đức","",false],["Tự nhiên & XH","mon_Tự_nhiên_và_xã_hội","",false],["Ngoại ngữ","mon_Ngoại_ngữ","",false],["Tiếng dân tộc","mon_Tiếng_dân_tộc","",false],["Tin học","mon_TH-CN_Tin_học","",false],["Âm nhạc","mon_Nghệ_thuật_Âm_nhạc","",false],["Mĩ thuật","mon_Nghệ_thuật_Mĩ_thuật","",false],["HĐTN","mon_Hoạt_động_trải_nghiệm","",false],["Thể chất","mon_Giáo_dục_thể_chất","",false]],"3":[["Toán","mon_Toán","diem_Toán",true],["Tiếng Việt","mon_Tiếng_việt","diem_Tiếng_việt",true],["Đạo đức","mon_Đạo_đức","",false],["Tự nhiên & XH","mon_Tự_nhiên_và_xã_hội","",false],["Ngoại ngữ","mon_Ngoại_ngữ","diem_Ngoại_ngữ",true],["Tin học","mon_TH-CN_Tin_học","diem_TH-CN_Tin_học",true],["Tiếng dân tộc","mon_Tiếng_dân_tộc","",false],["Công nghệ","mon_TH-CN_Công_nghệ","diem_TH-CN_Công_nghệ",true],["Âm nhạc","mon_Nghệ_thuật_Âm_nhạc","",false],["Mĩ thuật","mon_Nghệ_thuật_Mĩ_thuật","",false],["HĐTN","mon_Hoạt_động_trải_nghiệm","",false],["Thể chất","mon_Giáo_dục_thể_chất","",false]],"4":[["Toán","mon_Toán","diem_Toán",true],["Tiếng Việt","mon_Tiếng_việt","diem_Tiếng_việt",true],["Đạo đức","mon_Đạo_đức","",false],["Lịch sử - Địa lí","mon_Lịch_sử_và_Địa_lí","diem_Lịch_sử_và_Địa_lí",true],["Ngoại ngữ","mon_Ngoại_ngữ","diem_Ngoại_ngữ",true],["Tin học","mon_TH-CN_Tin_học","diem_TH-CN_Tin_học",true],["Khoa học","mon_Khoa_học","diem_Khoa_học",true],["Tiếng dân tộc","mon_Tiếng_dân_tộc","",false],["Công nghệ","mon_TH-CN_Công_nghệ","diem_TH-CN_Công_nghệ",true],["Âm nhạc","mon_Nghệ_thuật_Âm_nhạc","",false],["Mĩ thuật","mon_Nghệ_thuật_Mĩ_thuật","",false],["HĐTN","mon_Hoạt_động_trải_nghiệm","",false],["Thể chất","mon_Giáo_dục_thể_chất","",false]],"5":[["Toán","mon_Toán","diem_Toán",true],["Tiếng Việt","mon_Tiếng_việt","diem_Tiếng_việt",true],["Đạo đức","mon_Đạo_đức","",false],["Lịch sử - Địa lí","mon_Lịch_sử_và_Địa_lí","diem_Lịch_sử_và_Địa_lí",true],["Ngoại ngữ","mon_Ngoại_ngữ","diem_Ngoại_ngữ",true],["Tin học","mon_TH-CN_Tin_học","diem_TH-CN_Tin_học",true],["Khoa học","mon_Khoa_học","diem_Khoa_học",true],["Tiếng dân tộc","mon_Tiếng_dân_tộc","",false],["Công nghệ","mon_TH-CN_Công_nghệ","diem_TH-CN_Công_nghệ",true],["Âm nhạc","mon_Nghệ_thuật_Âm_nhạc","",false],["Mĩ thuật","mon_Nghệ_thuật_Mĩ_thuật","",false],["HĐTN","mon_Hoạt_động_trải_nghiệm","",false],["Thể chất","mon_Giáo_dục_thể_chất","",false]]}</script>
+<script type="application/json" id="_d_nl">[["Tự chủ và tự học","nl_Tự_chủ_và_tự_học"],["Giao tiếp và hợp tác","nl_Giao_tiếp_và_hợp_tác"],["Giải quyết vấn đề và sáng tạo","nl_Giải_quyết_vấn_đề_và_sáng_tạo"],["Ngôn ngữ","nl_Ngôn_ngữ"],["Tính toán","nl_Tính_toán"],["Khoa học","nl_Khoa_học"],["Thẩm mĩ","nl_Thẩm_mĩ"],["Thể chất","nl_Thể_chất"]]</script>
+<script type="application/json" id="_d_pc">[["Yêu nước","pc_Yêu_nước"],["Nhân ái","pc_Nhân_ái"],["Chăm chỉ","pc_Chăm_chỉ"],["Trung thực","pc_Trung_thực"],["Trách nhiệm","pc_Trách_nhiệm"]]</script>
+<!-- JAVASCRIPT -->
+<script>
+  // ====================================================================
+  // 🔗 URL API — DÙNG CHUNG với index.html (1 Sheet + 1 Apps Script HSS)
+  // ====================================================================
+  // Phương án D-3 (Final): toàn hệ thống dùng 1 Sheet + 1 Apps Script bound.
+  // QLCL data đã được copy 9 tab từ Sheet THDienLien_05.2026 → Sheet HSS qua
+  // hàm migrateQlclFromExternal trong Code.gs. Backend QLCL action (getGrades,
+  // saveGrade, ...) đã merge vào Code.gs HSS với prefix _qt internal.
+  var API_URL = 'https://script.google.com/macros/s/AKfycbxS-M_WE3zkT7gR5kIuyka1DOOpGfgPCJInnpplpsik_RRfBQ6ULUDA9l8xlTVNgU_y/exec';
+</script>
+
+<!-- ⭐ Logic JS chính QLCL v2 — tách ra để cache + maintain (Refactor 2026-05-05) -->
+<script src="qlcl-app.js?v=2026.05.08-dshs-auto" defer></script>
+
+</body>
+</html>
