@@ -1,5 +1,42 @@
 # CHANGELOG
 
+## [Dọn QLCL v1 dead code — pha 2 FE+CSS] — 2026-05-10
+
+### 🎯 Mục tiêu
+Phiên trước (Desktop App, sáng 10/5) đã xoá 22 handler QLCL v1 (`_qlclHandle` + helpers + tab `QLCL_AuditLog`) trong `Code.gs` nhưng để sót:
+- `_WRITE_ACTIONS_` + `_ADMIN_ACTIONS_` vẫn liệt kê 11 action `qlcl*` (không còn handler → trả `Unknown action`).
+- `app.js` còn nguyên IIFE Phần 4 (~2070 dòng) gọi `qlclSaveDiem/SaveNhanXet/SaveNLPC/SaveXepLoai/SaveDiemDanh/...`.
+- `index.html` còn `#view-qlcl` (430 dòng UI 8 workspace) — UI dead vì class `qlcl-active` không bao giờ được add (từ refactor 2026-05-05 đã chuyển QLCL sang multi-page `qlcl.html`).
+- `style.css` còn block `.ql-*` + `body.qlcl-active` (~196 dòng).
+
+Tất cả là dead code không vỡ chức năng đang chạy (qlcl.html standalone dùng `_QLCL_TPL_ACTIONS` wide format), nhưng nhiễu repo + sai lệch giữa `_WRITE_ACTIONS_` (cho phép) và backend (không xử lý).
+
+### ✨ Thay đổi
+- **`app.js`**:
+  - Xoá toàn bộ IIFE Phần 4 — QLCL Module (legacy v1 long format) — 2070 dòng.
+  - Đơn giản hoá `showHoso()`: bỏ wrapper xoá `qlcl-active` (no-op vì class không còn được set).
+  - Bỏ `try { window.QLCL.onDataRefresh() }` ở `loadData()` — không còn `window.QLCL`.
+  - Cập nhật comment "Expose globals cho IIFE Phần 2 (KĐCL bridge)".
+  - File: `387274` → `~227000` bytes (giảm ~41%).
+- **`index.html`**: xoá `#view-qlcl` (430 dòng) — toàn bộ UI 8 workspace QLCL v1 (Nhập điểm, Nhận xét, NL/PC, Xếp loại, Bảng tổng hợp, Học bạ, Dashboard, Phân công, Sổ chủ nhiệm).
+- **`style.css`**: xoá block VIEW-SWAP + SHELL QLCL + Bảng tổng hợp + media query QLCL (lines 83-278, 196 dòng). 1751 → 1555 dòng.
+- **`Code.gs`**:
+  - `_WRITE_ACTIONS_`: bỏ 10 action `qlclSaveDiem/SaveNhanXet/SaveNLPC/SaveXepLoai/SavePhanCong/SaveDiemDanh/SaveViPham/DeleteViPham/SaveHoatDong/DeleteHoatDong`. Thay bằng comment lý do.
+  - `_ADMIN_ACTIONS_`: bỏ `qlclSavePhanCong`. Thêm comment chỉ tới `Users.lop_phu_trach` + `phan_cong_giang_day` (single source of truth mới).
+- **Bump cache**: `?v=2026.05.09-print-fix-v2` + `?v=2026.05.09-mc-cv5942` → `?v=2026.05.10-qlcl-v1-cleanup` cho cả style.css và app.js trong index.html.
+
+### 🛡 Đã verify
+- `node --check app.js` → OK.
+- `node --check Code.gs` (rename `.js`) → OK.
+- Grep còn references: `qlcl-active`, `view-qlcl`, `window.QLCL`, `qlclSaveDiem|qlclSavePhanCong` → 0 (chỉ còn comment lịch sử ở Code.gs:100).
+- Grep div ratio index.html: 960/951 (giữ nguyên off-by-9 do JSX bên trong `<script type="text/jsx">`, view-qlcl tự balanced không gây lệch).
+- File backup `*.bak.preview-qlcl-cleanup` của 3 file đã giữ phòng rollback.
+
+### 📌 Bài học
+Khi xoá 1 module: phải dọn theo 4 lớp song song — backend handler, action whitelist, FE caller, FE UI, CSS. Desktop App phiên trước chỉ dọn 1 lớp (handler) → để rác 3 lớp còn lại + sai lệch danh sách action.
+
+---
+
 ## [Filter 5 khối + Trang chủ] — 2026-05-08 (sau HOTFIX)
 
 ### ✨ Thay đổi

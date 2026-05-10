@@ -71,7 +71,23 @@
   (document.head || document.documentElement).appendChild(s);
 })();
 </script>
-<link rel="stylesheet" href="style.css?v=2026.05.08-dshs-auto">
+<link rel="stylesheet" href="style.css?v=2026.05.10-qlcl-v1-cleanup">
+<style>
+/* Eye toggle cho password input — 2026-05-09 */
+.pw-wrap{position:relative;display:block}
+.pw-wrap input{padding-right:40px!important}
+.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;cursor:pointer;padding:6px;color:#94a3b8;font-size:16px;line-height:1;border-radius:4px}
+.pw-eye:hover{color:#475569;background:#f1f5f9}
+@media(max-width:640px){.pw-eye{padding:10px;font-size:18px;min-width:40px;min-height:40px}.pw-wrap input{padding-right:48px!important}}
+</style>
+<script>
+function pwToggle(btn){
+  var inp = btn.previousElementSibling;
+  if(!inp || (inp.type!=='password' && inp.type!=='text')) return;
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  btn.textContent = inp.type==='password' ? '👁' : '🙈';
+}
+</script>
 </head>
 <body>
 
@@ -84,11 +100,11 @@
     <p class="auth-sub" id="authSub">Dành cho cán bộ trường. Vui lòng đăng nhập bằng <b>tài khoản</b> được cấp.</p>
     <form id="authForm" onsubmit="return submitAuthForm(event)">
       <label for="authInput" id="authLabel">Tên đăng nhập</label>
-      <input type="text" id="authInput" autocomplete="username" autocapitalize="off" autocorrect="off"
-             placeholder="VD: trinh2026, khue2026..." required>
+      <input type="text" id="authInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+             placeholder="Nhập tên đăng nhập" required>
       <label for="authPassword" id="authLabelPwd" style="margin-top:8px">Mật khẩu</label>
-      <input type="password" id="authPassword" autocomplete="current-password"
-             placeholder="Mật khẩu">
+      <span class="pw-wrap"><input type="password" id="authPassword" autocomplete="current-password"
+             placeholder="Mật khẩu"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span>
       <button type="submit" class="auth-btn" id="authBtn">Vào</button>
       <button type="button" class="auth-cancel" onclick="cancelAuthGate()">← Quay lại</button>
       <div id="authMsg" class="auth-msg"></div>
@@ -447,7 +463,7 @@
         <div style="font-size:2.5rem;margin-bottom:16px">🔐</div>
         <h4>Đăng nhập quản trị</h4>
         <p>Nhập mật khẩu để truy cập bảng điều khiển</p>
-        <div class="adm-field"><input type="password" id="admPwdInput" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')admDoLogin()"></div>
+        <div class="adm-field"><span class="pw-wrap"><input type="password" id="admPwdInput" placeholder="Mật khẩu..." onkeydown="if(event.key==='Enter')admDoLogin()"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span></div>
         <div id="admLoginMsg" class="adm-alert"></div>
         <button class="adm-btn adm-btn-primary" onclick="admDoLogin()">🔓 Đăng nhập</button>
       </div>
@@ -861,7 +877,7 @@
 
           <div class="adm-field">
             <label><b>Mã Admin hiện tại</b> (xác nhận để được phép đổi)</label>
-            <input type="password" id="admOldPwd" autocomplete="current-password" placeholder="Nhập lại mã Admin đang dùng">
+            <span class="pw-wrap"><input type="password" id="admOldPwd" autocomplete="current-password" placeholder="Nhập lại mã Admin đang dùng"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span>
           </div>
 
           <hr style="border:none;border-top:1px dashed #cbd5e1;margin:18px 0">
@@ -935,6 +951,7 @@
             </div>
           </button>
           <button class="mc-hero-btn" onclick="printMCOverview()">🖨️ <span>In theo mẫu</span></button>
+          <button class="mc-hero-btn" onclick="exportMCWord()" title="Tải file Word (.doc) để chỉnh sửa và đính kèm báo cáo">📄 <span>Tải Word</span></button>
         </div>
         <div class="mc-stats" id="mcStats"></div>
         <div class="mc-search">
@@ -956,9 +973,11 @@
       <h3 style="font-family:'Fraunces',serif;font-size:1.2rem;display:flex;align-items:center;gap:10px">📋 Tổng quan Danh mục Hồ sơ số</h3>
       <button onclick="closeCatalogOverview()" style="background:rgba(255,255,255,.15);border:none;border-radius:50%;width:36px;height:36px;color:white;font-size:1.1rem;cursor:pointer">✕</button>
     </div>
-    <div style="padding:18px 24px 6px;background:#fafbf8;border-bottom:1px solid #eef2ef;flex-shrink:0;display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+    <div style="padding:18px 24px 6px;background:#fafbf8;border-bottom:1px solid #eef2ef;flex-shrink:0;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <span style="font-family:'Fraunces',serif;font-weight:600;color:var(--g-deep);font-size:.95rem" id="catOvCount">107 hồ sơ · 11 nhóm</span>
-      <input type="text" id="catOvSearch" placeholder="🔍 Tìm nhanh..." oninput="filterCatalogOverview()" style="flex:1;min-width:180px;padding:9px 16px;border-radius:12px;border:1px solid #d8e0dc;font-family:inherit;font-size:.88rem;outline:none">
+      <input type="text" id="catOvSearch" placeholder="🔍 Tìm nhanh..." oninput="filterCatalogOverview()" style="flex:1;min-width:160px;padding:9px 16px;border-radius:12px;border:1px solid #d8e0dc;font-family:inherit;font-size:.88rem;outline:none">
+      <button onclick="printCatalogOverview()" title="In bảng danh mục hoặc lưu PDF" style="padding:9px 14px;border-radius:10px;border:1px solid #2d8a6e;background:white;color:#2d8a6e;font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer;white-space:nowrap">🖨 In/PDF</button>
+      <button onclick="exportCatalogWord()" title="Tải file Word (.doc) để chỉnh sửa và đính kèm báo cáo" style="padding:9px 14px;border-radius:10px;border:1px solid #1e40af;background:#1e40af;color:white;font-family:inherit;font-size:.86rem;font-weight:600;cursor:pointer;white-space:nowrap">📄 Tải Word</button>
     </div>
     <div id="catalogBody" style="flex:1;overflow-y:auto;padding:20px 24px"></div>
     <div style="padding:12px 24px;border-top:1px solid #eef2ef;text-align:center;font-size:.78rem;color:#8a9690;flex-shrink:0">
@@ -994,437 +1013,6 @@
 </script>
 
 </div><!-- /#view-hoso -->
-
-
-<!-- ===== VIEW QUẢN LÝ CHẤT LƯỢNG (TT 27/2020) — mặc định ẩn, show qua showQlcl() ===== -->
-<div id="view-qlcl">
-  <div class="ql-app">
-    <!-- Topbar -->
-    <div class="ql-topbar">
-      <button class="ql-back" onclick="showHoso();return false;">← Trang chủ</button>
-      <div class="ql-brand">📊 <span>Quản lý Chất lượng</span></div>
-      <span class="ql-school-pill" id="qlSchoolPill"><span>Trường…</span></span>
-      <span class="ql-school-pill" id="qlYearPill"><span>2025-2026</span></span>
-      <div class="ql-spacer"></div>
-      <button class="ql-role-pill" id="qlRolePill" onclick="qlOpenRoleModal()" title="Đổi vai trò làm việc">🛡 BGH</button>
-    </div>
-
-    <!-- Workspace tabs -->
-    <div class="ql-tabs">
-      <button class="ql-tab active" data-ws="diem"    onclick="qlSwitchWS('diem')">📥 Nhập điểm <span class="ql-tab-badge" id="qlBadgeDiem">0</span></button>
-      <button class="ql-tab"        data-ws="nx"      onclick="qlSwitchWS('nx')">💬 Nhận xét <span class="ql-tab-badge" id="qlBadgeNX">0</span></button>
-      <button class="ql-tab"        data-ws="nlpc"    onclick="qlSwitchWS('nlpc')">🏆 Năng lực &amp; Phẩm chất</button>
-      <button class="ql-tab"        data-ws="xeploai" onclick="qlSwitchWS('xeploai')">⭐ Xếp loại cuối năm</button>
-      <button class="ql-tab"        data-ws="hocba"   onclick="qlSwitchWS('hocba')">📄 Học bạ</button>
-      <button class="ql-tab"        data-ws="bangtong" onclick="qlSwitchWS('bangtong')">🗒 Bảng tổng hợp</button>
-      <button class="ql-tab"        data-ws="dashboard" onclick="qlSwitchWS('dashboard')">📊 Báo cáo</button>
-      <button class="ql-tab"        data-ws="phancong" onclick="qlSwitchWS('phancong')">👥 Phân công</button>
-      <button class="ql-tab"        data-ws="chunhiem" onclick="qlSwitchWS('chunhiem')">📔 Sổ chủ nhiệm</button>
-      <button class="ql-tab"        data-ws="audit" onclick="qlSwitchWS('audit')">📋 Lịch sử</button>
-    </div>
-
-    <!-- Main content -->
-    <div class="ql-main">
-      <!-- Workspace 1: Nhập điểm -->
-      <div class="ql-ws" data-ws="diem">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlfNamHoc"></select></div>
-            <div class="ql-filter"><label>Lớp</label><select id="qlfLop"></select></div>
-            <div class="ql-filter"><label>Môn học</label><select id="qlfMon"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-out" onclick="qlReloadDiem()" title="Tải lại từ Sheet">🔄 Tải lại</button>
-              <button class="ql-btn ql-btn-out" onclick="qlImportDiemExcelOpen()" title="Nhập điểm từ file Excel">📥 Nhập Excel</button>
-              <button class="ql-btn ql-btn-out" onclick="qlDownloadDiemTemplate()" title="Tải mẫu Excel cho lớp+môn hiện tại">📄 Tải mẫu</button>
-              <input type="file" id="qlDiemExcelFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="qlImportDiemExcelHandle(this.files[0])">
-              <button class="ql-btn ql-btn-pri" onclick="qlSaveDiem()" id="qlBtnSaveDiem">💾 Lưu lên Sheet</button>
-            </div>
-          </div>
-          <div class="ql-page-head">
-            <div class="ql-page-title" id="qlDiemTitle">Bảng điểm định kỳ</div>
-            <div style="font-size:.78rem;color:#6b7280" id="qlDiemHint">Theo TT 27/2020/TT-BGDĐT — thang điểm 10, không thập phân</div>
-          </div>
-          <div class="ql-grid-wrap" id="qlDiemGridWrap">
-            <div class="ql-empty"><div class="ql-empty-icon">📊</div>Chọn lớp và môn học để bắt đầu nhập điểm.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 2: Nhận xét thường xuyên -->
-      <div class="ql-ws" data-ws="nx" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlnxNamHoc"></select></div>
-            <div class="ql-filter"><label>Lớp</label><select id="qlnxLop"></select></div>
-            <div class="ql-filter"><label>Môn học</label><select id="qlnxMon"></select></div>
-            <div class="ql-filter"><label>Học kỳ</label><select id="qlnxHK"><option value="HK1">HK1</option><option value="HK2">HK2</option></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-out" onclick="qlReloadNX()">🔄 Tải lại</button>
-              <button class="ql-btn ql-btn-pri" onclick="qlSaveNX()">💾 Lưu</button>
-            </div>
-          </div>
-          <div class="ql-page-head">
-            <div class="ql-page-title">Nhận xét thường xuyên</div>
-            <div style="font-size:.78rem;color:#6b7280">3 mức: Hoàn thành tốt (HTT) · Hoàn thành (HT) · Chưa hoàn thành (CHT)</div>
-          </div>
-          <div class="ql-grid-wrap" id="qlNXGridWrap">
-            <div class="ql-empty"><div class="ql-empty-icon">💬</div>Chọn lớp + môn + học kỳ để nhận xét.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 3: Năng lực + Phẩm chất -->
-      <div class="ql-ws" data-ws="nlpc" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlnlpcNamHoc"></select></div>
-            <div class="ql-filter"><label>Lớp</label><select id="qlnlpcLop"></select></div>
-            <div class="ql-filter"><label>Học kỳ</label><select id="qlnlpcHK"><option value="HK1">HK1</option><option value="HK2">HK2</option></select></div>
-            <div class="ql-filter"><label>Học sinh</label><select id="qlnlpcHS"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-pri" onclick="qlSaveNLPC()">💾 Lưu</button>
-            </div>
-          </div>
-          <div class="ql-page-body">
-            <div class="ql-nlpc-list" id="qlNLPCBody">
-              <div class="ql-empty"><div class="ql-empty-icon">🏆</div>Chọn học sinh để đánh giá năng lực và phẩm chất.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 4: Xếp loại cuối năm -->
-      <div class="ql-ws" data-ws="xeploai" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlxlNamHoc"></select></div>
-            <div class="ql-filter"><label>Lớp</label><select id="qlxlLop"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-warn" onclick="qlAutoXepLoai()" title="Tự động đề xuất xếp loại từ điểm + nhận xét">✨ Tự động đề xuất</button>
-              <button class="ql-btn ql-btn-pri" onclick="qlSaveXepLoai()">💾 Lưu</button>
-            </div>
-          </div>
-          <div class="ql-page-head">
-            <div class="ql-page-title">Xếp loại cuối năm — TT 27/2020</div>
-            <div style="font-size:.78rem;color:#6b7280">4 mức: Hoàn thành xuất sắc · Hoàn thành tốt · Hoàn thành · Chưa hoàn thành</div>
-          </div>
-          <div class="ql-grid-wrap" id="qlXepLoaiWrap">
-            <div class="ql-empty"><div class="ql-empty-icon">⭐</div>Chọn lớp để xếp loại cuối năm.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 5: Học bạ -->
-      <div class="ql-ws" data-ws="hocba" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlhbNamHoc"></select></div>
-            <div class="ql-filter"><label>Lớp</label><select id="qlhbLop"></select></div>
-            <div class="ql-filter"><label>Học sinh</label><select id="qlhbHS"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-warn" onclick="qlAIHocBa(false)" title="AI sinh Nhận xét chung cho học sinh đang chọn (dựa trên điểm + NL/PC)">✨ AI nhận xét HS</button>
-              <button class="ql-btn ql-btn-warn" onclick="qlAIHocBa(true)" title="Chạy AI lần lượt cho tất cả HS trong lớp — có thể mất 1-2 phút">🤖 AI cả lớp</button>
-              <button class="ql-btn ql-btn-out" onclick="qlExportHocBa('doc',false)">📄 Xuất 1 HS .doc</button>
-              <button class="ql-btn ql-btn-out" onclick="qlExportHocBa('html',false)">🖨 In trực tiếp</button>
-              <button class="ql-btn ql-btn-pri" onclick="qlExportHocBa('doc',true)">📚 Xuất cả lớp .doc</button>
-            </div>
-          </div>
-          <div class="ql-page-head">
-            <div class="ql-page-title">📄 Học bạ số</div>
-          </div>
-          <div class="ql-page-body">
-            <div id="qlHocBaPreview" style="border:1px solid #e5e7eb;border-radius:8px;padding:18px;background:#fff;font-family:'Times New Roman',serif">
-              <div class="ql-empty"><div class="ql-empty-icon">📄</div>Chọn lớp + học sinh để xem trước học bạ.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace BẢNG TỔNG HỢP — mega-grid kiểu CSDL ngành Bộ GDĐT -->
-      <div class="ql-ws" data-ws="bangtong" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlbtNamHoc"></select></div>
-            <div class="ql-filter"><label>Lớp</label><select id="qlbtLop"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-out" onclick="qlReloadBangTong()">🔄 Tải lại</button>
-              <button class="ql-btn ql-btn-pri" onclick="qlSaveBangTong()" id="qlBtnSaveBangTong">💾 Lưu tất cả</button>
-            </div>
-          </div>
-          <div class="ql-page-head">
-            <div class="ql-page-title">🗒 Bảng tổng hợp đánh giá học sinh — chuẩn CSDL ngành</div>
-            <div style="font-size:.78rem;color:#6b7280">1 dòng = 1 HS · Mọi môn + NL/PC + Xếp loại trên cùng 1 bảng · Cuộn ngang để xem hết</div>
-          </div>
-          <div class="ql-grid-wrap" id="qlBangTongWrap" style="max-height:74vh;overflow:auto">
-            <div class="ql-empty"><div class="ql-empty-icon">🗒</div>Chọn lớp để mở bảng tổng hợp.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 6: Dashboard báo cáo -->
-      <div class="ql-ws" data-ws="dashboard" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qldashNamHoc"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-out" onclick="qlReloadDashboard()">🔄 Cập nhật</button>
-              <button class="ql-btn ql-btn-out" onclick="qlExportReport()">📊 Xuất Excel</button>
-              <button class="ql-btn ql-btn-pri" onclick="qlExportCSDLNganh()" title="Cần file mẫu của Bộ GDĐT" disabled>📤 Xuất CSDL ngành (đợi mẫu)</button>
-            </div>
-          </div>
-          <div class="ql-page-body">
-            <div class="ql-stats" id="qlDashStats"></div>
-            <div class="ql-dash-grid">
-              <div class="ql-page" style="margin:0">
-                <div class="ql-page-head"><div class="ql-page-title">Phân bố xếp loại</div></div>
-                <div class="ql-page-body" id="qlDashXL">—</div>
-              </div>
-              <div class="ql-page" style="margin:0">
-                <div class="ql-page-head"><div class="ql-page-title">Top 10 môn TB thấp</div></div>
-                <div class="ql-page-body" id="qlDashBottom">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 7: Phân công -->
-      <div class="ql-ws" data-ws="phancong" style="display:none">
-        <div class="ql-page">
-          <div class="ql-filters">
-            <div class="ql-filter"><label>Năm học</label><select id="qlpcNamHoc"></select></div>
-            <div class="ql-filter-actions">
-              <button class="ql-btn ql-btn-out" onclick="qlAddPhanCong()">➕ Thêm phân công</button>
-              <button class="ql-btn ql-btn-pri" onclick="qlSavePhanCong()">💾 Lưu tất cả</button>
-            </div>
-          </div>
-          <div class="ql-page-head">
-            <div class="ql-page-title">Phân công giảng dạy</div>
-            <div style="font-size:.78rem;color:#6b7280">GVCN có quyền nhận xét + xếp loại lớp · GVBM nhập điểm + nhận xét môn</div>
-          </div>
-          <div class="ql-grid-wrap" id="qlPhanCongWrap">
-            <div class="ql-empty"><div class="ql-empty-icon">👥</div>Chưa có phân công nào. Bấm "Thêm phân công" để bắt đầu.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Workspace 8: Audit log -->
-      <!-- ⭐ WS: SỔ CHỦ NHIỆM (workspace #10) — 3 sub-tab: Điểm danh / Vi phạm / Hoạt động -->
-      <div class="ql-ws" data-ws="chunhiem" style="display:none">
-        <div class="ql-page">
-          <div class="ql-page-head">
-            <div class="ql-page-title">📔 Sổ chủ nhiệm <span style="font-size:.78rem;color:#6b7280;font-weight:400">— Theo Điều lệ Trường tiểu học</span></div>
-            <button class="ql-btn ql-btn-out" onclick="qlCNReload()">🔄 Tải lại</button>
-          </div>
-
-          <!-- Bộ lọc lớp + 4 ô số liệu nhanh -->
-          <div class="ql-toolbar" style="margin-bottom:14px">
-            <select id="qlCNLop" onchange="qlCNReload()" style="min-width:160px"></select>
-            <span style="color:#6b7280;font-size:.86rem">Tháng <b id="qlCNThang">…</b></span>
-          </div>
-
-          <div id="qlCNStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
-            <div class="ql-stat-card" style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 14px;border-radius:8px">
-              <div style="font-size:.74rem;color:#15803d;font-weight:600;letter-spacing:.02em">CÓ MẶT (THÁNG)</div>
-              <div style="font-size:1.5rem;font-weight:700;color:#15803d" id="qlCNStatP">0</div>
-            </div>
-            <div class="ql-stat-card" style="background:#fef3c7;border-left:3px solid #d97706;padding:12px 14px;border-radius:8px">
-              <div style="font-size:.74rem;color:#a16207;font-weight:600;letter-spacing:.02em">NGHỈ + ĐI MUỘN</div>
-              <div style="font-size:1.5rem;font-weight:700;color:#a16207" id="qlCNStatNghi">0</div>
-            </div>
-            <div class="ql-stat-card" style="background:#fee2e2;border-left:3px solid #dc2626;padding:12px 14px;border-radius:8px">
-              <div style="font-size:.74rem;color:#b91c1c;font-weight:600;letter-spacing:.02em">VI PHẠM (THÁNG)</div>
-              <div style="font-size:1.5rem;font-weight:700;color:#b91c1c" id="qlCNStatVP">0</div>
-            </div>
-            <div class="ql-stat-card" style="background:#e0e7ff;border-left:3px solid #4f46e5;padding:12px 14px;border-radius:8px">
-              <div style="font-size:.74rem;color:#4338ca;font-weight:600;letter-spacing:.02em">HOẠT ĐỘNG (THÁNG)</div>
-              <div style="font-size:1.5rem;font-weight:700;color:#4338ca" id="qlCNStatHD">0</div>
-            </div>
-          </div>
-
-          <!-- Sub-tabs -->
-          <div style="display:flex;gap:6px;border-bottom:2px solid #e5e7eb;margin-bottom:14px;flex-wrap:wrap">
-            <button class="ql-cn-subtab active" data-sub="diemdanh" onclick="qlCNSwitchSub('diemdanh')" style="padding:9px 18px;background:transparent;border:0;border-bottom:3px solid transparent;cursor:pointer;font-weight:500;font-size:.92rem;color:#374151;margin-bottom:-2px">📅 Điểm danh hàng ngày</button>
-            <button class="ql-cn-subtab" data-sub="vipham" onclick="qlCNSwitchSub('vipham')" style="padding:9px 18px;background:transparent;border:0;border-bottom:3px solid transparent;cursor:pointer;font-weight:500;font-size:.92rem;color:#374151;margin-bottom:-2px">⚠️ Vi phạm nề nếp</button>
-            <button class="ql-cn-subtab" data-sub="hoatdong" onclick="qlCNSwitchSub('hoatdong')" style="padding:9px 18px;background:transparent;border:0;border-bottom:3px solid transparent;cursor:pointer;font-weight:500;font-size:.92rem;color:#374151;margin-bottom:-2px">🎉 Hoạt động lớp</button>
-          </div>
-
-          <!-- SUB 1: ĐIỂM DANH -->
-          <div class="ql-cn-sub" data-sub="diemdanh">
-            <div class="ql-toolbar" style="margin-bottom:12px">
-              <label style="font-size:.86rem;color:#374151;font-weight:500">Ngày:</label>
-              <input type="date" id="qlCNDDNgay" style="padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-family:inherit">
-              <button class="ql-btn ql-btn-out" onclick="qlCNDDLoadByDate()">📥 Mở/tạo điểm danh</button>
-              <button class="ql-btn ql-btn-out" onclick="qlCNDDFillAll('P')" title="Đánh dấu tất cả CÓ MẶT">✅ Tất cả có mặt</button>
-              <span style="flex:1"></span>
-              <button class="ql-btn ql-btn-primary" id="qlCNDDSaveBtn" onclick="qlCNDDSave()" style="display:none">💾 Lưu điểm danh</button>
-            </div>
-            <div id="qlCNDDWrap">
-              <div class="ql-empty"><div class="ql-empty-icon">📅</div>Chọn ngày và nhấn "Mở/tạo điểm danh" để bắt đầu.</div>
-            </div>
-          </div>
-
-          <!-- SUB 2: VI PHẠM -->
-          <div class="ql-cn-sub" data-sub="vipham" style="display:none">
-            <div class="ql-toolbar" style="margin-bottom:12px">
-              <button class="ql-btn ql-btn-primary" onclick="qlCNVPOpenForm()">➕ Ghi nhận vi phạm</button>
-              <span style="flex:1"></span>
-              <span style="font-size:.84rem;color:#6b7280">Tổng: <b id="qlCNVPTotal">0</b> · Nhẹ: <b id="qlCNVPNhe" style="color:#a16207">0</b> · Nặng: <b id="qlCNVPNang" style="color:#b91c1c">0</b></span>
-            </div>
-            <div id="qlCNVPWrap">
-              <div class="ql-empty"><div class="ql-empty-icon">⚠️</div>Chưa có ghi nhận vi phạm nào.</div>
-            </div>
-          </div>
-
-          <!-- SUB 3: HOẠT ĐỘNG -->
-          <div class="ql-cn-sub" data-sub="hoatdong" style="display:none">
-            <div class="ql-toolbar" style="margin-bottom:12px">
-              <button class="ql-btn ql-btn-primary" onclick="qlCNHDOpenForm()">➕ Thêm hoạt động</button>
-              <span style="flex:1"></span>
-              <span style="font-size:.84rem;color:#6b7280">Tổng: <b id="qlCNHDTotal">0</b> hoạt động</span>
-            </div>
-            <div id="qlCNHDWrap">
-              <div class="ql-empty"><div class="ql-empty-icon">🎉</div>Chưa có hoạt động nào.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="ql-ws" data-ws="audit" style="display:none">
-        <div class="ql-page">
-          <div class="ql-page-head">
-            <div class="ql-page-title">Lịch sử thao tác</div>
-            <button class="ql-btn ql-btn-out" onclick="qlReloadAudit()">🔄 Tải lại</button>
-          </div>
-          <div class="ql-grid-wrap" id="qlAuditWrap">
-            <div class="ql-empty"><div class="ql-empty-icon">📋</div>Chưa có hoạt động.</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div class="ql-toast" id="qlToast"></div>
-
-  <!-- Modal Đổi vai trò -->
-  <div class="ql-modal" id="qlRoleModal">
-    <div class="ql-modal-panel">
-      <div class="ql-modal-head"><h3>🛡 Chọn vai trò làm việc</h3><button class="ql-modal-close" onclick="qlCloseModal('qlRoleModal')">✕</button></div>
-      <div class="ql-modal-body">
-        <div class="ql-form-row"><label>Vai trò</label>
-          <select id="qlRoleSelect">
-            <option value="BGH">🛡 BGH (Ban giám hiệu) — Toàn quyền</option>
-            <option value="GVCN">👨‍🏫 GVCN (Chủ nhiệm lớp) — Nhận xét, NL/PC, Xếp loại lớp mình</option>
-            <option value="GVBM">📚 GVBM (Bộ môn) — Nhập điểm + nhận xét môn được phân công</option>
-          </select>
-        </div>
-        <div class="ql-form-row"><label>Tên/Mã GV (cho audit log)</label><input type="text" id="qlRoleUser" placeholder="VD: Nguyễn Văn An"></div>
-        <div class="ql-form-row" id="qlRoleClassRow" style="display:none"><label>Lớp chủ nhiệm</label><select id="qlRoleLop"></select></div>
-        <div style="font-size:.8rem;color:#6b7280;background:#f9fafb;padding:10px;border-radius:7px">
-          💡 Vai trò chỉ áp dụng cho phiên làm việc hiện tại để hỗ trợ phân quyền + audit. Mật khẩu Admin của Hồ sơ số vẫn quản lý truy cập tổng.
-        </div>
-      </div>
-      <div class="ql-modal-foot">
-        <button class="ql-btn ql-btn-out" onclick="qlCloseModal('qlRoleModal')">Hủy</button>
-        <button class="ql-btn ql-btn-pri" onclick="qlApplyRole()">Áp dụng</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Nhận xét chi tiết (popup khi click 💬 trong grid điểm) -->
-  <div class="ql-modal" id="qlNXModal">
-    <div class="ql-modal-panel">
-      <div class="ql-modal-head"><h3 id="qlNXModalTitle">Nhận xét</h3><button class="ql-modal-close" onclick="qlCloseModal('qlNXModal')">✕</button></div>
-      <div class="ql-modal-body">
-        <div class="ql-form-row"><label>Mức đánh giá</label>
-          <div class="ql-nlpc-radio" style="width:fit-content">
-            <label><input type="radio" name="qlnxmuc" value="HTT"><span>Hoàn thành tốt</span></label>
-            <label><input type="radio" name="qlnxmuc" value="HT"><span>Hoàn thành</span></label>
-            <label><input type="radio" name="qlnxmuc" value="CHT"><span>Chưa hoàn thành</span></label>
-          </div>
-        </div>
-        <div class="ql-form-row"><label>Nhận xét cụ thể</label><textarea id="qlNXText" placeholder="Nhập nhận xét…"></textarea></div>
-        <div class="ql-form-row" style="margin-bottom:0"><button class="ql-btn ql-btn-out" onclick="qlAISuggestNX()" style="width:fit-content">💡 Gợi ý AI Gemini</button></div>
-      </div>
-      <div class="ql-modal-foot">
-        <button class="ql-btn ql-btn-out" onclick="qlCloseModal('qlNXModal')">Hủy</button>
-        <button class="ql-btn ql-btn-pri" onclick="qlSaveNXModal()">Lưu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ⭐ Modal: Ghi nhận vi phạm -->
-  <div class="ql-modal" id="qlVPModal">
-    <div class="ql-modal-panel">
-      <div class="ql-modal-head"><h3>⚠️ Ghi nhận vi phạm</h3><button class="ql-modal-close" onclick="qlCloseModal('qlVPModal')">✕</button></div>
-      <div class="ql-modal-body">
-        <div class="ql-form-row"><label>Học sinh</label>
-          <select id="qlVPMaHS"></select>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="ql-form-row"><label>Ngày</label><input type="date" id="qlVPNgay"></div>
-          <div class="ql-form-row"><label>Mức độ</label>
-            <select id="qlVPMucDo">
-              <option value="Nhe">Nhẹ</option>
-              <option value="Nang">Nặng</option>
-            </select>
-          </div>
-        </div>
-        <div class="ql-form-row"><label>Loại vi phạm</label>
-          <select id="qlVPLoai">
-            <option value="">— Chọn loại —</option>
-            <option value="Đi học muộn">Đi học muộn</option>
-            <option value="Không học bài">Không học bài / không làm bài tập</option>
-            <option value="Quên đồ dùng">Quên sách vở / đồ dùng học tập</option>
-            <option value="Mất trật tự">Mất trật tự trong giờ học</option>
-            <option value="Đánh bạn">Đánh bạn / xô xát</option>
-            <option value="Nói tục">Nói tục, chửi bậy</option>
-            <option value="Vứt rác">Vứt rác bừa bãi</option>
-            <option value="Vắng học không phép">Vắng học không phép</option>
-            <option value="Khac">Khác (ghi rõ ở Mô tả)</option>
-          </select>
-        </div>
-        <div class="ql-form-row"><label>Mô tả chi tiết</label><textarea id="qlVPMoTa" placeholder="VD: Em A đẩy bạn B trong giờ ra chơi…" style="min-height:60px"></textarea></div>
-        <div class="ql-form-row" style="margin-bottom:0"><label>Hình thức xử lý</label><textarea id="qlVPXuLy" placeholder="VD: Nhắc nhở trước lớp, mời PH gặp GVCN…" style="min-height:50px"></textarea></div>
-      </div>
-      <div class="ql-modal-foot">
-        <button class="ql-btn ql-btn-out" onclick="qlCloseModal('qlVPModal')">Hủy</button>
-        <button class="ql-btn ql-btn-pri" onclick="qlCNVPSave()">Lưu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ⭐ Modal: Thêm hoạt động lớp -->
-  <div class="ql-modal" id="qlHDModal">
-    <div class="ql-modal-panel">
-      <div class="ql-modal-head"><h3>🎉 Thêm hoạt động lớp</h3><button class="ql-modal-close" onclick="qlCloseModal('qlHDModal')">✕</button></div>
-      <div class="ql-modal-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="ql-form-row"><label>Ngày</label><input type="date" id="qlHDNgay"></div>
-          <div class="ql-form-row"><label>Loại</label>
-            <select id="qlHDLoai">
-              <option value="SinhHoat">Sinh hoạt lớp</option>
-              <option value="ChaoCo">Chào cờ đầu tuần</option>
-              <option value="NgoaiKhoa">Ngoại khoá / Dã ngoại</option>
-              <option value="Khac">Khác</option>
-            </select>
-          </div>
-        </div>
-        <div class="ql-form-row"><label>Chủ đề</label><input type="text" id="qlHDChuDe" placeholder="VD: Tổng kết tuần 8 — Phát động phong trào đọc sách"></div>
-        <div class="ql-form-row"><label>Nội dung</label><textarea id="qlHDNoiDung" placeholder="VD: GVCN nhận xét nề nếp tuần qua. Tuyên dương các em…" style="min-height:80px"></textarea></div>
-        <div class="ql-form-row"><label>Kết luận / Hướng tới</label><textarea id="qlHDKetLuan" placeholder="VD: Tuần tới: thi đua sạch lớp, đi học đúng giờ" style="min-height:50px"></textarea></div>
-        <div class="ql-form-row" style="margin-bottom:0"><label>Số HS tham gia</label><input type="number" id="qlHDSoHS" min="0" placeholder="VD: 32" style="width:120px"></div>
-      </div>
-      <div class="ql-modal-foot">
-        <button class="ql-btn ql-btn-out" onclick="qlCloseModal('qlHDModal')">Hủy</button>
-        <button class="ql-btn ql-btn-pri" onclick="qlCNHDSave()">Lưu</button>
-      </div>
-    </div>
-  </div>
-
-</div>
 
 <!-- ===== VIEW KĐCL (TĐG Tiểu học) — mặc định ẩn, show qua showKdcl() ===== -->
 <div id="view-kdcl">
@@ -7248,15 +6836,18 @@ function LoginModal({ schoolName, onSuccess, onGuest, onClose }) {
           {err && <div className="login-err">{err}</div>}
           <div className="field">
             <label>Mật khẩu admin</label>
-            <input
-              ref={inputRef}
-              type="password"
-              value={password}
-              onChange={e => { setPassword(e.target.value); setErr(''); }}
-              placeholder="Nhập mật khẩu…"
-              autoComplete="current-password"
-              disabled={submitting}
-            />
+            <span className="pw-wrap">
+              <input
+                ref={inputRef}
+                type="password"
+                value={password}
+                onChange={e => { setPassword(e.target.value); setErr(''); }}
+                placeholder="Nhập mật khẩu…"
+                autoComplete="current-password"
+                disabled={submitting}
+              />
+              <button type="button" className="pw-eye" onClick={e=>{const i=e.currentTarget.previousElementSibling;i.type=i.type==='password'?'text':'password';e.currentTarget.textContent=i.type==='password'?'👁':'🙈';}} title="Hiện/ẩn mật khẩu" tabIndex={-1}>👁</button>
+            </span>
           </div>
           <label className="login-remember">
             <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} disabled={submitting}/>
@@ -7340,16 +6931,16 @@ function PasswordSetupModal({ currentHash, onSave, onClose }) {
           {isChanging && (
             <div className="field">
               <label>Mật khẩu hiện tại <span className="req">*</span></label>
-              <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} placeholder="Nhập mật khẩu hiện tại để xác thực" autoComplete="current-password" disabled={submitting}/>
+              <span className="pw-wrap"><input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} placeholder="Nhập mật khẩu hiện tại để xác thực" autoComplete="current-password" disabled={submitting}/><button type="button" className="pw-eye" onClick={e=>{const i=e.currentTarget.previousElementSibling;i.type=i.type==='password'?'text':'password';e.currentTarget.textContent=i.type==='password'?'👁':'🙈';}} title="Hiện/ẩn mật khẩu" tabIndex={-1}>👁</button></span>
             </div>
           )}
           <div className="field">
             <label>Mật khẩu mới <span className="req">*</span></label>
-            <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Tối thiểu 4 ký tự" autoComplete="new-password" disabled={submitting}/>
+            <span className="pw-wrap"><input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Tối thiểu 4 ký tự" autoComplete="new-password" disabled={submitting}/><button type="button" className="pw-eye" onClick={e=>{const i=e.currentTarget.previousElementSibling;i.type=i.type==='password'?'text':'password';e.currentTarget.textContent=i.type==='password'?'👁':'🙈';}} title="Hiện/ẩn mật khẩu" tabIndex={-1}>👁</button></span>
           </div>
           <div className="field">
             <label>Nhập lại mật khẩu mới <span className="req">*</span></label>
-            <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="Gõ lại đúng mật khẩu mới" autoComplete="new-password" disabled={submitting}/>
+            <span className="pw-wrap"><input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} placeholder="Gõ lại đúng mật khẩu mới" autoComplete="new-password" disabled={submitting}/><button type="button" className="pw-eye" onClick={e=>{const i=e.currentTarget.previousElementSibling;i.type=i.type==='password'?'text':'password';e.currentTarget.textContent=i.type==='password'?'👁':'🙈';}} title="Hiện/ẩn mật khẩu" tabIndex={-1}>👁</button></span>
           </div>
           <div style={{padding:10,background:'#fef3c7',border:'1px solid #fde68a',borderRadius:8,fontSize:12,color:'#92400e',lineHeight:1.6}}>
             ⚠ <b>Lưu ý</b>: Mật khẩu không thể khôi phục nếu quên. Hãy ghi nhớ hoặc lưu ở nơi an toàn.
@@ -7482,6 +7073,6 @@ else boot();
 
 
 <!-- ⭐ Logic JS chính — tách ra để cache hiệu quả + dễ maintain (Refactor 2026-05-05) -->
-<script src="app.js?v=2026.05.08-dshs-auto" defer></script>
+<script src="app.js?v=2026.05.10-qlcl-v1-cleanup" defer></script>
 </body>
 </html>

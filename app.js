@@ -153,7 +153,7 @@
     }
     // ⭐ SSO mới: 2 ô tên đăng nhập + mật khẩu (cùng giao diện cho cả GV & Admin)
     if (labelU) { labelU.textContent = 'Tên đăng nhập'; labelU.style.display = ''; }
-    if (inpU)   { inpU.placeholder = 'VD: trinh2026, khue2026...'; inpU.type = 'text'; }
+    if (inpU)   { inpU.placeholder = 'Nhập tên đăng nhập'; inpU.type = 'text'; inpU.setAttribute('autocomplete','off'); inpU.setAttribute('autocapitalize','off'); inpU.setAttribute('autocorrect','off'); inpU.setAttribute('spellcheck','false'); }
     if (labelP) { labelP.textContent = 'Mật khẩu'; labelP.style.display = ''; }
     if (inpP)   { inpP.style.display = ''; inpP.value = ''; }
     if (hint)   {
@@ -290,105 +290,106 @@
     /* Đã xoá 95 MC mẫu. Trường mới tự nhập qua Admin → Excel. */
   ];
   const DEFAULT_MC_FULL = [
-  {stt:1,tc:"TC1",tchi:"1.1",code:"[1.1-01]",name:"KH chiến lược phát triển nhà trường",issued:"",issuer:"",hssCode:"1.1.2",link:"",note:""},
-  {stt:2,tc:"TC1",tchi:"1.1",code:"[1.1-02]",name:"KH giáo dục nhà trường hàng năm",issued:"",issuer:"",hssCode:"1.1.1",link:"",note:""},
-  {stt:3,tc:"TC1",tchi:"1.1",code:"[1.1-03]",name:"NQ Đại hội Đảng bộ/Chi bộ về phát triển NT",issued:"",issuer:"",hssCode:"6.1",link:"",note:""},
-  {stt:4,tc:"TC1",tchi:"1.1",code:"[1.1-04]",name:"NQ Hội đồng trường về chiến lược phát triển",issued:"",issuer:"",hssCode:"1.2.1",link:"",note:""},
-  {stt:5,tc:"TC1",tchi:"1.1",code:"[1.1-05]",name:"BB rà soát chiến lược phát triển NT",issued:"",issuer:"",hssCode:"1.10.1",link:"",note:""},
-  {stt:6,tc:"TC1",tchi:"1.1",code:"[1.1-06]",name:"KH duy trì XD trường chuẩn Quốc gia",issued:"",issuer:"",hssCode:"1.1.3",link:"",note:""},
-  {stt:7,tc:"TC1",tchi:"1.1",code:"[1.1-07]",name:"BC tiến độ XD trường chuẩn Quốc gia",issued:"",issuer:"",hssCode:"1.10.3",link:"",note:""},
-  {stt:8,tc:"TC1",tchi:"1.1",code:"[1.1-08]",name:"BB họp HĐ trường, hội nghị VC-NLĐ",issued:"",issuer:"",hssCode:"1.7.3",link:"",note:""},
-  {stt:9,tc:"TC1",tchi:"1.1",code:"[1.1-09]",name:"BC sơ kết, tổng kết năm học",issued:"",issuer:"",hssCode:"1.10.1",link:"",note:""},
-  {stt:10,tc:"TC1",tchi:"1.2",code:"[1.2-01]",name:"QĐ thành lập Hội đồng trường",issued:"",issuer:"",hssCode:"1.4.2",link:"",note:""},
-  {stt:11,tc:"TC1",tchi:"1.2",code:"[1.2-02]",name:"QĐ thành lập HĐ TĐ-KT",issued:"",issuer:"",hssCode:"1.4.2",link:"",note:""},
-  {stt:12,tc:"TC1",tchi:"1.2",code:"[1.2-03]",name:"QĐ thành lập HĐ chấm SKKN",issued:"",issuer:"",hssCode:"1.4.2",link:"",note:""},
-  {stt:13,tc:"TC1",tchi:"1.2",code:"[1.2-04]",name:"NQ của Hội đồng trường",issued:"",issuer:"",hssCode:"1.2.2",link:"",note:""},
-  {stt:14,tc:"TC1",tchi:"1.2",code:"[1.2-05]",name:"BB họp các Hội đồng",issued:"",issuer:"",hssCode:"1.7.3",link:"",note:""},
-  {stt:15,tc:"TC1",tchi:"1.2",code:"[1.2-06]",name:"QC hoạt động Hội đồng trường",issued:"",issuer:"",hssCode:"1.3.3",link:"",note:""},
-  {stt:16,tc:"TC1",tchi:"1.3",code:"[1.3-01]",name:"NQ Chi bộ các tháng, năm",issued:"",issuer:"",hssCode:"6.1",link:"",note:""},
-  {stt:17,tc:"TC1",tchi:"1.3",code:"[1.3-02]",name:"BB họp Chi ủy, Chi bộ",issued:"",issuer:"",hssCode:"6.3",link:"",note:""},
-  {stt:18,tc:"TC1",tchi:"1.3",code:"[1.3-03]",name:"BC hoạt động Chi bộ",issued:"",issuer:"",hssCode:"6.4",link:"",note:""},
-  {stt:19,tc:"TC1",tchi:"1.3",code:"[1.3-04]",name:"KH hoạt động Công đoàn",issued:"",issuer:"",hssCode:"1.7.1",link:"",note:""},
-  {stt:20,tc:"TC1",tchi:"1.3",code:"[1.3-05]",name:"KH hoạt động Đội, Sao nhi đồng",issued:"",issuer:"",hssCode:"7.1",link:"",note:""},
-  {stt:21,tc:"TC1",tchi:"1.3",code:"[1.3-06]",name:"BB, BC hoạt động Đội",issued:"",issuer:"",hssCode:"7.2",link:"",note:""},
-  {stt:22,tc:"TC1",tchi:"1.4",code:"[1.4-01]",name:"QĐ bổ nhiệm HT, PHT",issued:"",issuer:"",hssCode:"1.4.1",link:"",note:""},
-  {stt:23,tc:"TC1",tchi:"1.4",code:"[1.4-02]",name:"QĐ thành lập Tổ CM, Tổ VP",issued:"",issuer:"",hssCode:"1.7.1",link:"",note:""},
-  {stt:24,tc:"TC1",tchi:"1.4",code:"[1.4-03]",name:"QĐ phân công nhiệm vụ CB, GV, NV",issued:"",issuer:"",hssCode:"1.4.1",link:"",note:""},
-  {stt:25,tc:"TC1",tchi:"1.4",code:"[1.4-04]",name:"Sơ đồ tổ chức nhà trường",issued:"",issuer:"",hssCode:"1.7.1",link:"",note:""},
-  {stt:26,tc:"TC1",tchi:"1.4",code:"[1.4-05]",name:"KH & BB sinh hoạt chuyên môn",issued:"",issuer:"",hssCode:"3.2.1",link:"",note:""},
-  {stt:27,tc:"TC1",tchi:"1.4",code:"[1.4-06]",name:"Sổ ghi chép hoạt động Tổ CM",issued:"",issuer:"",hssCode:"3.2.3",link:"",note:""},
-  {stt:28,tc:"TC1",tchi:"1.5",code:"[1.5-01]",name:"KH bồi dưỡng CMNV cho CB, GV, NV",issued:"",issuer:"",hssCode:"2.2.2",link:"",note:""},
-  {stt:29,tc:"TC1",tchi:"1.5",code:"[1.5-02]",name:"Hồ sơ phát động thi đua",issued:"",issuer:"",hssCode:"1.8.1",link:"",note:""},
-  {stt:30,tc:"TC1",tchi:"1.5",code:"[1.5-03]",name:"Hồ sơ xét khen thưởng GV, NV",issued:"",issuer:"",hssCode:"1.8.2",link:"",note:""},
-  {stt:31,tc:"TC1",tchi:"1.5",code:"[1.5-04]",name:"Hồ sơ SKKN",issued:"",issuer:"",hssCode:"1.8.4",link:"",note:""},
-  {stt:32,tc:"TC1",tchi:"1.5",code:"[1.5-05]",name:"QC TĐ-KT nội bộ",issued:"",issuer:"",hssCode:"1.3.2",link:"",note:""},
-  {stt:33,tc:"TC1",tchi:"1.5",code:"[1.5-06]",name:"KH kiểm tra nội bộ",issued:"",issuer:"",hssCode:"2.6.2",link:"",note:""},
-  {stt:34,tc:"TC1",tchi:"1.6",code:"[1.6-01]",name:"Sổ VB đến, VB đi",issued:"",issuer:"",hssCode:"4.1.1",link:"",note:""},
-  {stt:35,tc:"TC1",tchi:"1.6",code:"[1.6-02]",name:"QC chi tiêu nội bộ",issued:"",issuer:"",hssCode:"1.3.1",link:"",note:""},
-  {stt:36,tc:"TC1",tchi:"1.6",code:"[1.6-03]",name:"Công khai tài chính",issued:"",issuer:"",hssCode:"1.5.2",link:"",note:""},
-  {stt:37,tc:"TC1",tchi:"1.6",code:"[1.6-04]",name:"Dự toán, báo cáo quyết toán",issued:"",issuer:"",hssCode:"5.5",link:"",note:""},
-  {stt:38,tc:"TC1",tchi:"1.6",code:"[1.6-05]",name:"Sổ TSCĐ, sổ CC-DC",issued:"",issuer:"",hssCode:"1.6.2",link:"",note:""},
-  {stt:39,tc:"TC1",tchi:"1.6",code:"[1.6-06]",name:"BB kiểm kê tài sản",issued:"",issuer:"",hssCode:"1.6.4",link:"",note:""},
-  {stt:40,tc:"TC1",tchi:"1.6",code:"[1.6-07]",name:"QC dân chủ cơ sở",issued:"",issuer:"",hssCode:"1.3.1",link:"",note:""},
-  {stt:41,tc:"TC1",tchi:"1.6",code:"[1.6-08]",name:"Hồ sơ công khai theo TT36",issued:"",issuer:"",hssCode:"1.5.2",link:"",note:""},
-  {stt:42,tc:"TC2",tchi:"2.1",code:"[2.1-01]",name:"DS trích ngang CBGV-NV",issued:"",issuer:"",hssCode:"9.1.1",link:"",note:""},
-  {stt:43,tc:"TC2",tchi:"2.1",code:"[2.1-02]",name:"Hồ sơ viên chức & HĐLĐ",issued:"",issuer:"",hssCode:"1.7.2",link:"",note:""},
-  {stt:44,tc:"TC2",tchi:"2.1",code:"[2.1-03]",name:"Bảng tổng hợp trình độ GV",issued:"",issuer:"",hssCode:"9.1.1",link:"",note:""},
-  {stt:45,tc:"TC2",tchi:"2.1",code:"[2.1-04]",name:"BC thống kê đội ngũ",issued:"",issuer:"",hssCode:"1.10.2",link:"",note:""},
-  {stt:46,tc:"TC2",tchi:"2.2",code:"[2.2-01]",name:"KH bồi dưỡng thường xuyên",issued:"",issuer:"",hssCode:"2.2.2",link:"",note:""},
-  {stt:47,tc:"TC2",tchi:"2.2",code:"[2.2-02]",name:"Hồ sơ BDTX theo module",issued:"",issuer:"",hssCode:"9.1.3",link:"",note:""},
-  {stt:48,tc:"TC2",tchi:"2.2",code:"[2.2-03]",name:"Chứng chỉ, chứng nhận bồi dưỡng",issued:"",issuer:"",hssCode:"9.1.1",link:"",note:""},
-  {stt:49,tc:"TC2",tchi:"2.2",code:"[2.2-04]",name:"KH đào tạo nâng chuẩn GV",issued:"",issuer:"",hssCode:"2.2.2",link:"",note:""},
-  {stt:50,tc:"TC2",tchi:"2.3",code:"[2.3-01]",name:"Đánh giá CNN GV theo NĐ90",issued:"",issuer:"",hssCode:"9.1.2",link:"",note:""},
-  {stt:51,tc:"TC2",tchi:"2.3",code:"[2.3-02]",name:"Sổ dự giờ",issued:"",issuer:"",hssCode:"9.1.4",link:"",note:""},
-  {stt:52,tc:"TC2",tchi:"2.3",code:"[2.3-03]",name:"Hồ sơ thi GV dạy giỏi",issued:"",issuer:"",hssCode:"1.8.2",link:"",note:""},
-  {stt:53,tc:"TC2",tchi:"2.3",code:"[2.3-04]",name:"Kế hoạch bài dạy",issued:"",issuer:"",hssCode:"9.1.4",link:"",note:""},
-  {stt:54,tc:"TC2",tchi:"2.3",code:"[2.3-05]",name:"Hồ sơ SHCM theo NCBH",issued:"",issuer:"",hssCode:"3.2.1",link:"",note:""},
-  {stt:55,tc:"TC3",tchi:"3.1",code:"[3.1-01]",name:"Hồ sơ đất đai, XDCB",issued:"",issuer:"",hssCode:"1.6.1",link:"",note:""},
-  {stt:56,tc:"TC3",tchi:"3.1",code:"[3.1-02]",name:"Sơ đồ tổng thể khuôn viên NT",issued:"",issuer:"",hssCode:"1.6.1",link:"",note:""},
-  {stt:57,tc:"TC3",tchi:"3.1",code:"[3.1-03]",name:"KH mua sắm, sửa chữa CSVC",issued:"",issuer:"",hssCode:"1.5.3",link:"",note:""},
-  {stt:58,tc:"TC3",tchi:"3.1",code:"[3.1-04]",name:"BB kiểm tra CSVC, ANTH",issued:"",issuer:"",hssCode:"1.9.1",link:"",note:""},
-  {stt:59,tc:"TC3",tchi:"3.2",code:"[3.2-01]",name:"Danh mục phòng học, phòng CN",issued:"",issuer:"",hssCode:"1.6.2",link:"",note:""},
-  {stt:60,tc:"TC3",tchi:"3.2",code:"[3.2-02]",name:"BB bàn giao, cấp phát CSVC",issued:"",issuer:"",hssCode:"1.6.3",link:"",note:""},
-  {stt:61,tc:"TC3",tchi:"3.2",code:"[3.2-03]",name:"Hồ sơ PCCC, ANTH",issued:"",issuer:"",hssCode:"1.9.1",link:"",note:""},
-  {stt:62,tc:"TC3",tchi:"3.3",code:"[3.3-01]",name:"Hồ sơ thư viện, sổ sách TV",issued:"",issuer:"",hssCode:"4.2.1",link:"",note:""},
-  {stt:63,tc:"TC3",tchi:"3.3",code:"[3.3-02]",name:"Hồ sơ văn hóa đọc",issued:"",issuer:"",hssCode:"4.2.2",link:"",note:""},
-  {stt:64,tc:"TC3",tchi:"3.3",code:"[3.3-03]",name:"Danh mục TB dạy học, sổ mượn-trả",issued:"",issuer:"",hssCode:"4.3.1",link:"",note:""},
-  {stt:65,tc:"TC3",tchi:"3.3",code:"[3.3-04]",name:"KH mua sắm thiết bị",issued:"",issuer:"",hssCode:"4.3.2",link:"",note:""},
-  {stt:66,tc:"TC3",tchi:"3.3",code:"[3.3-05]",name:"Hồ sơ ứng dụng CNTT",issued:"",issuer:"",hssCode:"3.3.3",link:"",note:""},
-  {stt:67,tc:"TC4",tchi:"4.1",code:"[4.1-01]",name:"QĐ, QC Ban ĐDCMHS",issued:"",issuer:"",hssCode:"8.1.1",link:"",note:""},
-  {stt:68,tc:"TC4",tchi:"4.1",code:"[4.1-02]",name:"BB họp Ban ĐDCMHS",issued:"",issuer:"",hssCode:"8.1.2",link:"",note:""},
-  {stt:69,tc:"TC4",tchi:"4.1",code:"[4.1-03]",name:"KH phối hợp NT-GĐ",issued:"",issuer:"",hssCode:"8.1.2",link:"",note:""},
-  {stt:70,tc:"TC4",tchi:"4.2",code:"[4.2-01]",name:"Hồ sơ phối hợp ANTT, ATGT",issued:"",issuer:"",hssCode:"1.9.1",link:"",note:""},
-  {stt:71,tc:"TC4",tchi:"4.2",code:"[4.2-02]",name:"Hồ sơ phối hợp Y tế",issued:"",issuer:"",hssCode:"1.9.2",link:"",note:""},
-  {stt:72,tc:"TC4",tchi:"4.2",code:"[4.2-03]",name:"Hồ sơ phối hợp GD truyền thống",issued:"",issuer:"",hssCode:"1.9.3",link:"",note:""},
-  {stt:73,tc:"TC4",tchi:"4.2",code:"[4.2-04]",name:"Hồ sơ vận động XHH giáo dục",issued:"",issuer:"",hssCode:"1.9.3",link:"",note:""},
-  {stt:74,tc:"TC4",tchi:"4.2",code:"[4.2-05]",name:"Hồ sơ tham mưu cấp ủy, chính quyền",issued:"",issuer:"",hssCode:"1.9.3",link:"",note:""},
-  {stt:75,tc:"TC5",tchi:"5.1",code:"[5.1-01]",name:"KH dạy học theo CTGDPT 2018",issued:"",issuer:"",hssCode:"2.2.1",link:"",note:""},
-  {stt:76,tc:"TC5",tchi:"5.1",code:"[5.1-02]",name:"Thời khóa biểu, PC chuyên môn",issued:"",issuer:"",hssCode:"2.3.1",link:"",note:""},
-  {stt:77,tc:"TC5",tchi:"5.1",code:"[5.1-03]",name:"Sổ đăng bộ, học bạ HS",issued:"",issuer:"",hssCode:"2.1.1",link:"",note:""},
-  {stt:78,tc:"TC5",tchi:"5.1",code:"[5.1-04]",name:"KH môn học các khối",issued:"",issuer:"",hssCode:"3.1.1",link:"",note:""},
-  {stt:79,tc:"TC5",tchi:"5.1",code:"[5.1-05]",name:"Ma trận, đề KT định kỳ",issued:"",issuer:"",hssCode:"2.4.1",link:"",note:""},
-  {stt:80,tc:"TC5",tchi:"5.1",code:"[5.1-06]",name:"Tổng hợp KQGD",issued:"",issuer:"",hssCode:"2.4.2",link:"",note:""},
-  {stt:81,tc:"TC5",tchi:"5.1",code:"[5.1-07]",name:"Sổ Chủ nhiệm",issued:"",issuer:"",hssCode:"9.2.1",link:"",note:""},
-  {stt:82,tc:"TC5",tchi:"5.2",code:"[5.2-01]",name:"KH trải nghiệm, STEM, HĐNGLL",issued:"",issuer:"",hssCode:"2.2.3",link:"",note:""},
-  {stt:83,tc:"TC5",tchi:"5.2",code:"[5.2-02]",name:"KH GD địa phương",issued:"",issuer:"",hssCode:"2.2.5",link:"",note:""},
-  {stt:84,tc:"TC5",tchi:"5.2",code:"[5.2-03]",name:"Hình ảnh hoạt động NGLL",issued:"",issuer:"",hssCode:"7.3",link:"",note:""},
-  {stt:85,tc:"TC5",tchi:"5.2",code:"[5.2-04]",name:"Hồ sơ đổi mới PP, ứng dụng CNTT",issued:"",issuer:"",hssCode:"3.3.3",link:"",note:""},
-  {stt:86,tc:"TC5",tchi:"5.3",code:"[5.3-01]",name:"Tổng hợp KQ đánh giá HS",issued:"",issuer:"",hssCode:"2.4.2",link:"",note:""},
-  {stt:87,tc:"TC5",tchi:"5.3",code:"[5.3-02]",name:"DS khen thưởng HS",issued:"",issuer:"",hssCode:"2.4.3",link:"",note:""},
-  {stt:88,tc:"TC5",tchi:"5.3",code:"[5.3-03]",name:"Hồ sơ Hội thi HS giỏi",issued:"",issuer:"",hssCode:"2.4.2",link:"",note:""},
-  {stt:89,tc:"TC5",tchi:"5.3",code:"[5.3-04]",name:"KH phụ đạo HS chưa đạt, BD năng khiếu",issued:"",issuer:"",hssCode:"2.2.4",link:"",note:""},
-  {stt:90,tc:"TC5",tchi:"5.3",code:"[5.3-05]",name:"KH-VB Y tế, theo dõi SK HS",issued:"",issuer:"",hssCode:"4.4.1",link:"",note:""},
-  {stt:91,tc:"TC5",tchi:"5.4",code:"[5.4-01]",name:"VB chỉ đạo PCGD",issued:"",issuer:"",hssCode:"2.5.1",link:"",note:""},
-  {stt:92,tc:"TC5",tchi:"5.4",code:"[5.4-02]",name:"Hồ sơ PCGD (KH, BC, biểu mẫu)",issued:"",issuer:"",hssCode:"2.5.2",link:"",note:""},
-  {stt:93,tc:"TC5",tchi:"5.4",code:"[5.4-03]",name:"Sổ theo dõi HS chuyển đi/đến",issued:"",issuer:"",hssCode:"2.1.3",link:"",note:""},
-  {stt:94,tc:"TC5",tchi:"5.4",code:"[5.4-04]",name:"Hồ sơ HS khuyết tật hòa nhập",issued:"",issuer:"",hssCode:"2.1.4",link:"",note:""},
-  {stt:95,tc:"TC5",tchi:"5.4",code:"[5.4-05]",name:"Hồ sơ tuyển sinh vào lớp 1",issued:"",issuer:"",hssCode:"2.6.1",link:"",note:""}
+  {stt:1,tc:"TC1",tchi:"1.1",code:"[H1-1.1-01]",name:"KH chiến lược phát triển nhà trường",issued:"",issuer:"",hssCode:"1.1.2",link:"",note:""},
+  {stt:2,tc:"TC1",tchi:"1.1",code:"[H1-1.1-02]",name:"KH giáo dục nhà trường hàng năm",issued:"",issuer:"",hssCode:"1.1.1",link:"",note:""},
+  {stt:3,tc:"TC1",tchi:"1.1",code:"[H1-1.1-03]",name:"NQ Đại hội Đảng bộ/Chi bộ về phát triển NT",issued:"",issuer:"",hssCode:"6.1",link:"",note:""},
+  {stt:4,tc:"TC1",tchi:"1.1",code:"[H1-1.1-04]",name:"NQ Hội đồng trường về chiến lược phát triển",issued:"",issuer:"",hssCode:"1.2.1",link:"",note:""},
+  {stt:5,tc:"TC1",tchi:"1.1",code:"[H1-1.1-05]",name:"BB rà soát chiến lược phát triển NT",issued:"",issuer:"",hssCode:"1.10.1",link:"",note:""},
+  {stt:6,tc:"TC1",tchi:"1.1",code:"[H1-1.1-06]",name:"KH duy trì XD trường chuẩn Quốc gia",issued:"",issuer:"",hssCode:"1.1.3",link:"",note:""},
+  {stt:7,tc:"TC1",tchi:"1.1",code:"[H1-1.1-07]",name:"BC tiến độ XD trường chuẩn Quốc gia",issued:"",issuer:"",hssCode:"1.10.3",link:"",note:""},
+  {stt:8,tc:"TC1",tchi:"1.1",code:"[H1-1.1-08]",name:"BB họp HĐ trường, hội nghị VC-NLĐ",issued:"",issuer:"",hssCode:"1.7.3",link:"",note:""},
+  {stt:9,tc:"TC1",tchi:"1.1",code:"[H1-1.1-09]",name:"BC sơ kết, tổng kết năm học",issued:"",issuer:"",hssCode:"1.10.1",link:"",note:""},
+  {stt:10,tc:"TC1",tchi:"1.2",code:"[H1-1.2-01]",name:"QĐ thành lập Hội đồng trường",issued:"",issuer:"",hssCode:"1.4.2",link:"",note:""},
+  {stt:11,tc:"TC1",tchi:"1.2",code:"[H1-1.2-02]",name:"QĐ thành lập HĐ TĐ-KT",issued:"",issuer:"",hssCode:"1.4.2",link:"",note:""},
+  {stt:12,tc:"TC1",tchi:"1.2",code:"[H1-1.2-03]",name:"QĐ thành lập HĐ chấm SKKN",issued:"",issuer:"",hssCode:"1.4.2",link:"",note:""},
+  {stt:13,tc:"TC1",tchi:"1.2",code:"[H1-1.2-04]",name:"NQ của Hội đồng trường",issued:"",issuer:"",hssCode:"1.2.2",link:"",note:""},
+  {stt:14,tc:"TC1",tchi:"1.2",code:"[H1-1.2-05]",name:"BB họp các Hội đồng",issued:"",issuer:"",hssCode:"1.7.3",link:"",note:""},
+  {stt:15,tc:"TC1",tchi:"1.2",code:"[H1-1.2-06]",name:"QC hoạt động Hội đồng trường",issued:"",issuer:"",hssCode:"1.3.3",link:"",note:""},
+  {stt:16,tc:"TC1",tchi:"1.3",code:"[H1-1.3-01]",name:"NQ Chi bộ các tháng, năm",issued:"",issuer:"",hssCode:"6.1",link:"",note:""},
+  {stt:17,tc:"TC1",tchi:"1.3",code:"[H1-1.3-02]",name:"BB họp Chi ủy, Chi bộ",issued:"",issuer:"",hssCode:"6.3",link:"",note:""},
+  {stt:18,tc:"TC1",tchi:"1.3",code:"[H1-1.3-03]",name:"BC hoạt động Chi bộ",issued:"",issuer:"",hssCode:"6.4",link:"",note:""},
+  {stt:19,tc:"TC1",tchi:"1.3",code:"[H1-1.3-04]",name:"KH hoạt động Công đoàn",issued:"",issuer:"",hssCode:"1.7.1",link:"",note:""},
+  {stt:20,tc:"TC1",tchi:"1.3",code:"[H1-1.3-05]",name:"KH hoạt động Đội, Sao nhi đồng",issued:"",issuer:"",hssCode:"7.1",link:"",note:""},
+  {stt:21,tc:"TC1",tchi:"1.3",code:"[H1-1.3-06]",name:"BB, BC hoạt động Đội",issued:"",issuer:"",hssCode:"7.2",link:"",note:""},
+  {stt:22,tc:"TC1",tchi:"1.4",code:"[H1-1.4-01]",name:"QĐ bổ nhiệm HT, PHT",issued:"",issuer:"",hssCode:"1.4.1",link:"",note:""},
+  {stt:23,tc:"TC1",tchi:"1.4",code:"[H1-1.4-02]",name:"QĐ thành lập Tổ CM, Tổ VP",issued:"",issuer:"",hssCode:"1.7.1",link:"",note:""},
+  {stt:24,tc:"TC1",tchi:"1.4",code:"[H1-1.4-03]",name:"QĐ phân công nhiệm vụ CB, GV, NV",issued:"",issuer:"",hssCode:"1.4.1",link:"",note:""},
+  {stt:25,tc:"TC1",tchi:"1.4",code:"[H1-1.4-04]",name:"Sơ đồ tổ chức nhà trường",issued:"",issuer:"",hssCode:"1.7.1",link:"",note:""},
+  {stt:26,tc:"TC1",tchi:"1.4",code:"[H1-1.4-05]",name:"KH & BB sinh hoạt chuyên môn",issued:"",issuer:"",hssCode:"3.2.1",link:"",note:""},
+  {stt:27,tc:"TC1",tchi:"1.4",code:"[H1-1.4-06]",name:"Sổ ghi chép hoạt động Tổ CM",issued:"",issuer:"",hssCode:"3.2.3",link:"",note:""},
+  {stt:28,tc:"TC1",tchi:"1.5",code:"[H1-1.5-01]",name:"KH bồi dưỡng CMNV cho CB, GV, NV",issued:"",issuer:"",hssCode:"2.2.2",link:"",note:""},
+  {stt:29,tc:"TC1",tchi:"1.5",code:"[H1-1.5-02]",name:"Hồ sơ phát động thi đua",issued:"",issuer:"",hssCode:"1.8.1",link:"",note:""},
+  {stt:30,tc:"TC1",tchi:"1.5",code:"[H1-1.5-03]",name:"Hồ sơ xét khen thưởng GV, NV",issued:"",issuer:"",hssCode:"1.8.2",link:"",note:""},
+  {stt:31,tc:"TC1",tchi:"1.5",code:"[H1-1.5-04]",name:"Hồ sơ SKKN",issued:"",issuer:"",hssCode:"1.8.4",link:"",note:""},
+  {stt:32,tc:"TC1",tchi:"1.5",code:"[H1-1.5-05]",name:"QC TĐ-KT nội bộ",issued:"",issuer:"",hssCode:"1.3.2",link:"",note:""},
+  {stt:33,tc:"TC1",tchi:"1.5",code:"[H1-1.5-06]",name:"KH kiểm tra nội bộ",issued:"",issuer:"",hssCode:"2.6.2",link:"",note:""},
+  {stt:34,tc:"TC1",tchi:"1.6",code:"[H1-1.6-01]",name:"Sổ VB đến, VB đi",issued:"",issuer:"",hssCode:"4.1.1",link:"",note:""},
+  {stt:35,tc:"TC1",tchi:"1.6",code:"[H1-1.6-02]",name:"QC chi tiêu nội bộ",issued:"",issuer:"",hssCode:"1.3.1",link:"",note:""},
+  {stt:36,tc:"TC1",tchi:"1.6",code:"[H1-1.6-03]",name:"Công khai tài chính",issued:"",issuer:"",hssCode:"1.5.2",link:"",note:""},
+  {stt:37,tc:"TC1",tchi:"1.6",code:"[H1-1.6-04]",name:"Dự toán, báo cáo quyết toán",issued:"",issuer:"",hssCode:"5.5",link:"",note:""},
+  {stt:38,tc:"TC1",tchi:"1.6",code:"[H1-1.6-05]",name:"Sổ TSCĐ, sổ CC-DC",issued:"",issuer:"",hssCode:"1.6.2",link:"",note:""},
+  {stt:39,tc:"TC1",tchi:"1.6",code:"[H1-1.6-06]",name:"BB kiểm kê tài sản",issued:"",issuer:"",hssCode:"1.6.4",link:"",note:""},
+  {stt:40,tc:"TC1",tchi:"1.6",code:"[H1-1.6-07]",name:"QC dân chủ cơ sở",issued:"",issuer:"",hssCode:"1.3.1",link:"",note:""},
+  {stt:41,tc:"TC1",tchi:"1.6",code:"[H1-1.6-08]",name:"Hồ sơ công khai theo TT36",issued:"",issuer:"",hssCode:"1.5.2",link:"",note:""},
+  {stt:42,tc:"TC2",tchi:"2.1",code:"[H2-2.1-01]",name:"DS trích ngang CBGV-NV",issued:"",issuer:"",hssCode:"9.1.1",link:"",note:""},
+  {stt:43,tc:"TC2",tchi:"2.1",code:"[H2-2.1-02]",name:"Hồ sơ viên chức & HĐLĐ",issued:"",issuer:"",hssCode:"1.7.2",link:"",note:""},
+  {stt:44,tc:"TC2",tchi:"2.1",code:"[H2-2.1-03]",name:"Bảng tổng hợp trình độ GV",issued:"",issuer:"",hssCode:"9.1.1",link:"",note:""},
+  {stt:45,tc:"TC2",tchi:"2.1",code:"[H2-2.1-04]",name:"BC thống kê đội ngũ",issued:"",issuer:"",hssCode:"1.10.2",link:"",note:""},
+  {stt:46,tc:"TC2",tchi:"2.2",code:"[H2-2.2-01]",name:"KH bồi dưỡng thường xuyên",issued:"",issuer:"",hssCode:"2.2.2",link:"",note:""},
+  {stt:47,tc:"TC2",tchi:"2.2",code:"[H2-2.2-02]",name:"Hồ sơ BDTX theo module",issued:"",issuer:"",hssCode:"9.1.3",link:"",note:""},
+  {stt:48,tc:"TC2",tchi:"2.2",code:"[H2-2.2-03]",name:"Chứng chỉ, chứng nhận bồi dưỡng",issued:"",issuer:"",hssCode:"9.1.1",link:"",note:""},
+  {stt:49,tc:"TC2",tchi:"2.2",code:"[H2-2.2-04]",name:"KH đào tạo nâng chuẩn GV",issued:"",issuer:"",hssCode:"2.2.2",link:"",note:""},
+  {stt:50,tc:"TC2",tchi:"2.3",code:"[H2-2.3-01]",name:"Đánh giá CNN GV theo NĐ90",issued:"",issuer:"",hssCode:"9.1.2",link:"",note:""},
+  {stt:51,tc:"TC2",tchi:"2.3",code:"[H2-2.3-02]",name:"Sổ dự giờ",issued:"",issuer:"",hssCode:"9.1.4",link:"",note:""},
+  {stt:52,tc:"TC2",tchi:"2.3",code:"[H2-2.3-03]",name:"Hồ sơ thi GV dạy giỏi",issued:"",issuer:"",hssCode:"1.8.2",link:"",note:""},
+  {stt:53,tc:"TC2",tchi:"2.3",code:"[H2-2.3-04]",name:"Kế hoạch bài dạy",issued:"",issuer:"",hssCode:"9.1.4",link:"",note:""},
+  {stt:54,tc:"TC2",tchi:"2.3",code:"[H2-2.3-05]",name:"Hồ sơ SHCM theo NCBH",issued:"",issuer:"",hssCode:"3.2.1",link:"",note:""},
+  {stt:55,tc:"TC3",tchi:"3.1",code:"[H3-3.1-01]",name:"Hồ sơ đất đai, XDCB",issued:"",issuer:"",hssCode:"1.6.1",link:"",note:""},
+  {stt:56,tc:"TC3",tchi:"3.1",code:"[H3-3.1-02]",name:"Sơ đồ tổng thể khuôn viên NT",issued:"",issuer:"",hssCode:"1.6.1",link:"",note:""},
+  {stt:57,tc:"TC3",tchi:"3.1",code:"[H3-3.1-03]",name:"KH mua sắm, sửa chữa CSVC",issued:"",issuer:"",hssCode:"1.5.3",link:"",note:""},
+  {stt:58,tc:"TC3",tchi:"3.1",code:"[H3-3.1-04]",name:"BB kiểm tra CSVC, ANTH",issued:"",issuer:"",hssCode:"1.9.1",link:"",note:""},
+  {stt:59,tc:"TC3",tchi:"3.2",code:"[H3-3.2-01]",name:"Danh mục phòng học, phòng CN",issued:"",issuer:"",hssCode:"1.6.2",link:"",note:""},
+  {stt:60,tc:"TC3",tchi:"3.2",code:"[H3-3.2-02]",name:"BB bàn giao, cấp phát CSVC",issued:"",issuer:"",hssCode:"1.6.3",link:"",note:""},
+  {stt:61,tc:"TC3",tchi:"3.2",code:"[H3-3.2-03]",name:"Hồ sơ PCCC, ANTH",issued:"",issuer:"",hssCode:"1.9.1",link:"",note:""},
+  {stt:62,tc:"TC3",tchi:"3.3",code:"[H3-3.3-01]",name:"Hồ sơ thư viện, sổ sách TV",issued:"",issuer:"",hssCode:"4.2.1",link:"",note:""},
+  {stt:63,tc:"TC3",tchi:"3.3",code:"[H3-3.3-02]",name:"Hồ sơ văn hóa đọc",issued:"",issuer:"",hssCode:"4.2.2",link:"",note:""},
+  {stt:64,tc:"TC3",tchi:"3.3",code:"[H3-3.3-03]",name:"Danh mục TB dạy học, sổ mượn-trả",issued:"",issuer:"",hssCode:"4.3.1",link:"",note:""},
+  {stt:65,tc:"TC3",tchi:"3.3",code:"[H3-3.3-04]",name:"KH mua sắm thiết bị",issued:"",issuer:"",hssCode:"4.3.2",link:"",note:""},
+  {stt:66,tc:"TC3",tchi:"3.3",code:"[H3-3.3-05]",name:"Hồ sơ ứng dụng CNTT",issued:"",issuer:"",hssCode:"3.3.3",link:"",note:""},
+  {stt:67,tc:"TC4",tchi:"4.1",code:"[H4-4.1-01]",name:"QĐ, QC Ban ĐDCMHS",issued:"",issuer:"",hssCode:"8.1.1",link:"",note:""},
+  {stt:68,tc:"TC4",tchi:"4.1",code:"[H4-4.1-02]",name:"BB họp Ban ĐDCMHS",issued:"",issuer:"",hssCode:"8.1.2",link:"",note:""},
+  {stt:69,tc:"TC4",tchi:"4.1",code:"[H4-4.1-03]",name:"KH phối hợp NT-GĐ",issued:"",issuer:"",hssCode:"8.1.2",link:"",note:""},
+  {stt:70,tc:"TC4",tchi:"4.2",code:"[H4-4.2-01]",name:"Hồ sơ phối hợp ANTT, ATGT",issued:"",issuer:"",hssCode:"1.9.1",link:"",note:""},
+  {stt:71,tc:"TC4",tchi:"4.2",code:"[H4-4.2-02]",name:"Hồ sơ phối hợp Y tế",issued:"",issuer:"",hssCode:"1.9.2",link:"",note:""},
+  {stt:72,tc:"TC4",tchi:"4.2",code:"[H4-4.2-03]",name:"Hồ sơ phối hợp GD truyền thống",issued:"",issuer:"",hssCode:"1.9.3",link:"",note:""},
+  {stt:73,tc:"TC4",tchi:"4.2",code:"[H4-4.2-04]",name:"Hồ sơ vận động XHH giáo dục",issued:"",issuer:"",hssCode:"1.9.3",link:"",note:""},
+  {stt:74,tc:"TC4",tchi:"4.2",code:"[H4-4.2-05]",name:"Hồ sơ tham mưu cấp ủy, chính quyền",issued:"",issuer:"",hssCode:"1.9.3",link:"",note:""},
+  {stt:75,tc:"TC5",tchi:"5.1",code:"[H5-5.1-01]",name:"KH dạy học theo CTGDPT 2018",issued:"",issuer:"",hssCode:"2.2.1",link:"",note:""},
+  {stt:76,tc:"TC5",tchi:"5.1",code:"[H5-5.1-02]",name:"Thời khóa biểu, PC chuyên môn",issued:"",issuer:"",hssCode:"2.3.1",link:"",note:""},
+  {stt:77,tc:"TC5",tchi:"5.1",code:"[H5-5.1-03]",name:"Sổ đăng bộ, học bạ HS",issued:"",issuer:"",hssCode:"2.1.1",link:"",note:""},
+  {stt:78,tc:"TC5",tchi:"5.1",code:"[H5-5.1-04]",name:"KH môn học các khối",issued:"",issuer:"",hssCode:"3.1.1",link:"",note:""},
+  {stt:79,tc:"TC5",tchi:"5.1",code:"[H5-5.1-05]",name:"Ma trận, đề KT định kỳ",issued:"",issuer:"",hssCode:"2.4.1",link:"",note:""},
+  {stt:80,tc:"TC5",tchi:"5.1",code:"[H5-5.1-06]",name:"Tổng hợp KQGD",issued:"",issuer:"",hssCode:"2.4.2",link:"",note:""},
+  {stt:81,tc:"TC5",tchi:"5.1",code:"[H5-5.1-07]",name:"Sổ Chủ nhiệm",issued:"",issuer:"",hssCode:"9.2.1",link:"",note:""},
+  {stt:82,tc:"TC5",tchi:"5.2",code:"[H5-5.2-01]",name:"KH trải nghiệm, STEM, HĐNGLL",issued:"",issuer:"",hssCode:"2.2.3",link:"",note:""},
+  {stt:83,tc:"TC5",tchi:"5.2",code:"[H5-5.2-02]",name:"KH GD địa phương",issued:"",issuer:"",hssCode:"2.2.5",link:"",note:""},
+  {stt:84,tc:"TC5",tchi:"5.2",code:"[H5-5.2-03]",name:"Hình ảnh hoạt động NGLL",issued:"",issuer:"",hssCode:"7.3",link:"",note:""},
+  {stt:85,tc:"TC5",tchi:"5.2",code:"[H5-5.2-04]",name:"Hồ sơ đổi mới PP, ứng dụng CNTT",issued:"",issuer:"",hssCode:"3.3.3",link:"",note:""},
+  {stt:86,tc:"TC5",tchi:"5.3",code:"[H5-5.3-01]",name:"Tổng hợp KQ đánh giá HS",issued:"",issuer:"",hssCode:"2.4.2",link:"",note:""},
+  {stt:87,tc:"TC5",tchi:"5.3",code:"[H5-5.3-02]",name:"DS khen thưởng HS",issued:"",issuer:"",hssCode:"2.4.3",link:"",note:""},
+  {stt:88,tc:"TC5",tchi:"5.3",code:"[H5-5.3-03]",name:"Hồ sơ Hội thi HS giỏi",issued:"",issuer:"",hssCode:"2.4.2",link:"",note:""},
+  {stt:89,tc:"TC5",tchi:"5.3",code:"[H5-5.3-04]",name:"KH phụ đạo HS chưa đạt, BD năng khiếu",issued:"",issuer:"",hssCode:"2.2.4",link:"",note:""},
+  {stt:90,tc:"TC5",tchi:"5.3",code:"[H5-5.3-05]",name:"KH-VB Y tế, theo dõi SK HS",issued:"",issuer:"",hssCode:"4.4.1",link:"",note:""},
+  {stt:91,tc:"TC5",tchi:"5.4",code:"[H5-5.4-01]",name:"VB chỉ đạo PCGD",issued:"",issuer:"",hssCode:"2.5.1",link:"",note:""},
+  {stt:92,tc:"TC5",tchi:"5.4",code:"[H5-5.4-02]",name:"Hồ sơ PCGD (KH, BC, biểu mẫu)",issued:"",issuer:"",hssCode:"2.5.2",link:"",note:""},
+  {stt:93,tc:"TC5",tchi:"5.4",code:"[H5-5.4-03]",name:"Sổ theo dõi HS chuyển đi/đến",issued:"",issuer:"",hssCode:"2.1.3",link:"",note:""},
+  {stt:94,tc:"TC5",tchi:"5.4",code:"[H5-5.4-04]",name:"Hồ sơ HS khuyết tật hòa nhập",issued:"",issuer:"",hssCode:"2.1.4",link:"",note:""},
+  {stt:95,tc:"TC5",tchi:"5.4",code:"[H5-5.4-05]",name:"Hồ sơ tuyển sinh vào lớp 1",issued:"",issuer:"",hssCode:"2.6.1",link:"",note:""}
 ];
-  // TEMPLATE MODE: DEFAULT_MC trỏ về mảng rỗng để UI không hiển thị dữ liệu mẫu cũ.
-  // Khi trường mới nhập MC qua Admin → Excel, MINHCHUNG sẽ được Sheet API ghi đè.
-  const DEFAULT_MC = DEFAULT_MC_TEMPLATE_RAW;
+  // 2026-05-09: TRỎ VỀ DEFAULT_MC_FULL (95 MC chuẩn TT 17/2018 + TT 22/2024).
+  // Khi sheet MinhChung có <90 MC (chưa đủ) → fallback về DEFAULT_MC_FULL ở line ~2139.
+  // Khi user đã import đầy đủ qua Admin → sheet ghi đè (≥90 MC = trust).
+  const DEFAULT_MC = DEFAULT_MC_FULL;
   let HSS = [], TEACHERS = [], CLASSES = [], IMAGES = [], MINHCHUNG = DEFAULT_MC.slice(), STATS = {};
   let currentClass = null;
   const CAT_ICONS = [
@@ -1116,23 +1117,56 @@
       });
     });
   }
+  // 2026-05-09: thiết kế lại — 3 nhóm BGH / Giáo viên / Nhân viên
+  // mỗi nhóm có header riêng (icon + tên + count), khi role='all' hiện cả 3.
+  const _T_SECTIONS = [
+    { key: 'bgh', icon: '🛡️',  name: 'BAN GIÁM HIỆU',     sub: 'Lãnh đạo & quản lý nhà trường' },
+    { key: 'gv',  icon: '👩‍🏫', name: 'ĐỘI NGŨ GIÁO VIÊN', sub: 'Trực tiếp giảng dạy & chủ nhiệm' },
+    { key: 'nv',  icon: '📋',  name: 'NHÂN VIÊN',          sub: 'Hành chính · Văn thư · Y tế · Bảo vệ' }
+  ];
+
+  function _teacherCardHtml(t){
+    const origIdx = TEACHERS.indexOf(t);
+    const extra = t.dob ? 'Sinh ngày '+t.dob : '';
+    const btn = t.link
+      ? `<a class="teacher-profile" href="${escapeHtml(t.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📂 Hồ sơ cá nhân</a>`
+      : `<span class="teacher-profile disabled">📂 Chưa có</span>`;
+    return `<div class="teacher-card" onclick="openTeacherDetail(${origIdx})" tabindex="0" role="button" title="Xem chi tiết">
+      <div class="teacher-avatar">${initials(t.name)}</div>
+      <h4>${escapeHtml(t.name)}</h4>
+      <span class="teacher-role">${escapeHtml(t.role)}</span>
+      ${extra ? `<span class="teacher-tag">${escapeHtml(extra)}</span>` : ''}
+      <div>${btn}</div>
+    </div>`;
+  }
+
+  function _teacherSectionHtml(s, list){
+    if (!list || !list.length) return '';
+    return `<div class="t-section t-section-${s.key}">
+      <div class="t-section-head">
+        <div class="t-section-ico">${s.icon}</div>
+        <div class="t-section-info"><h3>${s.name}</h3><span>${s.sub} · <b>${list.length}</b> thành viên</span></div>
+      </div>
+      <div class="t-section-cards">${list.map(_teacherCardHtml).join('')}</div>
+    </div>`;
+  }
+
   function renderTeachers(role){
     role = role || 'all';
-    const list = role === 'all' ? TEACHERS : TEACHERS.filter(t => teacherType(t) === role);
-    document.getElementById('teacherGrid').innerHTML = list.map(t => {
-      const origIdx = TEACHERS.indexOf(t);
-      const extra = t.dob ? 'Sinh ngày '+t.dob : '';
-      const btn = t.link
-        ? `<a class="teacher-profile" href="${escapeHtml(t.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">📂 Hồ sơ cá nhân</a>`
-        : `<span class="teacher-profile disabled">📂 Chưa có</span>`;
-      return `<div class="teacher-card" onclick="openTeacherDetail(${origIdx})" tabindex="0" role="button" title="Xem chi tiết">
-        <div class="teacher-avatar">${initials(t.name)}</div>
-        <h4>${escapeHtml(t.name)}</h4>
-        <span class="teacher-role">${escapeHtml(t.role)}</span>
-        ${extra ? `<span class="teacher-tag">${escapeHtml(extra)}</span>` : ''}
-        <div>${btn}</div>
-      </div>`;
-    }).join('');
+    const grid = document.getElementById('teacherGrid');
+    if (!grid) return;
+    let html = '';
+    if (role === 'all') {
+      _T_SECTIONS.forEach(s => {
+        const list = TEACHERS.filter(t => teacherType(t) === s.key);
+        html += _teacherSectionHtml(s, list);
+      });
+    } else {
+      const s = _T_SECTIONS.find(x => x.key === role) || { key: role, icon: '👥', name: role.toUpperCase(), sub: '' };
+      const list = TEACHERS.filter(t => teacherType(t) === role);
+      html = _teacherSectionHtml(s, list);
+    }
+    grid.innerHTML = html || '<div style="text-align:center;color:#8a9690;padding:40px;grid-column:1/-1">Chưa có dữ liệu CBGV-NV.</div>';
   }
 
   // ============ TEACHER DETAIL MODAL ============
@@ -1325,6 +1359,124 @@
     renderCatalogOverview(document.getElementById('catOvSearch').value.trim());
   }
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // 2026-05-09: In/PDF + Tải Word cho bảng Tổng quan Danh mục Hồ sơ số.
+  // - In/PDF: open new window với HTML print-friendly + window.print() → user lưu PDF.
+  // - Tải Word: HTML → Blob mime application/msword → download .doc.
+  // KHÔNG cần lib mới; KHÔNG nhắc "Phòng GD&ĐT" (đã bỏ cấp huyện).
+  // ════════════════════════════════════════════════════════════════════════════
+  function _buildCatalogPrintHTML(forWord){
+    var schoolEl = document.getElementById('navSchoolName');
+    var schoolName = (schoolEl && schoolEl.textContent.trim()) || 'Trường Tiểu học …';
+    var now = new Date();
+    var dateStr = 'ngày ' + now.getDate() + ' tháng ' + (now.getMonth()+1) + ' năm ' + now.getFullYear();
+    var totalLeaf = 0, totalFilled = 0;
+    var bodyHtml = '';
+
+    HSS.forEach(function(cat, ci){
+      var icon = CAT_OV_ICONS[ci] || '📁';
+      var color = CAT_OV_COLORS[ci] || '#2d8a6e';
+      var groupLeaf = 0, groupFilled = 0;
+      var rowsHtml = '';
+
+      function walk(nodes, depth){
+        nodes.forEach(function(n){
+          if (n.leaf) {
+            groupLeaf++; totalLeaf++;
+            if (n.has) { groupFilled++; totalFilled++; }
+            var kdcl = n.kdcl ? escapeHtml(n.kdcl) : '';
+            rowsHtml += '<tr style="page-break-inside:avoid">'
+              + '<td style="padding:5px 8px;font-weight:600;color:#444;width:60px;border-bottom:1px solid #f3f6f4">' + escapeHtml(n.code) + '</td>'
+              + '<td style="padding:5px 8px;border-bottom:1px solid #f3f6f4">' + escapeHtml(n.name) + '</td>'
+              + '<td style="padding:5px 8px;text-align:right;color:#666;font-size:9.5pt;width:100px;border-bottom:1px solid #f3f6f4">' + kdcl + '</td>'
+              + '</tr>';
+          } else if (n.children) {
+            rowsHtml += '<tr><td colspan="3" style="padding:10px 8px 4px;font-weight:700;color:' + color + ';font-size:10.5pt;font-style:italic">'
+              + escapeHtml(n.code) + '. ' + escapeHtml(n.name) + '</td></tr>';
+            walk(n.children, depth + 1);
+          }
+        });
+      }
+      walk(cat.children || [], 0);
+
+      bodyHtml += '<div style="page-break-inside:auto;margin-top:18px">'
+        + '<h2 style="background:' + color + ';color:white;padding:10px 14px;font-size:13pt;margin:0;page-break-after:avoid;border-radius:4px">' + icon + ' ' + (ci+1) + '. ' + escapeHtml(cat.name).toUpperCase() + '</h2>'
+        + '<div style="font-size:9.5pt;color:#666;padding:4px 14px 8px;font-style:italic">' + groupLeaf + ' hồ sơ · ' + groupFilled + ' đã có link Drive</div>'
+        + '<table style="width:100%;border-collapse:collapse;font-family:\'Times New Roman\',serif;font-size:11pt">' + rowsHtml + '</table>'
+        + '</div>';
+    });
+
+    var toolbar = forWord ? '' : '<div class="toolbar"><button onclick="window.print()">🖨 In ngay</button> <button onclick="window.close()" style="background:#888">✕ Đóng</button></div>';
+    var styles = ''
+      + '@page{size:A4;margin:2cm}'
+      + 'body{font-family:"Times New Roman",serif;font-size:11pt;color:#222;margin:0;line-height:1.5}'
+      + '.cover{text-align:center;padding-top:6cm;page-break-after:always;min-height:100vh;position:relative}'
+      + '.cover h1{font-size:26pt;margin:18pt 0;letter-spacing:1.5px;font-weight:700}'
+      + '.cover .school{font-size:18pt;font-weight:700;margin:8pt 0;color:#1e6b54;text-transform:uppercase}'
+      + '.cover .year{font-size:14pt;margin:6pt 0;font-style:italic}'
+      + '.cover .stats{font-size:12pt;margin-top:48pt;color:#444}'
+      + '.cover-footer{position:absolute;bottom:60pt;left:0;right:0;font-size:9.5pt;color:#666;font-style:italic}'
+      + 'h2{page-break-after:avoid}'
+      + '.sign-section{margin-top:36pt;display:table;width:100%;page-break-inside:avoid}'
+      + '.sign-block{display:table-cell;width:50%;text-align:center;vertical-align:top}'
+      + '.sign-block.right{padding-left:50%}'
+      + '.sign-role{font-weight:700;font-size:12pt;text-transform:uppercase;margin-bottom:4pt}'
+      + '.sign-note{font-style:italic;font-size:10pt;color:#666;margin-bottom:72pt}'
+      + '.sign-name{font-weight:700;font-size:12pt}'
+      + '.toolbar{position:fixed;top:8px;right:8px;background:rgba(255,255,255,.95);padding:8px;border-radius:8px;font-family:sans-serif;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:9999}'
+      + '.toolbar button{padding:8px 14px;border-radius:6px;border:0;background:#1e6b54;color:white;font-weight:600;cursor:pointer;margin:0 2px;font-family:inherit}'
+      + '@media print{.toolbar{display:none!important}}';
+
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Danh mục Hồ sơ số — ' + escapeHtml(schoolName) + '</title>'
+      + '<style>' + styles + '</style></head><body>'
+      + toolbar
+      + '<div class="cover">'
+      + '<div class="school">' + escapeHtml(schoolName) + '</div>'
+      + '<h1>DANH MỤC<br>HỒ SƠ SỐ</h1>'
+      + '<div class="year">Năm học 2025 - 2026</div>'
+      + '<div class="stats"><b>' + totalLeaf + '</b> hồ sơ · <b>' + HSS.length + '</b> nhóm chức năng · <b>' + totalFilled + '</b> đã có link Drive</div>'
+      + '<div class="cover-footer">Theo TT 17/2018 (sửa đổi bởi TT 22/2024) · TT 15/2026<br>Thiết kế: Chung Trần</div>'
+      + '</div>'
+      + bodyHtml
+      + '<div class="sign-section">'
+      + '<div class="sign-block right">'
+      + '<div style="font-style:italic;margin-bottom:8pt">Quảng Châu, ' + dateStr + '</div>'
+      + '<div class="sign-role">HIỆU TRƯỞNG</div>'
+      + '<div class="sign-note">(Ký, ghi rõ họ tên, đóng dấu)</div>'
+      + '<div class="sign-name">&nbsp;</div>'
+      + '</div></div>'
+      + '</body></html>';
+  }
+
+  window.printCatalogOverview = function(){
+    if (!HSS || !HSS.length) { alert('Chưa có dữ liệu Hồ sơ số để in.'); return; }
+    var html = _buildCatalogPrintHTML(false);
+    var w = window.open('', '_blank', 'width=900,height=700');
+    if (!w) { alert('Trình duyệt đã chặn popup.\nVui lòng cho phép popup cho trang này rồi thử lại.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    // Đợi render xong rồi mở print dialog
+    setTimeout(function(){ try { w.focus(); w.print(); } catch(e){} }, 700);
+  };
+
+  window.exportCatalogWord = function(){
+    if (!HSS || !HSS.length) { alert('Chưa có dữ liệu Hồ sơ số để xuất.'); return; }
+    var html = _buildCatalogPrintHTML(true);
+    // BOM ﻿ giúp Word nhận charset UTF-8 chuẩn
+    var blob = new Blob(['﻿', html], { type: 'application/msword' });
+    var schoolEl = document.getElementById('navSchoolName');
+    var schoolSlug = ((schoolEl && schoolEl.textContent.trim()) || 'TH').replace(/[^\p{L}\d]+/gu, '_').replace(/^_+|_+$/g, '');
+    var d = new Date();
+    var dateSlug = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var fname = 'DanhMuc-HSS-' + schoolSlug + '-' + dateSlug + '.doc';
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  };
+
   // ============ BẢNG MÃ HÓA MINH CHỨNG KĐCL (TT17/2018 + TT22/2024) ============
   const TC_NAMES = {
     'TC1':'Tổ chức và quản lý nhà trường',
@@ -1380,6 +1532,28 @@
     if(btn) btn.classList.remove('open');
   }
 
+  // 2026-05-09: parse fallback từ m.code khi cột tc/tchi trong sheet bị rỗng
+  // Hỗ trợ format: "[1.1-01]" hoặc "[H1-1.1-01]" hoặc "1.1-01"
+  function _mcResolveTC(m){
+    if (m && m.tc) {
+      var t = String(m.tc).trim().toUpperCase();
+      if (/^TC[1-5]$/.test(t)) return t;
+      if (/^[1-5]$/.test(t)) return 'TC' + t;
+    }
+    var c = String((m && m.code) || '');
+    var match = c.match(/(?:H\d+-)?(\d)\.(\d+)/);
+    return match ? ('TC' + match[1]) : '';
+  }
+  function _mcResolveTchi(m){
+    if (m && m.tchi) {
+      var t = String(m.tchi).trim();
+      if (/^\d\.\d+$/.test(t)) return t;
+    }
+    var c = String((m && m.code) || '');
+    var match = c.match(/(?:H\d+-)?(\d\.\d+)/);
+    return match ? match[1] : '';
+  }
+
   function _mcGroupByTC(filter){
     const q = (filter || '').toLowerCase();
     const out = {};
@@ -1388,9 +1562,12 @@
         const hay = (m.code + ' ' + m.name + ' ' + m.tchi + ' ' + (m.issuer||'') + ' ' + (m.hssCode||'')).toLowerCase();
         if(!hay.includes(q)) return;
       }
-      if(!out[m.tc]) out[m.tc] = {};
-      if(!out[m.tc][m.tchi]) out[m.tc][m.tchi] = [];
-      out[m.tc][m.tchi].push(m);
+      var tc = _mcResolveTC(m);
+      var tchi = _mcResolveTchi(m);
+      if (!tc || !tchi) return; // skip nếu không xác định được vị trí
+      if(!out[tc]) out[tc] = {};
+      if(!out[tc][tchi]) out[tc][tchi] = [];
+      out[tc][tchi].push(m);
     });
     return out;
   }
@@ -1641,6 +1818,109 @@
 
     window.print();
   }
+
+  // 2026-05-09: Tải Word (.doc) cho Bảng mã hóa Minh chứng — output đẹp hơn
+  // copy/paste vào báo cáo. Cấu trúc giống printMCOverview nhưng standalone HTML.
+  function exportMCWord(){
+    if (!MINHCHUNG || !MINHCHUNG.length) { alert('Chưa có dữ liệu Minh chứng để xuất.'); return; }
+    var cfg = (STATS && STATS.config) || {};
+    var schoolName = cfg.name || 'Trường Tiểu học';
+    var schoolAddr = cfg.address || '';
+    var schoolYear = cfg.schoolYear || '2025 - 2026';
+    var parts = schoolAddr.split(',').map(function(s){return s.trim();}).filter(Boolean);
+    var xa = parts[0] || '';
+    var xaShort = xa.replace(/^Xã\s*/i,'').trim();
+    var ubndLine = xa ? ('UBND ' + xa.toUpperCase()) : 'UBND XÃ';
+    var schoolUpper = schoolName.toUpperCase();
+
+    var grouped = _mcGroupByTC('');
+    var rowsHtml = '';
+    var totalMC = 0, totalLinked = 0;
+    TC_ORDER.forEach(function(tc){
+      if (!grouped[tc]) return;
+      rowsHtml += '<tr><td colspan="7" style="background:#1e6b54;color:white;padding:7px 10px;font-weight:700;font-size:11.5pt">'
+        + escapeHtml('Tiêu chuẩn ' + tc.substr(2) + ': ' + (TC_NAMES[tc] || ''))
+        + '</td></tr>';
+      Object.keys(grouped[tc]).sort().forEach(function(tchi){
+        var tchiKey = _safeCell(tchi);
+        rowsHtml += '<tr><td colspan="7" style="background:#eaf5ef;color:#1e6b54;padding:5px 10px;font-weight:700;font-style:italic">'
+          + escapeHtml('Tiêu chí ' + tchiKey + '. ' + (TCHI_NAMES[tchiKey] || ''))
+          + '</td></tr>';
+        grouped[tc][tchi].forEach(function(m, mi){
+          totalMC++;
+          if (m.hssCode && String(m.hssCode).trim()) totalLinked++;
+          rowsHtml += '<tr style="page-break-inside:avoid">'
+            + '<td style="padding:5px 6px;text-align:center;border:0.5pt solid #888">' + (mi+1) + '</td>'
+            + '<td style="padding:5px 6px;text-align:center;font-weight:600;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.code)) + '</td>'
+            + '<td style="padding:5px 8px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.name)) + '</td>'
+            + '<td style="padding:5px 6px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.issued)) + '</td>'
+            + '<td style="padding:5px 6px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.issuer) || schoolName) + '</td>'
+            + '<td style="padding:5px 6px;text-align:center;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.hssCode)) + '</td>'
+            + '<td style="padding:5px 6px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.note)) + '</td>'
+            + '</tr>';
+        });
+      });
+    });
+
+    var today = new Date();
+    var dateStr = 'ngày ' + String(today.getDate()).padStart(2,'0')
+                + ' tháng ' + String(today.getMonth()+1).padStart(2,'0')
+                + ' năm ' + today.getFullYear();
+
+    var styles = ''
+      + '@page{size:A4 landscape;margin:1.5cm}'
+      + 'body{font-family:"Times New Roman",serif;font-size:11pt;color:#222;margin:0}'
+      + '.head{display:table;width:100%;margin-bottom:8pt}'
+      + '.head>div{display:table-cell;width:50%;vertical-align:top;text-align:center}'
+      + '.head b{display:block;font-size:11pt}'
+      + '.title{text-align:center;margin:18pt 0 6pt}'
+      + '.title h1{font-size:16pt;font-weight:700;margin:4pt 0;letter-spacing:.5px}'
+      + '.title h2{font-size:13pt;font-weight:700;margin:4pt 0}'
+      + '.sub{text-align:center;font-style:italic;font-size:10pt;margin:4pt 30pt;line-height:1.5}'
+      + '.year{text-align:center;font-weight:700;font-size:11pt;margin:8pt 0 12pt}'
+      + 'table{width:100%;border-collapse:collapse;font-family:"Times New Roman",serif;font-size:10.5pt}'
+      + 'thead th{background:#1e6b54;color:white;padding:8px 6px;border:0.5pt solid #1e6b54;font-weight:700;font-size:10.5pt;text-align:center}'
+      + '.sign{margin-top:24pt;text-align:right;page-break-inside:avoid}'
+      + '.sign .place{font-style:italic;margin-bottom:4pt}'
+      + '.sign .role{font-weight:700;font-size:11pt;text-transform:uppercase;margin-bottom:60pt}';
+
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bảng mã hóa Minh chứng — ' + escapeHtml(schoolName) + '</title>'
+      + '<style>' + styles + '</style></head><body>'
+      + '<div class="head">'
+      + '<div><b>' + escapeHtml(ubndLine) + '</b><b>' + escapeHtml(schoolUpper) + '</b></div>'
+      + '<div><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><b style="font-style:italic">Độc lập - Tự do - Hạnh phúc</b></div>'
+      + '</div>'
+      + '<div class="title"><h1>BẢNG MÃ HÓA MINH CHỨNG</h1>'
+      + '<h2>KIỂM ĐỊNH CHẤT LƯỢNG GIÁO DỤC VÀ CÔNG NHẬN ĐẠT CHUẨN QUỐC GIA</h2></div>'
+      + '<div class="sub">(Theo Thông tư số 17/2018/TT-BGDĐT ngày 22/8/2018, sửa đổi, bổ sung bởi Thông tư số 22/2024/TT-BGDĐT; Hướng dẫn tại Công văn số 5942/BGDĐT-QLCL ngày 28/12/2018)</div>'
+      + '<div class="year">Năm học: ' + escapeHtml(schoolYear) + ' &nbsp;·&nbsp; ' + totalMC + ' minh chứng &nbsp;·&nbsp; ' + totalLinked + ' đã liên kết HSS</div>'
+      + '<table><thead><tr>'
+      + '<th style="width:5%">STT</th>'
+      + '<th style="width:11%">Mã minh chứng</th>'
+      + '<th style="width:32%">Tên minh chứng</th>'
+      + '<th style="width:13%">Số, ngày ban hành</th>'
+      + '<th style="width:20%">Nơi ban hành / nhóm khảo sát</th>'
+      + '<th style="width:9%">Mã HSS</th>'
+      + '<th style="width:10%">Ghi chú</th>'
+      + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
+      + '<div class="sign">'
+      + '<div class="place">' + escapeHtml(xaShort || '') + ', ' + dateStr + '</div>'
+      + '<div class="role">HIỆU TRƯỞNG</div>'
+      + '<div>(Ký, ghi rõ họ tên, đóng dấu)</div>'
+      + '</div></body></html>';
+
+    var blob = new Blob(['﻿', html], { type: 'application/msword' });
+    var schoolSlug = schoolName.replace(/[^\p{L}\d]+/gu, '_').replace(/^_+|_+$/g, '');
+    var d = new Date();
+    var dateSlug = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var fname = 'BangMaHoaMinhChung-' + schoolSlug + '-' + dateSlug + '.doc';
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  }
+  window.exportMCWord = exportMCWord;
 
   // ============ ADMIN MINH CHỨNG ============
   let _mcRawRows = [];
@@ -2018,13 +2298,14 @@
       return c;
     });
     IMAGES = data.images || [];
-    MINHCHUNG = (data.minhchung && data.minhchung.length) ? data.minhchung : DEFAULT_MC.slice();
+    // 2026-05-09: nếu sheet MinhChung <90 dòng (chưa đủ chuẩn 95 MC TT17+22)
+    // → fallback về DEFAULT_MC_FULL built-in. Tránh modal hiện thiếu/sai khi
+    // sheet có data test cũ (vd 28 dòng rác).
+    MINHCHUNG = (data.minhchung && data.minhchung.length >= 90) ? data.minhchung : DEFAULT_MC.slice();
     STATS = data.stats || {};
-    // Expose globals cho modul QLCL (script riêng, không cùng scope)
+    // Expose globals cho IIFE Phần 2 (KĐCL bridge — dùng STATS/TEACHERS/CLASSES để build payload)
     window.HSS = HSS; window.TEACHERS = TEACHERS; window.CLASSES = CLASSES;
     window.IMAGES = IMAGES; window.MINHCHUNG = MINHCHUNG; window.STATS = STATS;
-    // Notify QLCL nếu đã init
-    try { if (window.QLCL && typeof window.QLCL.onDataRefresh === 'function') window.QLCL.onDataRefresh(); } catch(e){}
     renderCarousel();
     renderAbout();
     renderStats();
@@ -3528,55 +3809,109 @@
     };
   };
 
+  // 2026-05-09 fix: cùng bug như _buildMinhChungTree — MINHCHUNG là array
+  // of objects, không phải raw rows. Sửa: parse object + group theo TC/tchi
+  // rồi sinh markdown cho prompt AI báo cáo TĐG.
   window._buildEvidencePayload = function(){
     const MC = window.MINHCHUNG;
     if (!Array.isArray(MC) || !MC.length) return '';
+    const _TC_NAMES_LOC = (typeof TC_NAMES !== 'undefined') ? TC_NAMES : {};
+    const _TCHI_NAMES_LOC = (typeof TCHI_NAMES !== 'undefined') ? TCHI_NAMES : {};
+
+    const tcMap = {};
+    const tcOrder = [];
+    MC.forEach(function(m){
+      if (!m || typeof m !== 'object') return;
+      const tc = String(m.tc || '').trim();
+      const tchi = String(m.tchi || '').trim();
+      if (!tc || !tchi) return;
+      if (!tcMap[tc]) { tcMap[tc] = { tchiMap: {}, tchiOrder: [] }; tcOrder.push(tc); }
+      if (!tcMap[tc].tchiMap[tchi]) { tcMap[tc].tchiMap[tchi] = []; tcMap[tc].tchiOrder.push(tchi); }
+      tcMap[tc].tchiMap[tchi].push(m);
+    });
+
     const lines = ['# Danh mục minh chứng đã mã hoá (từ Hồ sơ số Tiểu học)'];
-    for (const r of MC) {
-      const ma = (r[0] || '').toString().trim();
-      const maMC = (r[2] || '').toString().trim();
-      const noiDung = (r[3] || '').toString().trim();
-      const ngayBH = (r[4] || '').toString().trim();
-      const nguon = (r[5] || '').toString().trim();
-      if (ma && ma.startsWith('TC')) {
-        lines.push(`\n## ${ma} · ${noiDung}`);
-      } else if (ma && /^\d+\.\d+$/.test(ma)) {
-        lines.push(`\n### Tiêu chí ${ma} · ${noiDung}`);
-      } else if (maMC) {
-        let line = `- ${maMC} ${noiDung}`;
-        if (nguon || ngayBH) line += ` _(${[nguon, ngayBH].filter(Boolean).join(', ')})_`;
-        lines.push(line);
-      }
-    }
+    tcOrder.sort();
+    tcOrder.forEach(function(tc){
+      lines.push('\n## ' + tc + ' · ' + (_TC_NAMES_LOC[tc] || ''));
+      const obj = tcMap[tc];
+      obj.tchiOrder.sort(function(a, b){
+        const aa = a.split('.').map(Number);
+        const bb = b.split('.').map(Number);
+        return (aa[0] - bb[0]) || (aa[1] - bb[1]);
+      });
+      obj.tchiOrder.forEach(function(tchi){
+        lines.push('\n### Tiêu chí ' + tchi + ' · ' + (_TCHI_NAMES_LOC[tchi] || ''));
+        obj.tchiMap[tchi].forEach(function(m){
+          const code = String(m.code || '').trim();
+          const noiDung = String(m.name || '').trim();
+          const nguon = String(m.issuer || '').trim();
+          const ngayBH = String(m.issued || '').trim();
+          if (!code) return;
+          let line = '- ' + code + ' ' + noiDung;
+          if (nguon || ngayBH) line += ' _(' + [nguon, ngayBH].filter(Boolean).join(', ') + ')_';
+          lines.push(line);
+        });
+      });
+    });
     return lines.join('\n');
   };
 
+  // 2026-05-09 fix: MINHCHUNG là array of OBJECTS từ getMinhChung()
+  // (stt, tc, tchi, code, name, issued, issuer, hssCode, link, note, hssName).
+  // Logic cũ đọc r[0], r[2]... như raw rows → tree luôn rỗng → KĐCL ẩn
+  // nút "📋 Minh chứng HSS". Sửa: group object theo tc → tchi → items.
   window._buildMinhChungTree = function(){
     const MC = window.MINHCHUNG;
     if (!Array.isArray(MC) || !MC.length) return [];
-    const tree = [];
-    let curTC = null, curTChi = null;
-    for (const r of MC) {
-      const col0 = (r[0] || '').toString().trim();
-      const col2 = (r[2] || '').toString().trim();
-      const col3 = (r[3] || '').toString().trim();
-      const col4 = (r[4] || '').toString().trim();
-      const col5 = (r[5] || '').toString().trim();
-      const col6 = (r[6] || '').toString().trim();
-      const col7 = (r[7] || '').toString().trim();
-      if (col0 && /^TC\d+$/.test(col0)) {
-        curTC = { id: col0, title: col2 || col0, name: col3, tieuchi: [] };
-        tree.push(curTC);
-        curTChi = null;
-      } else if (col0 && /^\d+\.\d+$/.test(col0)) {
-        curTChi = { id: col0, title: col2, name: col3, items: [] };
-        if (curTC) curTC.tieuchi.push(curTChi);
-      } else if (col2) {
-        const item = { code: col2, content: col3, issueDate: col4, issuer: col5, hssRef: col6, note: col7 };
-        if (curTChi) curTChi.items.push(item);
+
+    // Lấy TC_NAMES, TCHI_NAMES từ scope ngoài (đã định nghĩa line ~1474+)
+    const _TC_NAMES_LOC = (typeof TC_NAMES !== 'undefined') ? TC_NAMES : {};
+    const _TCHI_NAMES_LOC = (typeof TCHI_NAMES !== 'undefined') ? TCHI_NAMES : {};
+
+    const tcMap = {};
+    const tcOrder = [];
+
+    MC.forEach(function(m){
+      if (!m || typeof m !== 'object') return;
+      const tc = String(m.tc || '').trim();
+      const tchi = String(m.tchi || '').trim();
+      if (!tc || !tchi) return;
+
+      if (!tcMap[tc]) {
+        tcMap[tc] = { id: tc, title: _TC_NAMES_LOC[tc] || tc, name: '', tieuchi: {}, _order: [] };
+        tcOrder.push(tc);
       }
-    }
-    return tree;
+      if (!tcMap[tc].tieuchi[tchi]) {
+        tcMap[tc].tieuchi[tchi] = { id: tchi, title: _TCHI_NAMES_LOC[tchi] || '', name: '', items: [] };
+        tcMap[tc]._order.push(tchi);
+      }
+      tcMap[tc].tieuchi[tchi].items.push({
+        code: String(m.code || ''),
+        content: String(m.name || ''),
+        issueDate: String(m.issued || ''),
+        issuer: String(m.issuer || ''),
+        hssRef: String(m.hssCode || ''),
+        note: String(m.note || '')
+      });
+    });
+
+    // Sort TC1 → TC5 và sort tchi 1.1, 1.2, 2.1, ...
+    tcOrder.sort();
+    return tcOrder.map(function(tc){
+      const obj = tcMap[tc];
+      obj._order.sort(function(a, b){
+        const aa = a.split('.').map(Number);
+        const bb = b.split('.').map(Number);
+        return (aa[0] - bb[0]) || (aa[1] - bb[1]);
+      });
+      return {
+        id: obj.id,
+        title: obj.title,
+        name: obj.name,
+        tieuchi: obj._order.map(function(k){ return obj.tieuchi[k]; })
+      };
+    });
   };
 
   window._buildHssDataPayload = function(){
@@ -3731,2111 +4066,30 @@
 
   window.showHoso = function(){
     document.body.classList.remove('kdcl-active');
-    document.body.classList.remove('qlcl-active');
     window.scrollTo(0, 0);
   };
 
   // ====== QLCL view toggle ======
-  // ⭐ REFACTOR 2026-05-05: chuyển QLCL sang Phương án D (multi-page) → mở qlcl.html.
-  // Sync auth state qua localStorage để qlcl-app.js đọc lại không cần đăng nhập lần 2.
+  // ⭐ REFACTOR 2026-05-05: QLCL chuyển sang multi-page → mở qlcl.html standalone.
+  //    Sync auth state qua localStorage để qlcl-app.js đọc lại không cần đăng nhập lần 2.
   window.showQlcl = function(ev){
     if(ev && ev.preventDefault) ev.preventDefault();
-    // Sync auth state để qlcl.html dùng chung
+    // STATE của HSS (file này) không expose lên window, nên các field user/role
+    // sẽ là '' / 'GV' default. qlcl-app.js sẽ tự đọc lại từ tab Users qua sessionToken.
     try {
       var auth = {
-        user: (typeof STATE !== 'undefined' && STATE.user) ? STATE.user : '',
-        role: (typeof STATE !== 'undefined' && STATE.role) ? STATE.role : 'GV',
-        lop:  (typeof STATE !== 'undefined' && STATE.classRoleLop) ? STATE.classRoleLop : '',
+        user:  (typeof STATE !== 'undefined' && STATE.user) ? STATE.user : '',
+        role:  (typeof STATE !== 'undefined' && STATE.role) ? STATE.role : 'GV',
+        lop:   (typeof STATE !== 'undefined' && STATE.classRoleLop) ? STATE.classRoleLop : '',
         token: (typeof getAuthToken === 'function') ? (getAuthToken() || '') : '',
         hoten: (typeof STATE !== 'undefined' && STATE.user) ? STATE.user : '',
         savedAt: new Date().toISOString()
       };
       localStorage.setItem('th_auth_v1', JSON.stringify(auth));
     } catch(e) { console.warn('[QLCL] Không sync được auth state:', e); }
-    // Redirect
     window.location.href = 'qlcl.html';
     return false;
   };
-  // showHoso đã có sẵn — bổ sung clear qlcl-active
-  var _origShowHoso = window.showHoso;
-  window.showHoso = function(){
-    document.body.classList.remove('qlcl-active');
-    if (_origShowHoso) _origShowHoso();
-    else {
-      document.body.classList.remove('kdcl-active');
-      window.scrollTo(0, 0);
-    }
-  };
-
-})();
-
-/* ===== Phần 4: QLCL Module — Sổ điểm, NLPC, Xếp loại, Sổ chủ nhiệm ===== */
-(function(){
-'use strict';
-
-// ============ CẤU HÌNH MÔN — TT 27/2020 ============
-const QLCL_SUBJECTS = [
-  // [tên môn, khối có điểm, khối có thêm GHK1+GHK2]
-  { name: 'Tiếng Việt',           withScore: [1,2,3,4,5], withGHK: [4,5] },
-  { name: 'Toán',                  withScore: [1,2,3,4,5], withGHK: [4,5] },
-  { name: 'Tiếng Anh',             withScore: [3,4,5],     withGHK: [] },
-  { name: 'Tin học',               withScore: [3,4,5],     withGHK: [] },
-  { name: 'Công nghệ',             withScore: [3,4,5],     withGHK: [] },
-  { name: 'Khoa học',              withScore: [4,5],       withGHK: [] },
-  { name: 'Lịch sử và Địa lí',     withScore: [4,5],       withGHK: [] },
-  { name: 'Đạo đức',               withScore: [],          withGHK: [] },
-  { name: 'Tự nhiên và Xã hội',    withScore: [],          withGHK: [] },
-  { name: 'Âm nhạc',               withScore: [],          withGHK: [] },
-  { name: 'Mỹ thuật',              withScore: [],          withGHK: [] },
-  { name: 'Giáo dục thể chất',     withScore: [],          withGHK: [] },
-  { name: 'Hoạt động trải nghiệm', withScore: [],          withGHK: [] }
-];
-
-// ============ NĂNG LỰC + PHẨM CHẤT ============
-const QLCL_NLPC = [
-  { loai: 'NL', ma: 'TuChuTuHoc',    ten: 'Tự chủ và tự học' },
-  { loai: 'NL', ma: 'GiaoTiepHopTac',ten: 'Giao tiếp và hợp tác' },
-  { loai: 'NL', ma: 'GiaiQuyetVanDe',ten: 'Giải quyết vấn đề và sáng tạo' },
-  { loai: 'PC', ma: 'YeuNuoc',       ten: 'Yêu nước' },
-  { loai: 'PC', ma: 'NhanAi',        ten: 'Nhân ái' },
-  { loai: 'PC', ma: 'ChamChi',       ten: 'Chăm chỉ' },
-  { loai: 'PC', ma: 'TrungThuc',     ten: 'Trung thực' },
-  { loai: 'PC', ma: 'TrachNhiem',    ten: 'Trách nhiệm' }
-];
-
-// ============ STATE ============
-const STATE = {
-  inited: false,
-  currentWS: 'diem',
-  role: 'BGH',          // BGH | GVCN | GVBM
-  user: 'admin',
-  classRoleLop: '',     // lớp GVCN nếu role=GVCN
-  namHoc: '2025-2026',
-  // Caches
-  diemCache: {},        // keyed by namHoc|lop|mon
-  nxCache: {},          // keyed by namHoc|lop|mon|hk
-  nlpcCache: {},
-  classes: [],          // từ HSS CLASSES global
-  teachers: [],         // từ HSS TEACHERS global
-  changedDiem: {},      // tracked changes
-  changedNX: {},
-  // current modal context
-  modalCtx: null
-};
-
-// ============ HELPERS ============
-function $(sel, root){ return (root||document).querySelector(sel); }
-function $$(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
-
-function getKhoiFromLop(lop){
-  // "1A" → 1, "Lớp 4B" → 4
-  var m = String(lop || '').match(/(\d)/);
-  return m ? parseInt(m[1]) : 0;
-}
-
-function getGAS_URL(){
-  return (typeof API_URL !== 'undefined' && API_URL && API_URL.indexOf('AKfyc') >= 0) ? API_URL : null;
-}
-
-function postGAS(action, body){
-  return new Promise(function(resolve, reject){
-    var url = getGAS_URL();
-    if (!url) {
-      reject(new Error('Chưa cấu hình API_URL backend'));
-      return;
-    }
-    body = body || {};
-    body.action = action;
-    body.user = STATE.user;
-    body.role = STATE.role;
-    // ⭐ Đính kèm auth: sessionToken (SSO) + token (legacy)
-    var _cu2 = (typeof getCU === 'function') ? (getCU() || {}) : {};
-    if (!body.sessionToken && _cu2.sessionToken) body.sessionToken = _cu2.sessionToken;
-    if (!body.token) body.token = getAuthToken();
-    fetch(url, {
-      method: 'POST',
-      mode: 'no-cors',
-      // Apps Script doesn't accept JSON with strict CORS; use text/plain
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify(body)
-    }).then(function(){
-      // no-cors response is opaque — cannot read.
-      // Switch to GET-via-callback (JSONP) is workaround if no-cors blocks read.
-      // BUT actually fetch with no-cors works for write; for read we need 'cors'.
-      resolve({ ok: true });
-    }).catch(function(err){ reject(err); });
-  });
-}
-
-// JSONP-style POST emulated via wrapper that uses 'cors' when possible.
-// Apps Script's deployed Web App ALLOWS cors when "Anyone" + setMimeType JSON.
-function callGAS(action, body){
-  return new Promise(function(resolve, reject){
-    var url = getGAS_URL();
-    if (!url) { reject(new Error('Chưa cấu hình URL backend Apps Script.')); return; }
-    // ⭐ Auth gate: nếu action thuộc nhóm ghi (GV/Admin) thì hỏi mã trước khi POST.
-    var authPromise = (typeof window._authForAction === 'function')
-      ? window._authForAction(action)
-      : Promise.resolve();
-    authPromise.then(function(){
-    var _cu = getCU() || {};
-    body = Object.assign({
-      action: action,
-      user: _cu.username || STATE.user,
-      role: _cu.role || STATE.role,
-      token: getAuthToken(),                  // legacy fallback (sẽ gỡ sau 1 tuần)
-      sessionToken: _cu.sessionToken || ''    // ⭐ SSO mới
-    }, body || {});
-    fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'}, // text/plain để bypass preflight CORS
-      body: JSON.stringify(body)
-    }).then(function(r){ return r.text(); }).then(function(t){
-      try {
-        var res = JSON.parse(t);
-        // ⭐ Phát hiện Unknown action → gợi ý redeploy backend
-        if (res && res.ok === false && res.error && /Unknown.*action/i.test(res.error)) {
-          res.error = '⚠️ Backend chưa cập nhật action "' + action + '"\n\n👉 Vào Apps Script:\n1. Dán Code.gs mới đè lên file cũ\n2. Triển khai → Quản lý → ✏ → Phiên bản: MỚI → Triển khai\n3. Chạy hàm setupAll một lần để tạo các sheet mới\n\n(URL deploy KHÔNG đổi sau khi tạo phiên bản mới)';
-        }
-        // ⭐ Phát hiện session hết hạn / chưa đăng nhập → mở lại modal đăng nhập
-        if (res && res.ok === false && (res.needLogin || (res.error && /(phiên|session|đăng nhập)/i.test(res.error)))) {
-          try {
-            setCU(null);  // clear CU đã hết hạn — _hasLevel sẽ trả false → modal tự show
-            var lvl = _authLevelForAction(action) || 'gv';
-            if (typeof window.requireAuth === 'function') {
-              window.requireAuth(lvl, function(){
-                if (typeof toast === 'function') toast('✅ Đăng nhập lại thành công. Vui lòng thử lại thao tác.', 'ok');
-              });
-            }
-          } catch(e){}
-        }
-        resolve(res);
-      } catch(e){ reject(new Error('Backend trả về không phải JSON: ' + t.substring(0,200))); }
-    }).catch(function(err){
-      // ⭐ Hiển thị toast lỗi mạng để user biết
-      try { if (typeof toast === 'function') toast('❌ Mất kết nối backend: ' + err.message, 'err'); } catch(e){}
-      reject(err);
-    });
-    }).catch(function(err){
-      // User bấm Hủy ở modal đăng nhập, hoặc auth fail trước khi POST
-      reject(err);
-    });
-  });
-}
-
-// ⭐ Tải DS học sinh đầy đủ field nhạy cảm (SĐT/cha/mẹ) cho khu vực có đăng nhập.
-// Gọi trước Học bạ, Sổ chủ nhiệm, Export Excel toàn bộ HS (Admin).
-// - Public landing KHÔNG gọi hàm này (giữ ẩn theo Nghị định 13/2023).
-// - Backend trả full data nếu role = HT, hoặc GVCN của đúng lớp đó.
-// - Merge tại chỗ vào CLASSES[].students[] để mọi reference đang giữ tự thấy data mới.
-// Cache theo user: nếu đổi mã GV (đổi STATE.user) → tự động fetch lại.
-function loadStudentsAuthed(force){
-  return new Promise(function(resolve, reject){
-    var currentUser = (typeof STATE !== 'undefined' && STATE.user) ? STATE.user : '';
-    // Đã load với đúng user này rồi → bỏ qua
-    if (!force && window._studentsAuthedFor && window._studentsAuthedFor === currentUser) {
-      resolve({ ok: true, cached: true });
-      return;
-    }
-    callGAS('studentsAuthed', {}).then(function(res){
-      if (!res || res.ok !== true || !Array.isArray(res.data)) {
-        reject(new Error((res && res.error) || 'Không tải được DS học sinh đầy đủ'));
-        return;
-      }
-      // Index theo (classCode|studentCode) để merge nhanh
-      var idx = {};
-      res.data.forEach(function(s){
-        var k = (s.classCode || '') + '|' + (s.studentCode || '');
-        idx[k] = s;
-      });
-      // Merge field nhạy cảm vào CLASSES[].students[] hiện có
-      var sensitiveFields = ['hamlet','birthplace','phone','father','fatherYear','mother','motherYear'];
-      var merged = 0;
-      (window.CLASSES || []).forEach(function(cls){
-        (cls.students || []).forEach(function(stu){
-          var k = (stu.classCode || cls.name || '') + '|' + (stu.studentCode || '');
-          var src = idx[k];
-          if (src) {
-            sensitiveFields.forEach(function(f){
-              if (src[f] !== undefined) stu[f] = src[f];
-            });
-            merged++;
-          }
-        });
-      });
-      window._studentsAuthedFor = currentUser;
-      console.log('[loadStudentsAuthed] Đã merge', merged, 'HS với data nhạy cảm');
-      resolve({ ok: true, merged: merged });
-    }).catch(function(err){
-      reject(err);
-    });
-  });
-}
-
-function toast(msg, kind){
-  var t = $('#qlToast');
-  if (!t) return;
-  t.className = 'ql-toast ' + (kind || '');
-  t.textContent = msg;
-  t.style.display = 'inline-flex';
-  clearTimeout(t._tm);
-  // Toast lỗi dài (chứa hướng dẫn) hiện lâu hơn để user kịp đọc
-  var dur = kind === 'err' ? (msg.length > 120 ? 12000 : 5000) : 2800;
-  t._tm = setTimeout(function(){ t.style.display = 'none'; }, dur);
-}
-
-function escHtml(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-
-// ============ INIT ============
-function init(){
-  if (STATE.inited) return;
-  STATE.inited = true;
-  // Load classes/teachers from HSS globals
-  STATE.classes = window.CLASSES || [];
-  STATE.teachers = window.TEACHERS || [];
-  // School pill
-  var cfg = (window.STATS && window.STATS.config) || {};
-  var pillS = $('#qlSchoolPill'); if (pillS && pillS.firstElementChild) pillS.firstElementChild.textContent = cfg.name || 'Trường…';
-  var pillY = $('#qlYearPill'); if (pillY && pillY.firstElementChild) pillY.firstElementChild.textContent = cfg.schoolYear || STATE.namHoc;
-  STATE.namHoc = cfg.schoolYear || STATE.namHoc;
-
-  // Restore role from sessionStorage
-  try {
-    var saved = sessionStorage.getItem('qlcl_role');
-    if (saved) {
-      var sr = JSON.parse(saved);
-      STATE.role = sr.role || 'BGH';
-      STATE.user = sr.user || 'admin';
-      STATE.classRoleLop = sr.classRoleLop || '';
-    }
-  } catch(e){}
-  updateRolePill();
-
-  // Populate filter selects
-  fillNamHocSelects();
-  fillLopSelects();
-  fillMonSelects();
-  fillHSSelects();
-
-  // Wire filter change events
-  ['qlfNamHoc','qlfLop','qlfMon'].forEach(function(id){
-    var el = $('#' + id); if (el) el.addEventListener('change', qlReloadDiem);
-  });
-  ['qlnxNamHoc','qlnxLop','qlnxMon','qlnxHK'].forEach(function(id){
-    var el = $('#' + id); if (el) el.addEventListener('change', qlReloadNX);
-  });
-  ['qlnlpcNamHoc','qlnlpcLop','qlnlpcHK','qlnlpcHS'].forEach(function(id){
-    var el = $('#' + id); if (el) el.addEventListener('change', function(){
-      if (id === 'qlnlpcLop') fillHSSelects();
-      qlReloadNLPC();
-    });
-  });
-  ['qlxlNamHoc','qlxlLop'].forEach(function(id){
-    var el = $('#' + id); if (el) el.addEventListener('change', qlReloadXepLoai);
-  });
-  ['qlbtNamHoc','qlbtLop'].forEach(function(id){
-    var el = $('#' + id); if (el) el.addEventListener('change', qlReloadBangTong);
-  });
-  ['qlhbLop'].forEach(function(id){
-    var el = $('#' + id); if (el) el.addEventListener('change', function(){
-      fillHSSelects();
-      qlPreviewHocBa();
-    });
-  });
-  var hbHS = $('#qlhbHS'); if (hbHS) hbHS.addEventListener('change', qlPreviewHocBa);
-
-  // Auto-load điểm cho workspace mặc định
-  setTimeout(function(){ qlReloadDiem(); }, 100);
-}
-
-// ============ ROLE ============
-function updateRolePill(){
-  var pill = $('#qlRolePill');
-  if (!pill) return;
-  var icon = STATE.role === 'BGH' ? '🛡' : (STATE.role === 'GVCN' ? '👨‍🏫' : '📚');
-  var label = STATE.role + (STATE.role === 'GVCN' && STATE.classRoleLop ? ' · ' + STATE.classRoleLop : '');
-  pill.textContent = icon + ' ' + label;
-}
-
-window.qlOpenRoleModal = function(){
-  $('#qlRoleSelect').value = STATE.role;
-  $('#qlRoleUser').value = STATE.user;
-  $('#qlRoleLop').innerHTML = STATE.classes.map(function(c){ return '<option>' + escHtml(c.name || '') + '</option>'; }).join('');
-  $('#qlRoleLop').value = STATE.classRoleLop;
-  toggleRoleClassRow();
-  $('#qlRoleSelect').onchange = toggleRoleClassRow;
-  openModal('qlRoleModal');
-};
-function toggleRoleClassRow(){
-  $('#qlRoleClassRow').style.display = $('#qlRoleSelect').value === 'GVCN' ? 'flex' : 'none';
-}
-window.qlApplyRole = function(){
-  STATE.role = $('#qlRoleSelect').value;
-  STATE.user = $('#qlRoleUser').value || 'admin';
-  STATE.classRoleLop = STATE.role === 'GVCN' ? $('#qlRoleLop').value : '';
-  try { sessionStorage.setItem('qlcl_role', JSON.stringify({role: STATE.role, user: STATE.user, classRoleLop: STATE.classRoleLop})); } catch(e){}
-  updateRolePill();
-  closeModal('qlRoleModal');
-  toast('Đã đổi vai trò: ' + STATE.role + (STATE.classRoleLop ? ' · ' + STATE.classRoleLop : ''), 'ok');
-  // Reload current workspace để áp dụng quyền
-  qlReloadDiem();
-};
-
-// ============ MODAL ============
-function openModal(id){ var m = $('#' + id); if (m) m.classList.add('open'); }
-function closeModal(id){ var m = $('#' + id); if (m) m.classList.remove('open'); }
-window.qlCloseModal = closeModal;
-
-// ============ WORKSPACE SWITCH ============
-window.qlSwitchWS = function(ws){
-  STATE.currentWS = ws;
-  $$('.ql-tab').forEach(function(t){ t.classList.toggle('active', t.dataset.ws === ws); });
-  $$('.ql-ws').forEach(function(d){ d.style.display = (d.dataset.ws === ws) ? '' : 'none'; });
-  // Auto reload data per workspace
-  if (ws === 'diem')      qlReloadDiem();
-  if (ws === 'nx')        qlReloadNX();
-  if (ws === 'nlpc')      qlReloadNLPC();
-  if (ws === 'xeploai')   qlReloadXepLoai();
-  if (ws === 'hocba')     qlPreviewHocBa();
-  if (ws === 'dashboard') qlReloadDashboard();
-  if (ws === 'phancong')  qlReloadPhanCong();
-  if (ws === 'chunhiem')  qlCNReload();
-  if (ws === 'audit')     qlReloadAudit();
-  if (ws === 'bangtong')  qlReloadBangTong();
-};
-
-// ============ FILTER POPULATION ============
-function fillNamHocSelects(){
-  var years = [STATE.namHoc, '2024-2025', '2026-2027'];
-  var html = years.filter(function(y,i,a){return a.indexOf(y)===i;}).map(function(y){return '<option>'+escHtml(y)+'</option>';}).join('');
-  ['qlfNamHoc','qlnxNamHoc','qlnlpcNamHoc','qlxlNamHoc','qlhbNamHoc','qldashNamHoc','qlpcNamHoc','qlbtNamHoc'].forEach(function(id){
-    var el = document.getElementById(id);
-    if (el && (!el.options || !el.options.length)) el.innerHTML = html;
-  });
-}
-function fillLopSelects(){
-  var html = (STATE.classes || []).map(function(c){ return '<option>' + escHtml(c.name) + '</option>'; }).join('');
-  if (!html) html = '<option value="">(Chưa có lớp — vào HSS thêm lớp)</option>';
-  ['qlfLop','qlnxLop','qlnlpcLop','qlxlLop','qlhbLop','qlpcLop','qlCNLop','qlbtLop'].forEach(function(id){
-    var el = document.getElementById(id); if (el && (!el.options || !el.options.length)) el.innerHTML = html;
-  });
-}
-function fillMonSelects(){
-  var html = QLCL_SUBJECTS.map(function(s){ return '<option>' + escHtml(s.name) + '</option>'; }).join('');
-  ['qlfMon','qlnxMon'].forEach(function(id){
-    var el = document.getElementById(id); if (el && (!el.options || !el.options.length)) el.innerHTML = html;
-  });
-}
-function fillHSSelects(){
-  // Populate qlnlpcHS + qlhbHS based on current Lop
-  ['qlnlpcHS','qlhbHS'].forEach(function(id){
-    var sel = $('#' + id); if (!sel) return;
-    var lopId = id === 'qlnlpcHS' ? 'qlnlpcLop' : 'qlhbLop';
-    var lop = $('#' + lopId) ? $('#' + lopId).value : '';
-    var cls = (STATE.classes || []).find(function(c){ return c.name === lop; });
-    var students = cls ? (cls.students || []) : [];
-    sel.innerHTML = '<option value="">— Chọn HS —</option>' + students.map(function(s){
-      var maHS = s[2] || s.studentCode || '';
-      var hoTen = s[3] || s.name || '';
-      return '<option value="' + escHtml(maHS) + '">' + escHtml(hoTen) + ' (' + escHtml(maHS) + ')</option>';
-    }).join('');
-  });
-}
-
-// ============ PERMISSION CHECK ============
-function canEditDiem(lop, mon){
-  if (STATE.role === 'BGH') return true;
-  if (STATE.role === 'GVCN') return lop === STATE.classRoleLop;
-  // GVBM: tạm thời cho nhập tự do (sẽ check từ phân công sau)
-  return true;
-}
-function canEditNXLop(lop){
-  if (STATE.role === 'BGH') return true;
-  if (STATE.role === 'GVCN') return lop === STATE.classRoleLop;
-  return true;
-}
-
-// ============ WORKSPACE 1: NHẬP ĐIỂM ============
-window.qlReloadDiem = function(){
-  var nh = $('#qlfNamHoc').value;
-  var lop = $('#qlfLop').value;
-  var mon = $('#qlfMon').value;
-  if (!lop || !mon) {
-    $('#qlDiemGridWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">📊</div>Chọn lớp và môn học để bắt đầu nhập điểm.</div>';
-    return;
-  }
-  var sub = QLCL_SUBJECTS.find(function(x){ return x.name === mon; });
-  var khoi = getKhoiFromLop(lop);
-  var hasScore = sub && sub.withScore.indexOf(khoi) >= 0;
-  var hasGHK = sub && sub.withGHK.indexOf(khoi) >= 0;
-  if (!hasScore) {
-    $('#qlDiemGridWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">📝</div>' +
-      '<b>Môn ' + escHtml(mon) + '</b> ở khối ' + khoi + ' chỉ <b>nhận xét bằng lời</b> theo TT 27/2020 — không có bài kiểm tra điểm số.<br>' +
-      '<a href="javascript:qlSwitchWS(&quot;nx&quot;)" style="color:#3a6ba8;text-decoration:underline">→ Sang tab Nhận xét</a></div>';
-    return;
-  }
-
-  // Render grid skeleton trước, rồi load data
-  renderDiemSkeleton(lop, mon, hasGHK);
-
-  if (!getGAS_URL()) {
-    toast('Chưa cấu hình backend — chỉ làm việc local', 'warn');
-    return;
-  }
-  callGAS('qlclGetDiem', { namHoc: nh, lop: lop, monHoc: mon }).then(function(res){
-    if (!res.ok) { toast('Lỗi tải điểm: ' + res.error, 'err'); return; }
-    var key = nh + '|' + lop + '|' + mon;
-    STATE.diemCache[key] = {};
-    (res.data || []).forEach(function(r){
-      STATE.diemCache[key][r.MaHS] = { GHK1: r.GHK1, CHK1: r.CHK1, GHK2: r.GHK2, CN: r.CN };
-    });
-    populateDiemFromCache(lop, mon);
-    var n = (res.data || []).length;
-    $('#qlBadgeDiem').textContent = n;
-  }).catch(function(err){ toast('Lỗi mạng: ' + err.message, 'err'); });
-};
-
-function renderDiemSkeleton(lop, mon, hasGHK){
-  var cls = STATE.classes.find(function(c){ return c.name === lop; });
-  var students = cls ? (cls.students || []) : [];
-  var canEdit = canEditDiem(lop, mon);
-  $('#qlDiemTitle').textContent = 'Bảng điểm · ' + mon + ' · Lớp ' + lop + ' · ' + students.length + ' HS';
-
-  if (!students.length) {
-    $('#qlDiemGridWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">👥</div>Lớp này chưa có học sinh. Vui lòng vào HSS → Quản lý HS để thêm.</div>';
-    return;
-  }
-  var html = '<table class="ql-grid"><thead><tr>' +
-    '<th class="col-stt">TT</th>' +
-    '<th class="col-name" style="text-align:left">Họ và tên</th>' +
-    '<th class="col-score">Mã HS</th>';
-  if (hasGHK) html += '<th class="col-score">Giữa HK1</th>';
-  html += '<th class="col-score">Cuối HK1</th>';
-  if (hasGHK) html += '<th class="col-score">Giữa HK2</th>';
-  html += '<th class="col-score">Cuối năm</th>' +
-    '<th class="col-tb">TB</th>' +
-    '<th class="col-action">Nhận xét</th>' +
-    '</tr></thead><tbody>';
-  students.forEach(function(s, i){
-    var maHS = s[2] || s.studentCode || '';
-    var hoTen = s[3] || s.name || '';
-    var dis = canEdit ? '' : 'disabled';
-    var rowKey = 'diem-' + maHS;
-    html += '<tr data-mahs="' + escHtml(maHS) + '" data-hoten="' + escHtml(hoTen) + '">' +
-      '<td class="col-stt">' + (i+1) + '</td>' +
-      '<td class="col-name">' + escHtml(hoTen) + '</td>' +
-      '<td class="col-score" style="color:#6b7280;font-size:.78rem">' + escHtml(maHS) + '</td>';
-    if (hasGHK) html += '<td class="col-score"><input type="number" min="0" max="10" step="1" data-col="GHK1" ' + dis + '></td>';
-    html += '<td class="col-score"><input type="number" min="0" max="10" step="1" data-col="CHK1" ' + dis + '></td>';
-    if (hasGHK) html += '<td class="col-score"><input type="number" min="0" max="10" step="1" data-col="GHK2" ' + dis + '></td>';
-    html += '<td class="col-score"><input type="number" min="0" max="10" step="1" data-col="CN" ' + dis + '></td>' +
-      '<td class="col-tb" data-tb>—</td>' +
-      '<td class="col-action"><button class="ql-btn ql-btn-out" style="padding:4px 8px;font-size:.78rem" onclick="qlOpenNXModal(\''+escHtml(maHS).replace(/'/g,'\\\'')+'\',\''+escHtml(hoTen).replace(/'/g,'\\\'')+'\')">💬</button></td>' +
-      '</tr>';
-  });
-  html += '</tbody></table>';
-  $('#qlDiemGridWrap').innerHTML = html;
-
-  // Wire input events
-  $$('#qlDiemGridWrap input[type=number]').forEach(function(inp){
-    inp.addEventListener('input', function(){
-      var v = inp.value === '' ? '' : Math.max(0, Math.min(10, Math.round(Number(inp.value))));
-      if (v !== '' && String(v) !== inp.value) inp.value = v;
-      var tr = inp.closest('tr');
-      var maHS = tr.dataset.mahs;
-      var col = inp.dataset.col;
-      var key = nhLopMonKey();
-      STATE.diemCache[key] = STATE.diemCache[key] || {};
-      STATE.diemCache[key][maHS] = STATE.diemCache[key][maHS] || {};
-      STATE.diemCache[key][maHS][col] = v;
-      STATE.changedDiem[key + '|' + maHS] = true;
-      inp.classList.add('score-changed');
-      // Update TB
-      updateRowTB(tr);
-      // Color
-      if (v !== '' && v <= 4) inp.classList.add('score-low'); else inp.classList.remove('score-low');
-      if (v === 10) inp.classList.add('score-perfect'); else inp.classList.remove('score-perfect');
-    });
-    inp.addEventListener('keydown', function(e){
-      if (e.key === 'Enter' || e.key === 'Tab' && !e.shiftKey) {
-        // Move to next row, same column
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          var tr = inp.closest('tr');
-          var col = inp.dataset.col;
-          var nextTr = tr.nextElementSibling;
-          if (nextTr) {
-            var next = nextTr.querySelector('input[data-col="' + col + '"]');
-            if (next) { next.focus(); next.select(); }
-          }
-        }
-      }
-    });
-  });
-}
-
-function nhLopMonKey(){
-  return $('#qlfNamHoc').value + '|' + $('#qlfLop').value + '|' + $('#qlfMon').value;
-}
-
-function updateRowTB(tr){
-  var inputs = tr.querySelectorAll('input[type=number]');
-  var sum = 0, cnt = 0;
-  inputs.forEach(function(i){ if (i.value !== '' && !isNaN(Number(i.value))) { sum += Number(i.value); cnt++; } });
-  tr.querySelector('[data-tb]').textContent = cnt ? (sum/cnt).toFixed(1) : '—';
-}
-
-function populateDiemFromCache(lop, mon){
-  var key = nhLopMonKey();
-  var data = STATE.diemCache[key] || {};
-  $$('#qlDiemGridWrap tbody tr').forEach(function(tr){
-    var maHS = tr.dataset.mahs;
-    var d = data[maHS] || {};
-    ['GHK1','CHK1','GHK2','CN'].forEach(function(col){
-      var inp = tr.querySelector('input[data-col="' + col + '"]');
-      if (!inp) return;
-      var v = d[col];
-      inp.value = (v === null || v === undefined || v === '') ? '' : v;
-      if (v !== '' && v != null && Number(v) <= 4) inp.classList.add('score-low');
-      if (Number(v) === 10) inp.classList.add('score-perfect');
-    });
-    updateRowTB(tr);
-  });
-}
-
-window.qlSaveDiem = function(){
-  var nh = $('#qlfNamHoc').value;
-  var lop = $('#qlfLop').value;
-  var mon = $('#qlfMon').value;
-  if (!lop || !mon) { toast('Chọn lớp + môn trước.', 'warn'); return; }
-  if (!canEditDiem(lop, mon)) { toast('Bạn không có quyền nhập điểm cho lớp này.', 'err'); return; }
-  var rows = [];
-  $$('#qlDiemGridWrap tbody tr').forEach(function(tr){
-    var maHS = tr.dataset.mahs;
-    var hoTen = tr.dataset.hoten;
-    var r = { maHS: maHS, hoTen: hoTen };
-    ['GHK1','CHK1','GHK2','CN'].forEach(function(col){
-      var inp = tr.querySelector('input[data-col="' + col + '"]');
-      if (inp) r[col] = inp.value === '' ? '' : Number(inp.value);
-    });
-    rows.push(r);
-  });
-  if (!rows.length) { toast('Không có dữ liệu để lưu.', 'warn'); return; }
-  $('#qlBtnSaveDiem').disabled = true;
-  $('#qlBtnSaveDiem').textContent = '⏳ Đang lưu...';
-  callGAS('qlclSaveDiem', { namHoc: nh, lop: lop, monHoc: mon, rows: rows }).then(function(res){
-    if (res.ok) {
-      toast('✅ Đã lưu ' + (res.data.updated + res.data.inserted) + ' dòng (' + res.data.inserted + ' mới, ' + res.data.updated + ' cập nhật)', 'ok');
-      // Clear changed markers
-      $$('#qlDiemGridWrap input.score-changed').forEach(function(i){ i.classList.remove('score-changed'); });
-      STATE.changedDiem = {};
-    } else {
-      toast('❌ ' + res.error, 'err');
-    }
-  }).catch(function(err){
-    toast('Lỗi mạng: ' + err.message, 'err');
-  }).finally(function(){
-    $('#qlBtnSaveDiem').disabled = false;
-    $('#qlBtnSaveDiem').textContent = '💾 Lưu lên Sheet';
-  });
-};
-
-// Quick Nhận xét modal từ grid điểm
-window.qlOpenNXModal = function(maHS, hoTen){
-  STATE.modalCtx = { type: 'nx', maHS: maHS, hoTen: hoTen, lop: $('#qlfLop').value, monHoc: $('#qlfMon').value, hocKy: 'HK1', namHoc: $('#qlfNamHoc').value };
-  $('#qlNXModalTitle').textContent = '💬 Nhận xét — ' + hoTen + ' · ' + STATE.modalCtx.monHoc;
-  // Load existing
-  var key = STATE.modalCtx.namHoc + '|' + STATE.modalCtx.lop + '|' + STATE.modalCtx.monHoc + '|' + STATE.modalCtx.hocKy;
-  var ex = (STATE.nxCache[key] || []).find(function(r){ return r.MaHS === maHS; });
-  $$('input[name=qlnxmuc]').forEach(function(r){ r.checked = (ex && r.value === ex.Muc); });
-  $('#qlNXText').value = ex ? (ex.NhanXet || '') : '';
-  openModal('qlNXModal');
-};
-window.qlSaveNXModal = function(){
-  var ctx = STATE.modalCtx; if (!ctx) return;
-  var muc = (Array.from($$('input[name=qlnxmuc]')).find(function(r){return r.checked;}) || {}).value || '';
-  var nx = $('#qlNXText').value || '';
-  callGAS('qlclSaveNhanXet', {
-    namHoc: ctx.namHoc, lop: ctx.lop, monHoc: ctx.monHoc, hocKy: ctx.hocKy,
-    rows: [{ maHS: ctx.maHS, muc: muc, nhanXet: nx }]
-  }).then(function(res){
-    if (res.ok) { toast('✅ Đã lưu nhận xét', 'ok'); closeModal('qlNXModal'); }
-    else toast('❌ ' + res.error, 'err');
-  }).catch(function(err){ toast('Lỗi: ' + err.message, 'err'); });
-};
-
-window.qlAISuggestNX = function(){
-  var ctx = STATE.modalCtx; if (!ctx) return;
-  var muc = (Array.from($$('input[name=qlnxmuc]')).find(function(r){return r.checked;}) || {}).value || 'HT';
-  var prompt = 'Hãy soạn 1 câu nhận xét ngắn gọn (1-2 câu, dưới 30 từ) cho học sinh tiểu học có mức đánh giá "' + ({HTT:'Hoàn thành tốt',HT:'Hoàn thành',CHT:'Chưa hoàn thành'}[muc]) + '" môn ' + ctx.monHoc + ', học kỳ ' + ctx.hocKy + ', theo TT 27/2020. Trả về duy nhất câu nhận xét, không bao gồm bất kỳ giải thích hay tiêu đề nào.';
-  $('#qlNXText').value = '⏳ Đang gọi AI…';
-  callGAS('ai', { systemPrompt: 'Bạn là giáo viên chủ nhiệm tiểu học giàu kinh nghiệm.', userPrompt: prompt }).then(function(res){
-    if (res.ok && res.text) {
-      $('#qlNXText').value = String(res.text).trim().replace(/^["']|["']$/g, '');
-    } else {
-      $('#qlNXText').value = '';
-      toast('AI không phản hồi. Vui lòng nhập tay.', 'warn');
-    }
-  }).catch(function(err){
-    $('#qlNXText').value = '';
-    toast('Lỗi AI: ' + err.message, 'err');
-  });
-};
-
-// ============ WORKSPACE 2: Nhận xét ============
-window.qlReloadNX = function(){
-  var nh = $('#qlnxNamHoc').value, lop = $('#qlnxLop').value, mon = $('#qlnxMon').value, hk = $('#qlnxHK').value;
-  if (!lop || !mon) { $('#qlNXGridWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">💬</div>Chọn lớp + môn + học kỳ.</div>'; return; }
-  renderNXSkeleton(lop, mon, hk);
-  if (!getGAS_URL()) return;
-  callGAS('qlclGetNhanXet', { namHoc: nh, lop: lop, monHoc: mon, hocKy: hk }).then(function(res){
-    if (!res.ok) { toast(res.error, 'err'); return; }
-    var key = nh + '|' + lop + '|' + mon + '|' + hk;
-    STATE.nxCache[key] = res.data || [];
-    populateNXFromCache();
-    $('#qlBadgeNX').textContent = (res.data || []).length;
-  }).catch(function(err){ toast('Lỗi: ' + err.message, 'err'); });
-};
-function renderNXSkeleton(lop, mon, hk){
-  var cls = STATE.classes.find(function(c){ return c.name === lop; });
-  var students = cls ? (cls.students || []) : [];
-  var canEdit = canEditNXLop(lop);
-  if (!students.length) { $('#qlNXGridWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">👥</div>Lớp chưa có HS.</div>'; return; }
-  var html = '<table class="ql-grid"><thead><tr><th class="col-stt">TT</th><th class="col-name" style="text-align:left">Họ và tên</th><th style="width:280px">Mức</th><th>Nhận xét</th></tr></thead><tbody>';
-  students.forEach(function(s, i){
-    var maHS = s[2] || s.studentCode || '';
-    var hoTen = s[3] || s.name || '';
-    var dis = canEdit ? '' : 'disabled';
-    html += '<tr data-mahs="' + escHtml(maHS) + '"><td class="col-stt">' + (i+1) + '</td><td class="col-name">' + escHtml(hoTen) + '</td>' +
-      '<td><div class="ql-nlpc-radio" style="display:inline-flex">' +
-        '<label><input type="radio" name="nx-' + escHtml(maHS) + '" value="HTT" ' + dis + '><span>HTT</span></label>' +
-        '<label><input type="radio" name="nx-' + escHtml(maHS) + '" value="HT" ' + dis + '><span>HT</span></label>' +
-        '<label><input type="radio" name="nx-' + escHtml(maHS) + '" value="CHT" ' + dis + '><span>CHT</span></label>' +
-      '</div></td>' +
-      '<td><input type="text" class="qlnxin" style="width:100%;border:1px solid #e5e7eb;padding:6px 8px;border-radius:6px" placeholder="Nhập nhận xét…" ' + dis + '></td></tr>';
-  });
-  html += '</tbody></table>';
-  $('#qlNXGridWrap').innerHTML = html;
-}
-function populateNXFromCache(){
-  var nh = $('#qlnxNamHoc').value, lop = $('#qlnxLop').value, mon = $('#qlnxMon').value, hk = $('#qlnxHK').value;
-  var key = nh + '|' + lop + '|' + mon + '|' + hk;
-  var data = STATE.nxCache[key] || [];
-  data.forEach(function(r){
-    var tr = $('#qlNXGridWrap tr[data-mahs="' + r.MaHS + '"]');
-    if (!tr) return;
-    var radio = tr.querySelector('input[name="nx-' + r.MaHS + '"][value="' + r.Muc + '"]');
-    if (radio) radio.checked = true;
-    var inp = tr.querySelector('.qlnxin');
-    if (inp) inp.value = r.NhanXet || '';
-  });
-}
-window.qlSaveNX = function(){
-  var nh = $('#qlnxNamHoc').value, lop = $('#qlnxLop').value, mon = $('#qlnxMon').value, hk = $('#qlnxHK').value;
-  var rows = [];
-  $$('#qlNXGridWrap tbody tr').forEach(function(tr){
-    var maHS = tr.dataset.mahs;
-    var muc = (Array.from(tr.querySelectorAll('input[type=radio]')).find(function(r){return r.checked;})||{}).value || '';
-    var nx = tr.querySelector('.qlnxin').value || '';
-    if (muc || nx) rows.push({ maHS: maHS, muc: muc, nhanXet: nx });
-  });
-  if (!rows.length) { toast('Chưa có nhận xét nào.', 'warn'); return; }
-  callGAS('qlclSaveNhanXet', { namHoc: nh, lop: lop, monHoc: mon, hocKy: hk, rows: rows }).then(function(res){
-    if (res.ok) toast('✅ Đã lưu ' + (res.data.updated + res.data.inserted) + ' nhận xét', 'ok');
-    else toast(res.error, 'err');
-  }).catch(function(err){ toast('Lỗi: ' + err.message, 'err'); });
-};
-
-// ============ WORKSPACE 3: NL/PC ============
-window.qlReloadNLPC = function(){
-  var nh = $('#qlnlpcNamHoc').value, lop = $('#qlnlpcLop').value, hk = $('#qlnlpcHK').value, maHS = $('#qlnlpcHS').value;
-  if (!maHS) { $('#qlNLPCBody').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">🏆</div>Chọn học sinh.</div>'; return; }
-  renderNLPCForm(nh, lop, hk, maHS);
-  if (!getGAS_URL()) return;
-  callGAS('qlclGetNLPC', { namHoc: nh, lop: lop, hocKy: hk }).then(function(res){
-    if (!res.ok) return;
-    var data = (res.data || []).filter(function(r){ return r.MaHS === maHS; });
-    data.forEach(function(r){
-      var radio = $('input[name="nlpc-' + r.Ma + '"][value="' + r.Muc + '"]');
-      if (radio) radio.checked = true;
-      var inp = $('#nlpcnx-' + r.Ma);
-      if (inp) inp.value = r.NhanXet || '';
-    });
-  });
-};
-function renderNLPCForm(nh, lop, hk, maHS){
-  var html = '';
-  html += '<div style="background:#fefce8;border:1px solid #fde68a;color:#854d0e;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:.84rem">📌 Đánh giá <b>' + ({HK1:'Học kỳ 1',HK2:'Học kỳ 2'}[hk]) + '</b> theo CTGDPT 2018: 3 năng lực cốt lõi + 5 phẩm chất chủ yếu. Mỗi mục chọn 1 mức + nhận xét tuỳ chọn.</div>';
-  ['NL','PC'].forEach(function(loai){
-    html += '<h4 style="margin:10px 0;color:#1e4a85">' + (loai === 'NL' ? '🌟 Năng lực' : '💎 Phẩm chất') + '</h4>';
-    QLCL_NLPC.filter(function(x){return x.loai===loai;}).forEach(function(x){
-      html += '<div class="ql-nlpc-item">' +
-        '<div class="ql-nlpc-head">' +
-          '<div class="ql-nlpc-name">' + escHtml(x.ten) + '</div>' +
-          '<div class="ql-nlpc-radio">' +
-            '<label><input type="radio" name="nlpc-' + x.ma + '" value="T"><span>Tốt</span></label>' +
-            '<label><input type="radio" name="nlpc-' + x.ma + '" value="Đ"><span>Đạt</span></label>' +
-            '<label><input type="radio" name="nlpc-' + x.ma + '" value="C"><span>Cần cố gắng</span></label>' +
-          '</div>' +
-        '</div>' +
-        '<input type="text" id="nlpcnx-' + x.ma + '" style="width:100%;border:1px solid #e5e7eb;padding:6px 10px;border-radius:6px;font-size:.84rem" placeholder="Nhận xét cụ thể (tuỳ chọn)…">' +
-      '</div>';
-    });
-  });
-  $('#qlNLPCBody').innerHTML = html;
-}
-window.qlSaveNLPC = function(){
-  var nh = $('#qlnlpcNamHoc').value, lop = $('#qlnlpcLop').value, hk = $('#qlnlpcHK').value, maHS = $('#qlnlpcHS').value;
-  if (!maHS) { toast('Chọn học sinh.', 'warn'); return; }
-  var rows = QLCL_NLPC.map(function(x){
-    var muc = (Array.from($$('input[name="nlpc-' + x.ma + '"]')).find(function(r){return r.checked;})||{}).value || '';
-    var nx = ($('#nlpcnx-' + x.ma) || {}).value || '';
-    return { maHS: maHS, loai: x.loai, ma: x.ma, tenLoai: x.ten, muc: muc, nhanXet: nx };
-  }).filter(function(r){ return r.muc || r.nhanXet; });
-  if (!rows.length) { toast('Chưa chọn mức nào.', 'warn'); return; }
-  callGAS('qlclSaveNLPC', { namHoc: nh, lop: lop, hocKy: hk, rows: rows }).then(function(res){
-    if (res.ok) toast('✅ Đã lưu NL/PC cho HS', 'ok');
-    else toast(res.error, 'err');
-  }).catch(function(err){ toast('Lỗi: ' + err.message, 'err'); });
-};
-
-// ============ WORKSPACE 4: XẾP LOẠI ============
-window.qlReloadXepLoai = function(){
-  var nh = $('#qlxlNamHoc').value, lop = $('#qlxlLop').value;
-  if (!lop) { $('#qlXepLoaiWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">⭐</div>Chọn lớp.</div>'; return; }
-  var cls = STATE.classes.find(function(c){ return c.name === lop; });
-  var students = cls ? (cls.students || []) : [];
-  if (!students.length) { $('#qlXepLoaiWrap').innerHTML = '<div class="ql-empty">Lớp chưa có HS.</div>'; return; }
-  var html = '<table class="ql-grid"><thead><tr><th class="col-stt">TT</th><th class="col-name" style="text-align:left">Họ và tên</th><th style="min-width:200px">Xếp loại</th><th>Lên lớp</th><th>Khen thưởng</th><th style="min-width:200px">Nhận xét chung</th></tr></thead><tbody>';
-  students.forEach(function(s, i){
-    var maHS = s[2] || s.studentCode || '';
-    var hoTen = s[3] || s.name || '';
-    html += '<tr data-mahs="' + escHtml(maHS) + '" data-hoten="' + escHtml(hoTen) + '">' +
-      '<td class="col-stt">' + (i+1) + '</td>' +
-      '<td class="col-name">' + escHtml(hoTen) + '</td>' +
-      '<td><select class="qlxlxl" style="width:100%;padding:5px;border:1px solid #e5e7eb;border-radius:5px"><option value="">—</option><option>Hoàn thành xuất sắc</option><option>Hoàn thành tốt</option><option>Hoàn thành</option><option>Chưa hoàn thành</option></select></td>' +
-      '<td><select class="qlxllen" style="padding:5px;border:1px solid #e5e7eb;border-radius:5px"><option>—</option><option value="x">Lên lớp</option><option value="">Ở lại</option></select></td>' +
-      '<td><input type="text" class="qlxlkt" style="width:100%;padding:5px;border:1px solid #e5e7eb;border-radius:5px" placeholder="VD: HS Giỏi"></td>' +
-      '<td><input type="text" class="qlxlnx" style="width:100%;padding:5px;border:1px solid #e5e7eb;border-radius:5px" placeholder="Nhận xét chung của GVCN…"></td></tr>';
-  });
-  html += '</tbody></table>';
-  $('#qlXepLoaiWrap').innerHTML = html;
-  if (!getGAS_URL()) return;
-  callGAS('qlclGetXepLoai', { namHoc: nh, lop: lop }).then(function(res){
-    if (!res.ok) return;
-    (res.data || []).forEach(function(r){
-      var tr = $('#qlXepLoaiWrap tr[data-mahs="' + r.MaHS + '"]');
-      if (!tr) return;
-      tr.querySelector('.qlxlxl').value = r.XepLoai || '';
-      tr.querySelector('.qlxllen').value = r.LenLop || '—';
-      tr.querySelector('.qlxlkt').value = r.KhenThuong || '';
-      tr.querySelector('.qlxlnx').value = r.NhanXetChung || '';
-    });
-  });
-};
-window.qlAutoXepLoai = function(){
-  toast('Tính năng tự động đề xuất sẽ tổng hợp điểm + NL/PC. Đang phát triển.', 'warn');
-  // TODO: pull diem/nlpc → suggest xếp loại
-};
-window.qlSaveXepLoai = function(){
-  var nh = $('#qlxlNamHoc').value, lop = $('#qlxlLop').value;
-  var rows = [];
-  $$('#qlXepLoaiWrap tbody tr').forEach(function(tr){
-    var maHS = tr.dataset.mahs, hoTen = tr.dataset.hoten;
-    var xl = tr.querySelector('.qlxlxl').value;
-    if (!xl) return;
-    rows.push({
-      maHS: maHS, hoTen: hoTen, xepLoai: xl,
-      lenLop: tr.querySelector('.qlxllen').value === 'x' ? 'x' : '',
-      khenThuong: tr.querySelector('.qlxlkt').value,
-      nhanXetChung: tr.querySelector('.qlxlnx').value,
-      gvcn: STATE.user, ht: ''
-    });
-  });
-  if (!rows.length) { toast('Chưa xếp loại HS nào.', 'warn'); return; }
-  callGAS('qlclSaveXepLoai', { namHoc: nh, lop: lop, rows: rows }).then(function(res){
-    if (res.ok) toast('✅ Đã lưu xếp loại ' + rows.length + ' HS', 'ok');
-    else toast(res.error, 'err');
-  }).catch(function(err){ toast('Lỗi: ' + err.message, 'err'); });
-};
-
-// ============ WORKSPACE: BẢNG TỔNG HỢP — mega-grid CSDL ngành ============
-// 1 dòng = 1 HS · gộp Điểm tất cả môn + NL/PC + Xếp loại trên cùng bảng.
-// Phần điểm/NL/PC/mức môn: READ-ONLY (sửa ở các tab chuyên biệt).
-// Xếp loại + Lên lớp + Nhận xét chung: edit inline + lưu nhanh qua qlclSaveXepLoai.
-window.qlReloadBangTong = function(){
-  var nh = $('#qlbtNamHoc') ? $('#qlbtNamHoc').value : STATE.namHoc;
-  var lop = $('#qlbtLop') ? $('#qlbtLop').value : '';
-  var wrap = $('#qlBangTongWrap');
-  if (!wrap) return;
-  if (!lop) {
-    wrap.innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">🗒</div>Chọn lớp để mở bảng tổng hợp.</div>';
-    return;
-  }
-  var cls = (STATE.classes || []).find(function(c){ return c.name === lop; });
-  var students = cls ? (cls.students || []) : [];
-  if (!students.length) {
-    wrap.innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">👥</div>Lớp ' + escHtml(lop) + ' chưa có học sinh.</div>';
-    return;
-  }
-  var khoi = getKhoiFromLop(lop);
-  var monsCoDiem = QLCL_SUBJECTS.filter(function(s){ return s.withScore.indexOf(khoi) >= 0; });
-  var monsKhongDiem = QLCL_SUBJECTS.filter(function(s){ return s.withScore.indexOf(khoi) < 0; });
-
-  renderBangTongSkeleton(students, monsCoDiem, monsKhongDiem, lop);
-
-  if (!getGAS_URL()) {
-    toast('Chưa cấu hình backend — hiển thị bảng trống', 'warn');
-    return;
-  }
-
-  // Load song song: NLPC HK2 + Xếp loại + Điểm các môn + Mức môn không điểm
-  var promises = [
-    callGAS('qlclGetNLPC', { namHoc: nh, lop: lop, hocKy: 'HK2' }),
-    callGAS('qlclGetXepLoai', { namHoc: nh, lop: lop })
-  ];
-  monsCoDiem.forEach(function(m){
-    promises.push(callGAS('qlclGetDiem', { namHoc: nh, lop: lop, monHoc: m.name }));
-  });
-  monsKhongDiem.forEach(function(m){
-    promises.push(callGAS('qlclGetNhanXet', { namHoc: nh, lop: lop, monHoc: m.name, hocKy: 'HK2' }));
-  });
-
-  Promise.all(promises).then(function(results){
-    var nlpcRes = results[0], xlRes = results[1];
-
-    if (xlRes && xlRes.ok) (xlRes.data || []).forEach(function(r){
-      var tr = wrap.querySelector('tr[data-mahs="' + (r.MaHS || '') + '"]');
-      if (!tr) return;
-      var sel = tr.querySelector('.qlbtxl');  if (sel) sel.value = r.XepLoai || '';
-      var ll  = tr.querySelector('.qlbtll');  if (ll)  ll.value  = r.LenLop === 'x' ? 'x' : '';
-      var nx  = tr.querySelector('.qlbtnx');  if (nx)  nx.value  = r.NhanXetChung || '';
-    });
-
-    // NLPC long format → cell theo Ma
-    if (nlpcRes && nlpcRes.ok) (nlpcRes.data || []).forEach(function(r){
-      var tr = wrap.querySelector('tr[data-mahs="' + (r.MaHS || '') + '"]');
-      if (!tr) return;
-      var cell = tr.querySelector('[data-nlpc="' + r.Ma + '"]');
-      if (cell && r.Muc) {
-        cell.textContent = r.Muc;
-        cell.style.color = r.Muc === 'T' ? '#15803d' : (r.Muc === 'C' ? '#b91c1c' : '#1e40af');
-        cell.style.fontWeight = '600';
-      }
-    });
-
-    // Điểm các môn (CHK1 / CN)
-    monsCoDiem.forEach(function(m, idx){
-      var diemRes = results[2 + idx];
-      if (!diemRes || !diemRes.ok) return;
-      (diemRes.data || []).forEach(function(r){
-        var tr = wrap.querySelector('tr[data-mahs="' + (r.MaHS || '') + '"]');
-        if (!tr) return;
-        var c1 = tr.querySelector('td[data-monchk1="' + escHtml(m.name) + '"]');
-        if (c1 && (r.CHK1 || r.CHK1 === 0)) { c1.textContent = r.CHK1; c1.style.color = '#374151'; }
-        var c2 = tr.querySelector('td[data-moncn="' + escHtml(m.name) + '"]');
-        if (c2 && (r.CN || r.CN === 0)) {
-          c2.textContent = r.CN;
-          c2.style.color = Number(r.CN) <= 4 ? '#b91c1c' : (Number(r.CN) === 10 ? '#15803d' : '#374151');
-          c2.style.fontWeight = '600';
-        }
-      });
-    });
-
-    // Mức môn không điểm (T/H/C)
-    monsKhongDiem.forEach(function(m, idx){
-      var nxRes = results[2 + monsCoDiem.length + idx];
-      if (!nxRes || !nxRes.ok) return;
-      (nxRes.data || []).forEach(function(r){
-        var tr = wrap.querySelector('tr[data-mahs="' + (r.MaHS || '') + '"]');
-        if (!tr) return;
-        var c = tr.querySelector('td[data-monmuc="' + escHtml(m.name) + '"]');
-        if (c && r.Muc) {
-          c.textContent = r.Muc;
-          c.style.color = r.Muc === 'T' ? '#15803d' : (r.Muc === 'C' ? '#b91c1c' : '#1e40af');
-          c.style.fontWeight = '600';
-        }
-      });
-    });
-
-    toast('✅ Đã tải bảng tổng hợp · ' + students.length + ' HS · ' + (monsCoDiem.length + monsKhongDiem.length) + ' môn', 'ok');
-  }).catch(function(err){ toast('Lỗi tải bảng: ' + err.message, 'err'); });
-};
-
-function renderBangTongSkeleton(students, monsCoDiem, monsKhongDiem, lop){
-  var canEdit = canEditNXLop(lop);
-  var dis = canEdit ? '' : 'disabled';
-  var html = '<table class="ql-grid" style="font-size:.8rem;white-space:nowrap"><thead>';
-  // Header row 1
-  html += '<tr>';
-  html += '<th rowspan="2" class="col-stt">TT</th>';
-  html += '<th rowspan="2" class="col-name" style="text-align:left;min-width:140px;position:sticky;left:0;background:#fff;z-index:2">Họ và tên</th>';
-  if (monsCoDiem.length) html += '<th colspan="' + (monsCoDiem.length * 2) + '" style="background:#fef3c7;color:#92400e">📊 Môn có điểm (CHK1 / CN)</th>';
-  if (monsKhongDiem.length) html += '<th colspan="' + monsKhongDiem.length + '" style="background:#dbeafe;color:#1e40af">💬 Môn nhận xét (mức)</th>';
-  html += '<th colspan="3" style="background:#dcfce7;color:#15803d">🌟 NL chung</th>';
-  html += '<th colspan="5" style="background:#fce7f3;color:#9d174d">💎 Phẩm chất</th>';
-  html += '<th rowspan="2" style="min-width:160px;background:#fef9c3;color:#854d0e">⭐ Xếp loại CN</th>';
-  html += '<th rowspan="2" style="background:#f3f4f6">Lên lớp</th>';
-  html += '<th rowspan="2" style="min-width:200px">📝 Nhận xét chung</th>';
-  html += '</tr>';
-  // Header row 2
-  html += '<tr>';
-  monsCoDiem.forEach(function(m){
-    var shortName = m.name.length > 9 ? m.name.slice(0, 8) + '…' : m.name;
-    html += '<th colspan="2" title="' + escHtml(m.name) + '" style="font-size:.68rem;background:#fef3c7;color:#92400e">' + escHtml(shortName) + '</th>';
-  });
-  monsKhongDiem.forEach(function(m){
-    var shortName = m.name.length > 9 ? m.name.slice(0, 8) + '…' : m.name;
-    html += '<th title="' + escHtml(m.name) + '" style="font-size:.68rem;background:#dbeafe;color:#1e40af">' + escHtml(shortName) + '</th>';
-  });
-  ['Tự chủ','Giao tiếp','GQVĐ'].forEach(function(t){
-    html += '<th style="font-size:.68rem;background:#dcfce7;color:#15803d">' + t + '</th>';
-  });
-  ['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'].forEach(function(t){
-    html += '<th style="font-size:.68rem;background:#fce7f3;color:#9d174d">' + t + '</th>';
-  });
-  html += '</tr></thead><tbody>';
-
-  students.forEach(function(s, i){
-    var maHS = s[2] || s.studentCode || '';
-    var hoTen = s[3] || s.name || '';
-    html += '<tr data-mahs="' + escHtml(maHS) + '" data-hoten="' + escHtml(hoTen) + '">';
-    html += '<td class="col-stt">' + (i+1) + '</td>';
-    html += '<td class="col-name" style="position:sticky;left:0;background:#fff;font-weight:500">' + escHtml(hoTen) + '</td>';
-    monsCoDiem.forEach(function(m){
-      html += '<td data-monchk1="' + escHtml(m.name) + '" style="text-align:center;color:#9ca3af">—</td>';
-      html += '<td data-moncn="' + escHtml(m.name) + '" style="text-align:center;color:#9ca3af">—</td>';
-    });
-    monsKhongDiem.forEach(function(m){
-      html += '<td data-monmuc="' + escHtml(m.name) + '" style="text-align:center;color:#9ca3af">—</td>';
-    });
-    // 3 NL chung — đúng mã trong QLCL_NLPC
-    ['TuChuTuHoc','GiaoTiepHopTac','GiaiQuyetVanDe'].forEach(function(k){
-      html += '<td data-nlpc="' + k + '" style="text-align:center;color:#9ca3af">—</td>';
-    });
-    // 5 PC
-    ['YeuNuoc','NhanAi','ChamChi','TrungThuc','TrachNhiem'].forEach(function(k){
-      html += '<td data-nlpc="' + k + '" style="text-align:center;color:#9ca3af">—</td>';
-    });
-    html += '<td><select class="qlbtxl" ' + dis + ' style="width:100%;padding:4px;border:1px solid #e5e7eb;border-radius:4px;font-size:.78rem">';
-    html += '<option value="">—</option>';
-    ['Hoàn thành xuất sắc','Hoàn thành tốt','Hoàn thành','Chưa hoàn thành'].forEach(function(x){
-      html += '<option>' + x + '</option>';
-    });
-    html += '</select></td>';
-    html += '<td style="text-align:center"><select class="qlbtll" ' + dis + ' style="padding:4px;border:1px solid #e5e7eb;border-radius:4px"><option value="">—</option><option value="x">✓</option></select></td>';
-    html += '<td><input type="text" class="qlbtnx" ' + dis + ' style="width:100%;padding:4px;border:1px solid #e5e7eb;border-radius:4px;font-size:.78rem" placeholder="Nhận xét chung của GVCN…"></td>';
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  $('#qlBangTongWrap').innerHTML = html;
-}
-
-window.qlSaveBangTong = function(){
-  var nh = $('#qlbtNamHoc') ? $('#qlbtNamHoc').value : STATE.namHoc;
-  var lop = $('#qlbtLop') ? $('#qlbtLop').value : '';
-  if (!lop) { toast('Chọn lớp trước.', 'warn'); return; }
-  if (!canEditNXLop(lop)) { toast('Bạn không có quyền lưu xếp loại lớp này.', 'err'); return; }
-  var rows = [];
-  $$('#qlBangTongWrap tbody tr').forEach(function(tr){
-    var maHS = tr.dataset.mahs, hoTen = tr.dataset.hoten;
-    var xlSel = tr.querySelector('.qlbtxl');
-    var llSel = tr.querySelector('.qlbtll');
-    var nxInp = tr.querySelector('.qlbtnx');
-    var xl = xlSel ? xlSel.value : '';
-    var nx = nxInp ? nxInp.value : '';
-    if (!xl && !nx) return;
-    rows.push({
-      maHS: maHS, hoTen: hoTen, xepLoai: xl,
-      lenLop: llSel && llSel.value === 'x' ? 'x' : '',
-      khenThuong: '',
-      nhanXetChung: nx,
-      gvcn: STATE.user, ht: ''
-    });
-  });
-  if (!rows.length) { toast('Chưa có dòng nào có Xếp loại / Nhận xét.', 'warn'); return; }
-
-  var btn = $('#qlBtnSaveBangTong');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang lưu...'; }
-
-  callGAS('qlclSaveXepLoai', { namHoc: nh, lop: lop, rows: rows }).then(function(res){
-    if (res.ok) toast('✅ Đã lưu ' + rows.length + ' HS từ bảng tổng hợp', 'ok');
-    else toast('❌ ' + (res.error || 'Lỗi không xác định'), 'err');
-  }).catch(function(err){ toast('Lỗi mạng: ' + err.message, 'err'); }).finally(function(){
-    if (btn) { btn.disabled = false; btn.textContent = '💾 Lưu tất cả'; }
-  });
-};
-
-// ============ WORKSPACE 5: HỌC BẠ ============
-window.qlPreviewHocBa = function(){
-  var lop = $('#qlhbLop').value;
-  var maHS = $('#qlhbHS').value;
-  if (!lop || !maHS) {
-    $('#qlHocBaPreview').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">📄</div>Chọn lớp + học sinh.</div>';
-    return;
-  }
-  // ⭐ Học bạ cần cha/mẹ — fetch dữ liệu nhạy cảm trước render
-  $('#qlHocBaPreview').innerHTML = '<div class="ql-empty">⏳ Đang tải dữ liệu HS...</div>';
-  loadStudentsAuthed().then(function(){
-    $('#qlHocBaPreview').innerHTML = buildHocBaHTML(lop, maHS);
-  }).catch(function(err){
-    $('#qlHocBaPreview').innerHTML = '<div class="ql-empty">⚠ ' + escHtml(err.message || 'Lỗi tải dữ liệu HS') + '</div>';
-  });
-};
-// ============================================================================
-// HỌC BẠ chuẩn TT 27/2020 — KHỚP ĐÚNG 3 mẫu PDF user gửi:
-//   • MẪU HỌC BẠ.pdf (bìa Bộ GDĐT)
-//   • Học bạ của HS lớp 1.pdf
-//   • Học bạ của HS lớp 3.pdf
-//   • Học bạ của HS lớp 5.pdf
-// Cấu trúc 4 pages:
-//   Trang 1 — BÌA (BỘ GIÁO DỤC VÀ ĐÀO TẠO / HỌC BẠ / TIỂU HỌC + info HS)
-//   Trang 2 — Thông tin HS + Chữ ký HT + Quá trình học tập (6 năm)
-//   Trang 3 — Mục 1: Các môn học và HĐGD (4 cột: Môn | Mức | Điểm KTĐK | Nhận xét)
-//   Trang 4 — Mục 2,3: Phẩm chất + Năng lực chung + NL đặc thù + Kết luận + Ký
-// Môn học theo khối: lớp 1-2 (9 môn), lớp 3 (11 môn), lớp 4-5 (12 môn).
-// ============================================================================
-
-// Môn học theo TT 27/2020 (thứ tự chuẩn trong học bạ)
-const QLCL_HB_SUBJECTS = {
-  k1_2: [
-    { name: 'Tiếng Việt', score: true },
-    { name: 'Toán', score: true },
-    { name: 'Ngoại ngữ 1\nTiếng Anh', score: true, newline: true },
-    { name: 'Đạo đức', score: false },
-    { name: 'TN-XH', score: false },
-    { name: 'Nghệ thuật\n(Âm nhạc)', score: false, newline: true },
-    { name: 'Nghệ thuật\n(Mĩ thuật)', score: false, newline: true },
-    { name: 'Giáo dục thể chất', score: false },
-    { name: 'Hoạt động trải\nnghiệm', score: false, newline: true }
-  ],
-  k3: [
-    { name: 'Tiếng Việt', score: true },
-    { name: 'Toán', score: true },
-    { name: 'Tiếng Anh', score: true },
-    { name: 'Tin học và Công\nnghệ (Tin học)', score: true, newline: true },
-    { name: 'Tin học và Công\nnghệ (Công\nnghệ)', score: true, newline: true },
-    { name: 'Đạo đức', score: false },
-    { name: 'TN-XH', score: false },
-    { name: 'Nghệ thuật\n(Âm nhạc)', score: false, newline: true },
-    { name: 'Nghệ thuật\n(Mĩ thuật)', score: false, newline: true },
-    { name: 'Giáo dục thể chất', score: false },
-    { name: 'Hoạt động trải\nnghiệm', score: false, newline: true }
-  ],
-  k4_5: [
-    { name: 'Tiếng Việt', score: true },
-    { name: 'Toán', score: true },
-    { name: 'Khoa học', score: true },
-    { name: 'Lịch sử và Địa lí', score: true },
-    { name: 'Tiếng Anh', score: true },
-    { name: 'Tin học và Công\nnghệ (Tin học)', score: true, newline: true },
-    { name: 'Tin học và Công\nnghệ (Công\nnghệ)', score: true, newline: true },
-    { name: 'Đạo đức', score: false },
-    { name: 'Nghệ thuật\n(Âm nhạc)', score: false, newline: true },
-    { name: 'Nghệ thuật\n(Mĩ thuật)', score: false, newline: true },
-    { name: 'Giáo dục thể chất', score: false },
-    { name: 'Hoạt động trải\nnghiệm', score: false, newline: true }
-  ]
-};
-
-// Phẩm chất (đều 5) + Năng lực chung (đều 3) + NL đặc thù khác theo khối
-const QLCL_HB_PC = ['Yêu nước','Nhân ái','Chăm chỉ','Trung thực','Trách nhiệm'];
-const QLCL_HB_NLC = ['Tự chủ\nvà tự học','Giao tiếp\nvà hợp tác','Giải quyết\nvấn đề\nvà sáng tạo'];
-const QLCL_HB_NLDT = {
-  k1_2: ['Ngôn ngữ','Tính toán','Khoa học','Thẩm mĩ','Thể chất'],
-  k3:   ['Ngôn ngữ','Tính toán','Khoa học','Công nghệ','Tin học','Thẩm mĩ','Thể chất'],
-  k4_5: ['Ngôn ngữ','Tính toán','Khoa học','Công nghệ','Tin học','Thẩm mĩ','Thể chất']
-};
-
-// Tạm đổi điểm CN → Mức đạt (T/H/C) nếu chưa có nhận xét
-function _qlclDeriveMucFromCN(cn){
-  if (cn === '' || cn == null) return '';
-  var n = Number(cn);
-  if (isNaN(n)) return '';
-  if (n >= 9) return 'T';
-  if (n >= 5) return 'H';
-  return 'C';
-}
-
-function buildHocBaHTML(lop, maHS){
-  var nh = document.getElementById('qlhbNamHoc').value || STATE.namHoc;
-  var cls = STATE.classes.find(function(c){ return c.name === lop; });
-  var s = (cls && cls.students) ? cls.students.find(function(x){ return (x[2]||x.studentCode) === maHS; }) : null;
-  if (!s) return '<div class="ql-empty">Không tìm thấy HS</div>';
-
-  // Student info (array or object shape)
-  var hoTen      = s.name || s[3] || '';
-  var ngaySinh   = s.dob || s[4] || '';
-  var gioiTinh   = s.gender || s[5] || '';
-  var danToc     = s.ethnic || s[6] || '';
-  var tonGiao    = s.religion || s[7] || '';
-  var tinh       = s.province || s[8] || '';
-  var xa         = s.ward || s[10] || '';
-  var xom        = s.hamlet || s[11] || '';
-  var noiSinh    = s.birthplace || s[12] || '';
-  var hoCha      = s.father || s[14] || '';
-  var hoMe       = s.mother || s[16] || '';
-
-  // School + admin info
-  var cfg = (window.STATS && window.STATS.config) || {};
-  var schoolName = cfg.name || 'Trường Tiểu học';
-  var addr = cfg.address || '';
-  var wardFull = (addr.split(',')[0] || '').trim();       // "Xã Quảng Châu"
-  var tinhFull = (addr.split(',').slice(-1)[0] || '').trim(); // "Tỉnh Nghệ An"
-  var adm = (typeof _admGet === 'function') ? _admGet() : {};
-  // ⭐ Ưu tiên Hiệu trưởng từ CauHinh (Sheet) → admLocal → để trống cho user nhập tay
-  var principal = cfg.principal || adm.principal || '';
-  // GVCN: ưu tiên user đang đăng nhập (STATE.user của QLCL), nếu không có thì để trống
-  var gvcn = STATE.user || '';
-
-  // Quê quán / Nơi ở: tổ + xã + tỉnh (theo mẫu)
-  var queQuan = [xom, wardFull, tinhFull].filter(Boolean).join(', ');
-  var noiO    = [xom, wardFull, tinhFull].filter(Boolean).join(', ');
-
-  var khoi = getKhoiFromLop(lop);
-  var khoiKey = khoi <= 2 ? 'k1_2' : (khoi === 3 ? 'k3' : 'k4_5');
-  var subjects = QLCL_HB_SUBJECTS[khoiKey];
-  var nldt = QLCL_HB_NLDT[khoiKey];
-
-  // Get điểm CN từ cache
-  var diemByMon = {};
-  Object.keys(STATE.diemCache).forEach(function(k){
-    var parts = k.split('|');
-    if (parts[0] === nh && parts[1] === lop) {
-      var d = STATE.diemCache[k][maHS];
-      if (d) diemByMon[parts[2]] = d;
-    }
-  });
-
-  // Ngày hiện tại
-  var today = new Date();
-  var dd = String(today.getDate()).padStart(2,'0');
-  var mm = String(today.getMonth()+1).padStart(2,'0');
-  var yyyy = today.getFullYear();
-  // Năm học bạ ký (giả định cuối năm học)
-  var yrs = nh.split('-');
-  var kyNam = yrs.length === 2 ? yrs[1] : yyyy;
-  var kyThang = '5';
-  var kyNgay = '26';
-
-  // Ngày nhập học (ngày khai giảng năm đầu)
-  var yrOpen = yrs[0] || String(yyyy-1);
-  var dayOpen = '05/09/' + yrOpen;
-
-  // STT đăng bộ (placeholder — cần sau)
-  var soDangBo = '';
-
-  // Điểm KTĐK = điểm CN (đánh giá định kỳ cuối năm)
-  function renderSubjectRow(sub){
-    var d = diemByMon[sub.name.replace(/\n/g,' ').split('(')[0].trim()] || diemByMon[sub.name.replace(/\n/g,' ')] || diemByMon[sub.name] || {};
-    // Tìm thêm theo tên không có dấu newline
-    if (Object.keys(d).length === 0) {
-      var plainName = sub.name.replace(/\n/g,' ').trim();
-      Object.keys(diemByMon).forEach(function(mn){
-        if (mn === plainName || mn.indexOf(plainName) >= 0 || plainName.indexOf(mn) >= 0) d = diemByMon[mn];
-      });
-    }
-    var diemKT = sub.score ? (d.CN != null && d.CN !== '' ? d.CN : '') : '';
-    var muc = _qlclDeriveMucFromCN(diemKT) || (sub.score ? '' : 'T');
-    var nx = ''; // TODO: lookup from QLCL_NhanXet cache
-    var displayName = sub.newline
-      ? sub.name.split('\n').map(function(line, i){ return (i === 1 && /Tiếng Anh/.test(line)) ? '<b>'+escHtml(line)+'</b>' : escHtml(line); }).join('<br>')
-      : escHtml(sub.name);
-    return '<tr>' +
-      '<td style="border:1pt solid #000;padding:6pt 8pt;vertical-align:middle;text-align:center;font-size:12pt">' + displayName + '</td>' +
-      '<td style="border:1pt solid #000;padding:6pt;text-align:center;font-size:12pt;vertical-align:middle">' + escHtml(muc) + '</td>' +
-      '<td style="border:1pt solid #000;padding:6pt;text-align:center;font-size:12pt;vertical-align:middle">' + escHtml(diemKT) + '</td>' +
-      '<td style="border:1pt solid #000;padding:6pt 8pt;vertical-align:middle;font-size:12pt">' + escHtml(nx) + '</td>' +
-    '</tr>';
-  }
-
-  // Mức mặc định cho các tiểu mục: dùng 'T' khi có CN >= 9, 'Đ' cho PC/NL nếu dưới
-  function defaultMucPCNL(){ return diemByMon && Object.keys(diemByMon).length ? 'Đ' : ''; }
-
-  // Build HTML multi-page with page-breaks
-  var pageStyle = 'font-family:\'Times New Roman\',serif;font-size:13pt;line-height:1.45;color:#000;background:#fff;width:190mm;min-height:277mm;padding:12mm 14mm;margin:0 auto 8px;box-sizing:border-box;page-break-after:always';
-  var lastPageStyle = pageStyle.replace('page-break-after:always', 'page-break-after:auto');
-
-  var html = '';
-
-  // ============ TRANG 1: BÌA ============
-  // Dùng table-based layout cho Word — không bị break ngang trang.
-  // Mọi nội dung lồng trong 1 cell duy nhất, set height cố định ~250mm.
-  html += '<div style="' + pageStyle + ';padding:0">' +
-    '<table style="width:100%;height:255mm;border-collapse:collapse;page-break-inside:avoid"><tr><td style="border:0;vertical-align:top;padding:14mm 14mm 14mm 14mm">' +
-      '<div style="text-align:center;font-size:13pt;font-weight:bold">BỘ GIÁO DỤC VÀ ĐÀO TẠO</div>' +
-      '<div style="text-align:center;font-size:50pt;font-weight:bold;font-family:\'Times New Roman\',serif;margin-top:55mm;letter-spacing:2pt">HỌC BẠ</div>' +
-      '<div style="text-align:center;font-size:32pt;font-weight:bold;margin-top:8mm;letter-spacing:2pt">TIỂU HỌC</div>' +
-      '<div style="margin-top:75mm;font-size:13pt;line-height:2.2">' +
-        '<div><b>Họ và tên học sinh:</b> <b>' + escHtml((hoTen||'').toUpperCase()) + '</b></div>' +
-        '<div><b>Trường:</b> <b>' + escHtml(schoolName) + '</b></div>' +
-        '<div><b>Xã (Phường, Thị trấn):</b> <b>' + escHtml(wardFull) + '</b></div>' +
-        '<div><b>Tỉnh (Thành phố):</b> <b>' + escHtml(tinhFull) + '</b></div>' +
-      '</div>' +
-    '</td></tr></table>' +
-  '</div>';
-
-  // ============ TRANG 2: Thông tin HS + Quá trình học tập ============
-  html += '<div style="' + pageStyle + '">' +
-    '<div style="text-align:center;font-size:20pt;font-weight:bold;margin:6mm 0 10mm">HỌC BẠ</div>' +
-    '<div style="font-size:12pt">' +
-      '<div style="display:flex;justify-content:space-between;margin:3pt 0">' +
-        '<span>Họ và tên học sinh: <b>' + escHtml(hoTen) + '</b></span>' +
-        '<span>Giới tính: <b>' + escHtml(gioiTinh) + '</b></span>' +
-      '</div>' +
-      '<div style="display:flex;justify-content:space-between;margin:3pt 0">' +
-        '<span>Ngày, tháng, năm sinh: <b>' + escHtml(ngaySinh) + '</b></span>' +
-        '<span>Dân tộc: <b>' + escHtml(danToc) + '</b></span>' +
-        '<span>Quốc tịch: <b>Việt Nam</b></span>' +
-      '</div>' +
-      '<p style="margin:3pt 0">Nơi sinh: <b>' + escHtml(noiSinh) + '</b></p>' +
-      '<p style="margin:3pt 0">Quê quán: <b>' + escHtml(queQuan) + '</b></p>' +
-      '<p style="margin:3pt 0">Nơi ở hiện nay: <b>' + escHtml(noiO) + '</b></p>' +
-      '<p style="margin:3pt 0">Họ và tên cha: <b>' + escHtml(hoCha) + '</b></p>' +
-      '<p style="margin:3pt 0">Họ và tên mẹ: <b>' + escHtml(hoMe) + '</b></p>' +
-      '<p style="margin:3pt 0">Người giám hộ (nếu có):</p>' +
-    '</div>' +
-    // Khối ký HT — căn phải nguyên cụm (date + chức danh + chú thích + tên), nội bộ căn giữa
-    '<table style="width:100%;margin-top:10mm;border-collapse:collapse"><tr>' +
-      '<td style="width:50%;border:0"></td>' +
-      '<td style="width:50%;border:0;text-align:center;font-size:13pt">' +
-        '<div style="font-style:italic">' + escHtml(wardFull) + ', ngày 06 tháng 9 năm ' + yrOpen + '</div>' +
-        '<div style="font-weight:bold;margin-top:3pt">Hiệu trưởng</div>' +
-        '<div style="font-style:italic;font-size:11pt">(Ký, ghi rõ họ tên và đóng dấu)</div>' +
-        '<div style="height:18mm"></div>' +
-        '<div style="font-weight:bold">' + escHtml(principal) + '</div>' +
-      '</td>' +
-    '</tr></table>' +
-    '<div style="text-align:center;font-size:16pt;font-weight:bold;margin:12mm 0 6pt">QUÁ TRÌNH HỌC TẬP</div>' +
-    '<table style="width:100%;border-collapse:collapse;font-size:12pt">' +
-      '<thead><tr>' +
-        '<th style="border:1pt solid #000;padding:5pt;font-weight:bold;text-align:center">Năm học</th>' +
-        '<th style="border:1pt solid #000;padding:5pt;font-weight:bold;text-align:center">Lớp</th>' +
-        '<th style="border:1pt solid #000;padding:5pt;font-weight:bold;text-align:center">Tên trường</th>' +
-        '<th style="border:1pt solid #000;padding:5pt;font-weight:bold;text-align:center">Sổ đăng bộ</th>' +
-        '<th style="border:1pt solid #000;padding:5pt;font-weight:bold;text-align:center">Ngày nhập học/<br>chuyển đến</th>' +
-      '</tr></thead><tbody>' +
-      '<tr>' +
-        '<td style="border:1pt solid #000;padding:10pt;text-align:center">' + escHtml(nh) + '</td>' +
-        '<td style="border:1pt solid #000;padding:10pt;text-align:center">' + escHtml(lop) + '</td>' +
-        '<td style="border:1pt solid #000;padding:10pt;text-align:center">' + escHtml(schoolName) + '</td>' +
-        '<td style="border:1pt solid #000;padding:10pt;text-align:center">' + escHtml(soDangBo) + '</td>' +
-        '<td style="border:1pt solid #000;padding:10pt;text-align:center">' + escHtml(dayOpen) + '</td>' +
-      '</tr>' +
-      '<tr><td style="border:1pt solid #000;padding:12pt"></td><td style="border:1pt solid #000"></td><td style="border:1pt solid #000"></td><td style="border:1pt solid #000"></td><td style="border:1pt solid #000"></td></tr>'.repeat(5) +
-      '</tbody>' +
-    '</table>' +
-  '</div>';
-
-  // ============ TRANG 3: Mục 1 — Các môn học và HĐGD ============
-  html += '<div style="' + pageStyle + '">' +
-    '<div style="display:flex;justify-content:space-between;font-size:12pt;font-weight:bold;margin-bottom:4pt">' +
-      '<span>Họ và tên học sinh: ' + escHtml(hoTen) + '</span>' +
-      '<span>Lớp: ' + escHtml(lop) + '</span>' +
-    '</div>' +
-    '<div style="display:flex;justify-content:space-between;font-size:12pt;margin-bottom:4pt">' +
-      '<span>Chiều cao: <b></b> cm</span>' +
-      '<span>Cân nặng: <b></b> kg</span>' +
-    '</div>' +
-    '<div style="display:flex;justify-content:space-between;font-size:12pt;margin-bottom:8pt">' +
-      '<span>Số ngày nghỉ có phép: <b>0</b></span>' +
-      '<span>Số ngày nghỉ không phép: <b>0</b></span>' +
-    '</div>' +
-    '<div style="font-weight:bold;font-size:13pt;margin:8pt 0 6pt">1. Các môn học và hoạt động giáo dục</div>' +
-    '<table style="width:100%;border-collapse:collapse;font-size:12pt">' +
-      '<thead><tr>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:28%">Môn học và<br>hoạt động giáo<br>dục</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:14%">Mức<br>đạt được</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:14%">Điểm<br>KTĐK</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:44%">Nhận xét</th>' +
-      '</tr></thead><tbody>' +
-      subjects.map(renderSubjectRow).join('') +
-    '</tbody></table>' +
-  '</div>';
-
-  // ============ TRANG 4: Phẩm chất + Năng lực + Kết luận + Ký tên ============
-  html += '<div style="' + lastPageStyle + '">' +
-    '<div style="display:flex;justify-content:space-between;font-size:12pt;font-weight:bold;margin-bottom:6pt">' +
-      '<span>Trường : ' + escHtml(schoolName) + '</span>' +
-      '<span>Năm học ' + escHtml(nh) + '</span>' +
-    '</div>' +
-    '<div style="font-weight:bold;font-size:13pt;margin:4pt 0 4pt">2. Những phẩm chất chủ yếu</div>' +
-    '<table style="width:100%;border-collapse:collapse;font-size:12pt">' +
-      '<thead><tr>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:25%">Phẩm chất</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:15%">Mức đạt<br>được</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:60%">Nhận xét</th>' +
-      '</tr></thead><tbody>' +
-      QLCL_HB_PC.map(function(p, i){
-        var row = '<tr>' +
-          '<td style="border:1pt solid #000;padding:6pt 8pt;vertical-align:middle">' + escHtml(p) + '</td>' +
-          '<td style="border:1pt solid #000;padding:6pt;text-align:center;vertical-align:middle">' + defaultMucPCNL() + '</td>';
-        if (i === 0) row += '<td rowspan="5" style="border:1pt solid #000;padding:8pt;vertical-align:middle"></td>';
-        row += '</tr>';
-        return row;
-      }).join('') +
-    '</tbody></table>' +
-
-    '<div style="font-weight:bold;font-size:13pt;margin:8pt 0 4pt">3. Những năng lực cốt lõi</div>' +
-    '<div style="font-style:italic;font-size:12pt;margin-bottom:4pt">3.1 Những năng lực chung</div>' +
-    '<table style="width:100%;border-collapse:collapse;font-size:12pt">' +
-      '<thead><tr>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:25%">Năng lực</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:15%">Mức đạt<br>được</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:60%">Nhận xét</th>' +
-      '</tr></thead><tbody>' +
-      QLCL_HB_NLC.map(function(n, i){
-        var row = '<tr>' +
-          '<td style="border:1pt solid #000;padding:6pt 8pt;text-align:center;vertical-align:middle">' + n.split('\n').map(escHtml).join('<br>') + '</td>' +
-          '<td style="border:1pt solid #000;padding:6pt;text-align:center;vertical-align:middle">' + defaultMucPCNL() + '</td>';
-        if (i === 0) row += '<td rowspan="3" style="border:1pt solid #000;padding:8pt;vertical-align:middle"></td>';
-        row += '</tr>';
-        return row;
-      }).join('') +
-    '</tbody></table>' +
-
-    '<div style="font-style:italic;font-size:12pt;margin:8pt 0 4pt">3.2 Những năng lực đặc thù</div>' +
-    '<table style="width:100%;border-collapse:collapse;font-size:12pt">' +
-      '<thead><tr>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:25%">Năng lực</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:15%">Mức đạt<br>được</th>' +
-        '<th style="border:1pt solid #000;padding:6pt;font-weight:bold;text-align:center;width:60%">Nhận xét</th>' +
-      '</tr></thead><tbody>' +
-      nldt.map(function(n, i){
-        var row = '<tr>' +
-          '<td style="border:1pt solid #000;padding:6pt 8pt;text-align:center;vertical-align:middle">' + escHtml(n) + '</td>' +
-          '<td style="border:1pt solid #000;padding:6pt;text-align:center;vertical-align:middle">' + defaultMucPCNL() + '</td>';
-        if (i === 0) row += '<td rowspan="' + nldt.length + '" style="border:1pt solid #000;padding:8pt;vertical-align:middle"></td>';
-        row += '</tr>';
-        return row;
-      }).join('') +
-    '</tbody></table>' +
-
-    '<div style="font-size:13pt;margin:12pt 0 4pt"><b>4. Đánh giá kết quả giáo dục:</b> <span id="qlhb-kq">Hoàn thành.</span></div>' +
-    '<div style="font-size:13pt;margin:6pt 0 4pt"><b>5. Khen thưởng:</b></div>' +
-    '<div style="font-size:12pt;margin-left:14pt">- </div>' +
-    '<div style="font-size:13pt;margin:6pt 0 4pt"><b>6. Hoàn thành chương trình lớp học/chương trình tiểu học:</b></div>' +
-    '<div style="font-size:12pt;margin-left:14pt">- Hoàn thành chương trình lớp ' + khoi + (khoi < 5 ? '; Được lên lớp ' + (khoi+1) + '.' : '. (Hoàn thành chương trình tiểu học)') + '</div>' +
-
-    '<div style="margin-top:10mm;text-align:right;font-size:12pt;font-style:italic">' + escHtml(wardFull) + ', ngày ' + kyNgay + ' tháng ' + kyThang + ' năm ' + kyNam + '</div>' +
-    '<table style="width:100%;margin-top:6pt"><tr>' +
-      '<td style="width:50%;text-align:center;border:0;vertical-align:top">' +
-        '<div style="font-weight:bold;font-size:13pt">Xác nhận của Hiệu trưởng</div>' +
-        '<div style="font-style:italic;font-size:11pt">(Ký, ghi rõ họ tên và đóng dấu)</div>' +
-        '<div style="height:22mm"></div>' +
-        '<div style="font-weight:bold;font-size:13pt">' + escHtml(principal) + '</div>' +
-      '</td>' +
-      '<td style="width:50%;text-align:center;border:0;vertical-align:top">' +
-        '<div style="font-weight:bold;font-size:13pt">Giáo viên chủ nhiệm</div>' +
-        '<div style="font-style:italic;font-size:11pt">(Ký và ghi rõ họ tên)</div>' +
-        '<div style="height:22mm"></div>' +
-        '<div style="font-weight:bold;font-size:13pt">' + escHtml(gvcn) + '</div>' +
-      '</td>' +
-    '</tr></table>' +
-  '</div>';
-
-  return html;
-}
-window.qlExportHocBa = function(format, batch){
-  var lop = $('#qlhbLop').value, maHS = $('#qlhbHS').value;
-  if (!lop || (!batch && !maHS)) { toast('Chọn lớp + HS.', 'warn'); return; }
-  // ⭐ Đảm bảo có data nhạy cảm (cha/mẹ) trước khi build học bạ
-  toast('⏳ Đang tải dữ liệu HS...', '');
-  loadStudentsAuthed().then(function(){
-    _qlExportHocBaImpl(format, batch, lop, maHS);
-  }).catch(function(err){
-    toast('⚠ ' + (err.message || 'Lỗi tải DS HS'), 'err');
-  });
-};
-function _qlExportHocBaImpl(format, batch, lop, maHS){
-  if (batch) {
-    var cls = STATE.classes.find(function(c){ return c.name === lop; });
-    var students = cls ? (cls.students || []) : [];
-    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Học bạ ' + escHtml(lop) + '</title></head><body>';
-    students.forEach(function(s, i){
-      var hsId = s[2] || s.studentCode || '';
-      html += buildHocBaHTML(lop, hsId);
-      if (i < students.length - 1) html += '<br style="page-break-before:always">';
-    });
-    html += '</body></html>';
-    var blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'HocBa_' + lop + '_' + STATE.namHoc.replace('-','_') + '.doc';
-    a.click(); URL.revokeObjectURL(a.href);
-    toast('✅ Đã xuất ' + students.length + ' học bạ', 'ok');
-  } else {
-    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>Học bạ</title></head><body>' + buildHocBaHTML(lop, maHS) + '</body></html>';
-    if (format === 'html') {
-      var w = window.open('', '_blank');
-      w.document.write(html); w.document.close();
-      setTimeout(function(){ w.print(); }, 500);
-    } else {
-      var blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'HocBa_' + maHS + '_' + STATE.namHoc.replace('-','_') + '.doc';
-      a.click(); URL.revokeObjectURL(a.href);
-      toast('✅ Đã xuất học bạ', 'ok');
-    }
-  }
-};
-
-// ============ AI NHẬN XÉT HỌC BẠ ============
-// Sinh "Nhận xét chung" cho HS dựa trên điểm + NL/PC → ghi vào QLCL_XepLoai
-window.qlAIHocBa = async function(batch){
-  var lop = document.getElementById('qlhbLop').value;
-  var maHS = document.getElementById('qlhbHS').value;
-  var nh = document.getElementById('qlhbNamHoc').value || STATE.namHoc;
-  if (!lop) { toast('Chọn lớp trước.', 'warn'); return; }
-  if (!batch && !maHS) { toast('Chọn học sinh hoặc bấm "AI cả lớp".', 'warn'); return; }
-  if (!getGAS_URL()) { toast('Chưa cấu hình backend Apps Script (cần AI Gemini).', 'err'); return; }
-
-  var cls = STATE.classes.find(function(c){ return c.name === lop; });
-  var students = cls ? (cls.students || []) : [];
-  var targets = batch ? students : students.filter(function(s){ return (s[2]||s.studentCode) === maHS; });
-  if (!targets.length) { toast('Không tìm thấy HS.', 'warn'); return; }
-
-  if (batch && !confirm('AI sẽ chạy lần lượt cho ' + targets.length + ' HS — có thể mất 30-90 giây. Tiếp tục?')) return;
-
-  toast('🤖 Đang gọi AI cho ' + targets.length + ' HS…', 'warn');
-
-  // Load điểm + NL/PC từ Sheet (nếu chưa cache)
-  var diemRes = await callGAS('qlclGetDiem', { namHoc: nh, lop: lop, monHoc: '' });
-  var nlpcRes = await callGAS('qlclGetNLPC', { namHoc: nh, lop: lop, hocKy: '' });
-  var diemAll = (diemRes.ok ? diemRes.data : []) || [];
-  var nlpcAll = (nlpcRes.ok ? nlpcRes.data : []) || [];
-
-  var saved = 0, failed = 0;
-  var rowsSave = [];
-  for (var i = 0; i < targets.length; i++) {
-    var s = targets[i];
-    var maHS2 = s[2] || s.studentCode || '';
-    var hoTen = s[3] || s.name || '';
-    // Build context
-    var diemHS = diemAll.filter(function(d){ return d.MaHS === maHS2; });
-    var nlpcHS = nlpcAll.filter(function(d){ return d.MaHS === maHS2; });
-    var diemStr = diemHS.length ? diemHS.map(function(d){
-      var parts = [];
-      if (d.GHK1 !== '' && d.GHK1 != null) parts.push('GHK1=' + d.GHK1);
-      if (d.CHK1 !== '' && d.CHK1 != null) parts.push('CHK1=' + d.CHK1);
-      if (d.GHK2 !== '' && d.GHK2 != null) parts.push('GHK2=' + d.GHK2);
-      if (d.CN !== '' && d.CN != null) parts.push('CN=' + d.CN);
-      return d.MonHoc + ' (' + parts.join(', ') + ')';
-    }).join('; ') : '(chưa có điểm)';
-    var nlpcStr = nlpcHS.length ? nlpcHS.map(function(n){
-      return n.TenLoai + ': ' + n.Muc + (n.NhanXet ? ' — ' + n.NhanXet : '');
-    }).join('; ') : '(chưa có NL/PC)';
-    var userPrompt = 'Thông tin học sinh tiểu học:\\n' +
-      '- Họ tên: ' + hoTen + '\\n' +
-      '- Lớp: ' + lop + ' (khối ' + getKhoiFromLop(lop) + ')\\n' +
-      '- Năm học: ' + nh + '\\n' +
-      '- Điểm định kỳ: ' + diemStr + '\\n' +
-      '- Năng lực/Phẩm chất: ' + nlpcStr + '\\n\\n' +
-      'Viết NHẬN XÉT CHUNG CỦA GIÁO VIÊN CHỦ NHIỆM cho học bạ, đúng chuẩn TT 27/2020 (ngắn gọn 2-3 câu, dưới 60 từ, vừa nêu ưu điểm vừa khuyên cố gắng). Trả về duy nhất đoạn văn, không tiêu đề, không dấu ngoặc kép.';
-    try {
-      var aiRes = await callGAS('ai', {
-        systemPrompt: 'Bạn là giáo viên chủ nhiệm tiểu học nhiều kinh nghiệm, viết học bạ theo Thông tư 27/2020/TT-BGDĐT.',
-        userPrompt: userPrompt
-      });
-      if (aiRes.ok && aiRes.text) {
-        var nx = String(aiRes.text).trim().replace(/^["']|["']$/g, '');
-        // Suggest xếp loại
-        var xl = suggestXepLoai(diemHS, nlpcHS);
-        rowsSave.push({
-          maHS: maHS2, hoTen: hoTen,
-          xepLoai: xl, lenLop: xl === 'Chưa hoàn thành' ? '' : 'x',
-          khenThuong: (xl === 'Hoàn thành xuất sắc' ? 'HS Giỏi' : (xl === 'Hoàn thành tốt' ? 'HS Tiên tiến' : '')),
-          nhanXetChung: nx, gvcn: STATE.user, ht: ''
-        });
-        saved++;
-        if (!batch) {
-          toast('✅ AI đã sinh nhận xét cho ' + hoTen, 'ok');
-        }
-      } else { failed++; }
-    } catch (e) {
-      console.warn('[AI]', e); failed++;
-    }
-    if (batch) {
-      toast('🤖 AI ' + (i+1) + '/' + targets.length + ' · ' + hoTen, 'warn');
-    }
-  }
-
-  if (rowsSave.length) {
-    var saveRes = await callGAS('qlclSaveXepLoai', { namHoc: nh, lop: lop, rows: rowsSave });
-    if (saveRes.ok) {
-      toast('✅ Đã lưu ' + saved + ' nhận xét AI vào Sheet' + (failed ? ' (' + failed + ' thất bại)' : ''), 'ok');
-      // Refresh preview
-      if (!batch) qlPreviewHocBa();
-    } else {
-      toast('⚠ Lưu lỗi: ' + saveRes.error, 'err');
-    }
-  } else {
-    toast('❌ AI không sinh được nhận xét nào.', 'err');
-  }
-};
-
-// Heuristic xếp loại từ điểm + NL/PC (ready cho qlAutoXepLoai)
-function suggestXepLoai(diemRows, nlpcRows){
-  if (!diemRows.length) return 'Hoàn thành';
-  // Lấy điểm CN (cuối năm) — quan trọng nhất
-  var cns = diemRows.map(function(d){ return Number(d.CN); }).filter(function(n){ return !isNaN(n) && n > 0; });
-  if (!cns.length) return 'Hoàn thành';
-  var avg = cns.reduce(function(a,b){return a+b;}, 0) / cns.length;
-  var min = Math.min.apply(null, cns);
-  // NL/PC
-  var allT = nlpcRows.length && nlpcRows.every(function(n){ return n.Muc === 'T'; });
-  var anyC = nlpcRows.some(function(n){ return n.Muc === 'C'; });
-  if (min >= 9 && avg >= 9.5 && allT) return 'Hoàn thành xuất sắc';
-  if (min >= 7 && avg >= 8 && !anyC) return 'Hoàn thành tốt';
-  if (min >= 5) return 'Hoàn thành';
-  return 'Chưa hoàn thành';
-}
-
-// Update auto xếp loại stub
-window.qlAutoXepLoai = async function(){
-  var nh = document.getElementById('qlxlNamHoc').value;
-  var lop = document.getElementById('qlxlLop').value;
-  if (!lop) { toast('Chọn lớp.', 'warn'); return; }
-  if (!getGAS_URL()) { toast('Chưa cấu hình backend.', 'err'); return; }
-  toast('⏳ Đang đề xuất xếp loại…', 'warn');
-  var dr = await callGAS('qlclGetDiem', { namHoc: nh, lop: lop, monHoc: '' });
-  var nr = await callGAS('qlclGetNLPC', { namHoc: nh, lop: lop, hocKy: '' });
-  var diemAll = (dr.ok ? dr.data : []) || [];
-  var nlpcAll = (nr.ok ? nr.data : []) || [];
-  var trs = document.querySelectorAll('#qlXepLoaiWrap tbody tr');
-  var applied = 0;
-  trs.forEach(function(tr){
-    var maHS = tr.dataset.mahs;
-    var xl = suggestXepLoai(diemAll.filter(function(d){ return d.MaHS === maHS; }),
-                             nlpcAll.filter(function(n){ return n.MaHS === maHS; }));
-    var sel = tr.querySelector('.qlxlxl');
-    if (sel && !sel.value) { sel.value = xl; applied++; }
-  });
-  toast('✅ Đã đề xuất xếp loại cho ' + applied + ' HS (chưa lưu)', 'ok');
-};
-
-// ============ IMPORT ĐIỂM TỪ EXCEL ============
-window.qlImportDiemExcelOpen = function(){
-  var lop = document.getElementById('qlfLop').value;
-  var mon = document.getElementById('qlfMon').value;
-  if (!lop || !mon) { toast('Chọn lớp + môn trước khi import.', 'warn'); return; }
-  if (typeof XLSX === 'undefined') { toast('Thư viện XLSX chưa tải. Vui lòng đợi 2-3s rồi thử lại.', 'err'); return; }
-  document.getElementById('qlDiemExcelFile').click();
-};
-window.qlImportDiemExcelHandle = function(file){
-  if (!file) return;
-  var lop = document.getElementById('qlfLop').value;
-  var mon = document.getElementById('qlfMon').value;
-  if (!lop || !mon) return;
-  var ext = (file.name.split('.').pop() || '').toLowerCase();
-  var reader = new FileReader();
-  reader.onload = function(ev){
-    var rows = [];
-    try {
-      if (ext === 'xlsx' || ext === 'xls') {
-        var data = new Uint8Array(ev.target.result);
-        var wb = XLSX.read(data, { type: 'array', cellDates: false, raw: false });
-        var sh = wb.Sheets[wb.SheetNames[0]];
-        rows = XLSX.utils.sheet_to_json(sh, { header: 1, defval: '', raw: false });
-      } else {
-        var text = ev.target.result;
-        rows = text.split(/\\r?\\n/).filter(function(l){return l.trim();}).map(function(l){return l.split(',');});
-      }
-    } catch (e) { toast('Lỗi đọc file: ' + e.message, 'err'); return; }
-    // Parse header: find cột Mã HS, GHK1, CHK1, GHK2, CN
-    if (!rows.length) { toast('File rỗng.', 'warn'); return; }
-    var header = rows[0].map(function(h){ return String(h || '').toLowerCase().trim(); });
-    var idxMaHS = -1, idxGHK1 = -1, idxCHK1 = -1, idxGHK2 = -1, idxCN = -1, idxTen = -1;
-    header.forEach(function(h, i){
-      if (h.indexOf('mã hs') >= 0 || h.indexOf('ma hs') >= 0 || h === 'mahs') idxMaHS = i;
-      if (h.indexOf('họ và tên') >= 0 || h.indexOf('ho va ten') >= 0 || h === 'hoten') idxTen = i;
-      if (h.indexOf('ghk1') >= 0 || h.indexOf('giữa kỳ 1') >= 0 || h.indexOf('giua hk1') >= 0) idxGHK1 = i;
-      if (h.indexOf('chk1') >= 0 || h.indexOf('cuối kỳ 1') >= 0 || h.indexOf('cuoi hk1') >= 0) idxCHK1 = i;
-      if (h.indexOf('ghk2') >= 0 || h.indexOf('giữa kỳ 2') >= 0 || h.indexOf('giua hk2') >= 0) idxGHK2 = i;
-      if (h === 'cn' || h.indexOf('cuối năm') >= 0 || h.indexOf('cuoi nam') >= 0) idxCN = i;
-    });
-    if (idxMaHS < 0) { toast('File thiếu cột "Mã HS". Bấm Tải mẫu để xem format chuẩn.', 'err'); return; }
-    if (idxCHK1 < 0 && idxCN < 0) { toast('File thiếu cột điểm (CHK1 hoặc CN).', 'err'); return; }
-    // Apply to grid
-    var applied = 0;
-    var data = rows.slice(1);
-    data.forEach(function(r){
-      var maHS = String(r[idxMaHS] || '').trim();
-      if (!maHS) return;
-      var tr = document.querySelector('#qlDiemGridWrap tr[data-mahs="' + maHS + '"]');
-      if (!tr) return;
-      ['GHK1','CHK1','GHK2','CN'].forEach(function(col, i){
-        var idx = [idxGHK1, idxCHK1, idxGHK2, idxCN][i];
-        if (idx < 0) return;
-        var inp = tr.querySelector('input[data-col="' + col + '"]');
-        if (!inp || inp.disabled) return;
-        var v = String(r[idx] || '').trim();
-        if (v === '') return;
-        var n = Number(v);
-        if (isNaN(n)) return;
-        n = Math.max(0, Math.min(10, Math.round(n)));
-        inp.value = n;
-        inp.classList.add('score-changed');
-        inp.dispatchEvent(new Event('input', { bubbles: true }));
-      });
-      applied++;
-    });
-    toast('✅ Đã import điểm cho ' + applied + '/' + data.length + ' HS. Bấm "Lưu lên Sheet" để hoàn tất.', 'ok');
-    // Reset input
-    document.getElementById('qlDiemExcelFile').value = '';
-  };
-  if (ext === 'xlsx' || ext === 'xls') reader.readAsArrayBuffer(file);
-  else reader.readAsText(file, 'UTF-8');
-};
-
-// Tải mẫu Excel điểm cho lớp+môn hiện tại
-window.qlDownloadDiemTemplate = function(){
-  var lop = document.getElementById('qlfLop').value;
-  var mon = document.getElementById('qlfMon').value;
-  if (!lop || !mon) { toast('Chọn lớp + môn trước.', 'warn'); return; }
-  if (typeof XLSX === 'undefined') { toast('XLSX chưa tải.', 'err'); return; }
-  var sub = QLCL_SUBJECTS.find(function(x){ return x.name === mon; });
-  var khoi = getKhoiFromLop(lop);
-  var hasGHK = sub && sub.withGHK.indexOf(khoi) >= 0;
-  var headers = ['STT','Mã HS','Họ và tên'];
-  if (hasGHK) headers.push('GHK1');
-  headers.push('CHK1');
-  if (hasGHK) headers.push('GHK2');
-  headers.push('CN');
-  var cls = STATE.classes.find(function(c){ return c.name === lop; });
-  var students = cls ? (cls.students || []) : [];
-  var rows = [headers];
-  students.forEach(function(s, i){
-    var maHS = s[2] || s.studentCode || '';
-    var hoTen = s[3] || s.name || '';
-    var row = [i+1, maHS, hoTen];
-    if (hasGHK) row.push('');
-    row.push('');
-    if (hasGHK) row.push('');
-    row.push('');
-    rows.push(row);
-  });
-  var wb = XLSX.utils.book_new();
-  var ws = XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols'] = [{wch:5},{wch:12},{wch:28}].concat(headers.slice(3).map(function(){return {wch:10};}));
-  XLSX.utils.book_append_sheet(wb, ws, 'Diem');
-  XLSX.writeFile(wb, 'Mau_Diem_' + lop + '_' + mon.replace(/\\s/g,'_') + '.xlsx');
-  toast('✅ Đã tải mẫu Excel', 'ok');
-};
-
-// ============ WORKSPACE 6: DASHBOARD ============
-window.qlReloadDashboard = function(){
-  if (!getGAS_URL()) { toast('Chưa cấu hình backend', 'warn'); return; }
-  var nh = $('#qldashNamHoc').value;
-  $('#qlDashStats').innerHTML = '<div class="ql-stat"><div class="ql-stat-label">Đang tải...</div></div>';
-  callGAS('qlclDashboard', { namHoc: nh }).then(function(res){
-    if (!res.ok) { toast(res.error, 'err'); return; }
-    var d = res.data;
-    $('#qlDashStats').innerHTML =
-      '<div class="ql-stat"><div class="ql-stat-label">Bản ghi điểm</div><div class="ql-stat-value">' + d.totalDiem + '</div></div>' +
-      '<div class="ql-stat"><div class="ql-stat-label">Nhận xét</div><div class="ql-stat-value">' + d.totalNX + '</div></div>' +
-      '<div class="ql-stat"><div class="ql-stat-label">HS đã xếp loại</div><div class="ql-stat-value">' + d.totalXL + '</div></div>';
-    var totalXL = Object.values(d.xlDist).reduce(function(a,b){return a+b;}, 0) || 1;
-    var colors = { 'Hoàn thành xuất sắc':'#3a6ba8','Hoàn thành tốt':'#16a34a','Hoàn thành':'#3b82f6','Chưa hoàn thành':'#dc2626' };
-    var xlHtml = '';
-    Object.keys(d.xlDist).forEach(function(k){
-      var v = d.xlDist[k]; var pct = Math.round(v / totalXL * 100);
-      xlHtml += '<div class="ql-bar"><div class="ql-bar-label">' + escHtml(k) + '</div><div class="ql-bar-track"><div class="ql-bar-fill" style="width:' + Math.max(2,pct) + '%;background:' + colors[k] + '">' + v + ' (' + pct + '%)</div></div></div>';
-    });
-    $('#qlDashXL').innerHTML = xlHtml || '<div class="ql-empty">Chưa có HS nào được xếp loại.</div>';
-    var bot = d.bottomMon || [];
-    if (!bot.length) $('#qlDashBottom').innerHTML = '<div class="ql-empty">Chưa có dữ liệu điểm.</div>';
-    else {
-      var bh = '<table class="ql-grid"><thead><tr><th>STT</th><th>Lớp</th><th>Môn</th><th>TB</th></tr></thead><tbody>';
-      bot.forEach(function(b, i){
-        bh += '<tr><td class="col-stt">' + (i+1) + '</td><td>' + escHtml(b.lop) + '</td><td>' + escHtml(b.mon) + '</td><td style="text-align:center;color:' + (b.tb<5?'#dc2626':b.tb<7?'#f59e0b':'#16a34a') + ';font-weight:600">' + b.tb.toFixed(2) + '</td></tr>';
-      });
-      bh += '</tbody></table>';
-      $('#qlDashBottom').innerHTML = bh;
-    }
-  }).catch(function(err){ toast('Lỗi: ' + err.message, 'err'); });
-};
-window.qlExportReport = function(){
-  toast('Xuất báo cáo Excel — đang phát triển (G3)', 'warn');
-};
-window.qlExportCSDLNganh = function(){
-  toast('Đợi mẫu file CSDL ngành của Bộ GDĐT (G4)', 'warn');
-};
-
-// ============ WORKSPACE 7: PHÂN CÔNG ============
-window.qlReloadPhanCong = function(){
-  if (!getGAS_URL()) { $('#qlPhanCongWrap').innerHTML = '<div class="ql-empty">Chưa có backend</div>'; return; }
-  var nh = $('#qlpcNamHoc').value;
-  callGAS('qlclGetPhanCong', { namHoc: nh }).then(function(res){
-    if (!res.ok) { toast(res.error, 'err'); return; }
-    renderPhanCongTable(res.data || []);
-  });
-};
-function renderPhanCongTable(rows){
-  if (!rows.length) {
-    $('#qlPhanCongWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">👥</div>Chưa có phân công nào.</div>';
-    return;
-  }
-  var html = '<table class="ql-grid"><thead><tr><th>TT</th><th>Giáo viên</th><th>Lớp</th><th>Môn</th><th>Vai trò</th><th>Hành động</th></tr></thead><tbody>';
-  rows.forEach(function(r, i){
-    html += '<tr><td class="col-stt">' + (i+1) + '</td><td>' + escHtml(r.HoTenGV) + '</td><td>' + escHtml(r.Lop) + '</td><td>' + escHtml(r.MonHoc || '—') + '</td><td>' + escHtml(r.Role) + '</td><td><button class="ql-btn ql-btn-danger" style="padding:3px 8px;font-size:.75rem">🗑</button></td></tr>';
-  });
-  html += '</tbody></table>';
-  $('#qlPhanCongWrap').innerHTML = html;
-}
-window.qlAddPhanCong = function(){ toast('Form thêm phân công — đang phát triển', 'warn'); };
-window.qlSavePhanCong = function(){ toast('Lưu phân công — đang phát triển', 'warn'); };
-
-// ============ WORKSPACE 8: AUDIT ============
-window.qlReloadAudit = function(){
-  if (!getGAS_URL()) { $('#qlAuditWrap').innerHTML = '<div class="ql-empty">Chưa có backend</div>'; return; }
-  callGAS('qlclAudit', { limit: 50 }).then(function(res){
-    if (!res.ok) { toast(res.error, 'err'); return; }
-    var rows = res.data || [];
-    if (!rows.length) { $('#qlAuditWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">📋</div>Chưa có hoạt động.</div>'; return; }
-    var html = '<table class="ql-grid"><thead><tr><th>Thời gian</th><th>User</th><th>Vai trò</th><th>Hành động</th><th>Đối tượng</th><th>Cũ → Mới</th></tr></thead><tbody>';
-    rows.forEach(function(r){
-      var t = r.Time ? new Date(r.Time).toLocaleString('vi-VN') : '';
-      html += '<tr><td style="font-size:.78rem;color:#6b7280">' + escHtml(t) + '</td><td>' + escHtml(r.User) + '</td><td>' + escHtml(r.Role) + '</td><td>' + escHtml(r.Action) + '</td><td style="font-size:.78rem">' + escHtml(r.Target) + '</td><td style="font-size:.78rem">' + escHtml(r.OldValue) + ' → ' + escHtml(r.NewValue) + '</td></tr>';
-    });
-    html += '</tbody></table>';
-    $('#qlAuditWrap').innerHTML = html;
-  });
-};
-
-// ============================================================================
-// ⭐ SỔ CHỦ NHIỆM — Workspace #10
-// 3 sub-tab: Điểm danh • Vi phạm • Hoạt động
-// ============================================================================
-
-// State riêng của workspace
-var CN_STATE = {
-  currentSub: 'diemdanh',
-  currentLop: '',
-  ddRows: [],     // dữ liệu điểm danh ngày đang mở
-  ddDate: '',
-  vpRows: [],
-  hdRows: []
-};
-
-function _cnGetHSList(lop){
-  // Lọc HS theo lớp. Backend nest students trong classes (xem _buildClasses), nên đọc từ CLASSES.
-  // Backend trả về s = { classCode, studentCode, name, dob, gender, ... }
-  var classes = window.CLASSES || [];
-  var cls = classes.find(function(c){ return c.name === lop; });
-  return (cls && cls.students) ? cls.students : [];
-}
-
-function _cnTodayStr(){
-  var d = new Date();
-  return d.toISOString().substring(0, 10);
-}
-
-function _cnLoaiLabel(loai){
-  return ({SinhHoat:'Sinh hoạt lớp', ChaoCo:'Chào cờ', NgoaiKhoa:'Ngoại khoá', Khac:'Khác'})[loai] || loai;
-}
-function _cnLoaiClass(loai){
-  return ({SinhHoat:'sinhhoat', ChaoCo:'chaoco', NgoaiKhoa:'ngoaikhoa', Khac:'khac'})[loai] || 'khac';
-}
-
-window.qlCNSwitchSub = function(sub){
-  CN_STATE.currentSub = sub;
-  $$('.ql-cn-subtab').forEach(function(b){ b.classList.toggle('active', b.dataset.sub === sub); });
-  $$('.ql-cn-sub').forEach(function(d){ d.style.display = (d.dataset.sub === sub) ? '' : 'none'; });
-};
-
-window.qlCNReload = function(){
-  var lop = $('#qlCNLop') ? $('#qlCNLop').value : '';
-  CN_STATE.currentLop = lop;
-  // Hiển thị tháng hiện tại
-  var now = new Date();
-  $('#qlCNThang').textContent = (now.getMonth() + 1) + '/' + now.getFullYear();
-  if (!lop) return;
-  // Set ngày mặc định cho 2 form modal + ngày điểm danh
-  var today = _cnTodayStr();
-  var ddDate = $('#qlCNDDNgay'); if (ddDate && !ddDate.value) ddDate.value = today;
-
-  // Gọi API summary + load 2 list (vi phạm + hoạt động)
-  if (!getGAS_URL()) {
-    $('#qlCNDDWrap').innerHTML = '<div class="ql-empty">Chưa có backend</div>';
-    $('#qlCNVPWrap').innerHTML = '<div class="ql-empty">Chưa có backend</div>';
-    $('#qlCNHDWrap').innerHTML = '<div class="ql-empty">Chưa có backend</div>';
-    return;
-  }
-  callGAS('qlclChuNhiemSummary', { namHoc: STATE.namHoc, lop: lop }).then(function(res){
-    if (!res.ok) return;
-    var d = res.data || {};
-    var dd = d.diemDanh || {};
-    $('#qlCNStatP').textContent = dd.P || 0;
-    $('#qlCNStatNghi').textContent = (dd.K || 0) + (dd.KP || 0) + (dd.M || 0);
-    $('#qlCNStatVP').textContent = (d.viPham && d.viPham.thang) || 0;
-    $('#qlCNStatHD').textContent = (d.hoatDong && d.hoatDong.thang) || 0;
-  });
-  qlCNVPReload();
-  qlCNHDReload();
-};
-
-// --- 1. ĐIỂM DANH -----------------------------------------------------------
-window.qlCNDDLoadByDate = function(){
-  var lop = CN_STATE.currentLop || ($('#qlCNLop') ? $('#qlCNLop').value : '');
-  var ngay = $('#qlCNDDNgay').value;
-  if (!lop) { toast('Hãy chọn lớp', 'err'); return; }
-  if (!ngay) { toast('Hãy chọn ngày', 'err'); return; }
-  CN_STATE.ddDate = ngay;
-  $('#qlCNDDWrap').innerHTML = '<div class="ql-empty">⏳ Đang tải…</div>';
-  callGAS('qlclGetDiemDanh', { namHoc: STATE.namHoc, lop: lop, tuNgay: ngay, denNgay: ngay }).then(function(res){
-    if (!res.ok) { toast(res.error, 'err'); return; }
-    var existing = (res.data && res.data.rows) || [];
-    var existingMap = {};
-    existing.forEach(function(r){ existingMap[r.maHS] = r; });
-    // Lấy danh sách HS lớp
-    var hsList = _cnGetHSList(lop);
-    if (!hsList.length) {
-      $('#qlCNDDWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">⚠️</div>Lớp này chưa có học sinh. Vào Hồ sơ HS để thêm.</div>';
-      return;
-    }
-    CN_STATE.ddRows = hsList.map(function(s){
-      var ex = existingMap[s.studentCode];
-      return {
-        maHS: s.studentCode,
-        hoTen: s.name,
-        trangThai: ex ? ex.trangThai : 'P',
-        ghiChu: ex ? ex.ghiChu : ''
-      };
-    });
-    qlCNDDRender();
-    $('#qlCNDDSaveBtn').style.display = '';
-  });
-};
-
-function qlCNDDRender(){
-  var html = '<table class="ql-dd-table"><thead><tr><th style="width:50px">STT</th><th>Họ và tên</th><th style="width:340px">Trạng thái</th><th>Ghi chú</th></tr></thead><tbody>';
-  CN_STATE.ddRows.forEach(function(r, i){
-    html += '<tr><td>' + (i + 1) + '</td><td><b>' + escHtml(r.hoTen) + '</b><div style="font-size:.72rem;color:#9ca3af">' + escHtml(r.maHS) + '</div></td>';
-    html += '<td><div class="ql-dd-radio">';
-    [['P','✓ Có mặt'],['K','Nghỉ có phép'],['KP','Nghỉ KP'],['M','Đi muộn']].forEach(function(opt){
-      var checked = r.trangThai === opt[0] ? 'checked' : '';
-      html += '<label><input type="radio" name="ddtt_' + i + '" value="' + opt[0] + '" ' + checked + ' onchange="qlCNDDSet(' + i + ',\'' + opt[0] + '\')"><span>' + opt[1] + '</span></label>';
-    });
-    html += '</div></td>';
-    html += '<td><input type="text" value="' + escHtml(r.ghiChu) + '" oninput="qlCNDDSetNote(' + i + ', this.value)" placeholder="(tuỳ chọn)" style="width:100%;padding:5px 8px;border:1px solid #e5e7eb;border-radius:5px;font-family:inherit;font-size:.84rem"></td>';
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  $('#qlCNDDWrap').innerHTML = html;
-}
-
-window.qlCNDDSet = function(idx, tt){
-  if (CN_STATE.ddRows[idx]) CN_STATE.ddRows[idx].trangThai = tt;
-};
-window.qlCNDDSetNote = function(idx, note){
-  if (CN_STATE.ddRows[idx]) CN_STATE.ddRows[idx].ghiChu = note;
-};
-
-window.qlCNDDFillAll = function(tt){
-  CN_STATE.ddRows.forEach(function(r){ r.trangThai = tt; });
-  qlCNDDRender();
-};
-
-window.qlCNDDSave = function(){
-  if (!CN_STATE.ddRows.length) { toast('Chưa có dữ liệu', 'err'); return; }
-  var lop = CN_STATE.currentLop;
-  if (!lop || !CN_STATE.ddDate) { toast('Thiếu lớp hoặc ngày', 'err'); return; }
-  toast('⏳ Đang lưu…', 'ok');
-  callGAS('qlclSaveDiemDanh', {
-    namHoc: STATE.namHoc, lop: lop, ngay: CN_STATE.ddDate,
-    gvcn: STATE.user, rows: CN_STATE.ddRows
-  }).then(function(res){
-    if (!res.ok) { toast(res.error || 'Lỗi lưu', 'err'); return; }
-    toast('✅ Đã lưu điểm danh ngày ' + CN_STATE.ddDate + ' (' + (res.data.saved || 0) + ' HS)', 'ok');
-    qlCNReload();
-  });
-};
-
-// --- 2. VI PHẠM -------------------------------------------------------------
-window.qlCNVPOpenForm = function(){
-  if (!CN_STATE.currentLop) { toast('Hãy chọn lớp', 'err'); return; }
-  // Populate HS select
-  var hsList = _cnGetHSList(CN_STATE.currentLop);
-  $('#qlVPMaHS').innerHTML = hsList.map(function(s){
-    return '<option value="' + escHtml(s.studentCode) + '" data-name="' + escHtml(s.name) + '">' + escHtml(s.name) + ' (' + escHtml(s.studentCode) + ')</option>';
-  }).join('');
-  $('#qlVPNgay').value = _cnTodayStr();
-  $('#qlVPMucDo').value = 'Nhe';
-  $('#qlVPLoai').value = '';
-  $('#qlVPMoTa').value = '';
-  $('#qlVPXuLy').value = '';
-  qlOpenModal('qlVPModal');
-};
-
-window.qlCNVPSave = function(){
-  var sel = $('#qlVPMaHS');
-  var maHS = sel.value;
-  var hoTen = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].dataset.name : '';
-  var loai = $('#qlVPLoai').value;
-  var moTa = $('#qlVPMoTa').value.trim();
-  if (!maHS) { toast('Hãy chọn HS', 'err'); return; }
-  if (!loai && !moTa) { toast('Hãy chọn loại hoặc nhập mô tả', 'err'); return; }
-  callGAS('qlclSaveViPham', {
-    namHoc: STATE.namHoc, lop: CN_STATE.currentLop, gvcn: STATE.user,
-    row: {
-      maHS: maHS, hoTen: hoTen, ngay: $('#qlVPNgay').value,
-      loaiViPham: loai, mucDo: $('#qlVPMucDo').value,
-      moTa: moTa, xuLy: $('#qlVPXuLy').value.trim()
-    }
-  }).then(function(res){
-    if (!res.ok) { toast(res.error || 'Lỗi', 'err'); return; }
-    toast('✅ Đã lưu vi phạm', 'ok');
-    qlCloseModal('qlVPModal');
-    qlCNVPReload();
-    qlCNReload(); // refresh stats
-  });
-};
-
-window.qlCNVPReload = function(){
-  if (!CN_STATE.currentLop || !getGAS_URL()) return;
-  callGAS('qlclGetViPham', { namHoc: STATE.namHoc, lop: CN_STATE.currentLop }).then(function(res){
-    if (!res.ok) return;
-    var rows = (res.data && res.data.rows) || [];
-    var stats = (res.data && res.data.stats) || {};
-    CN_STATE.vpRows = rows;
-    $('#qlCNVPTotal').textContent = stats.total || 0;
-    $('#qlCNVPNhe').textContent = stats.Nhe || 0;
-    $('#qlCNVPNang').textContent = stats.Nang || 0;
-    if (!rows.length) { $('#qlCNVPWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">⚠️</div>Chưa có ghi nhận vi phạm nào.</div>'; return; }
-    var html = '';
-    rows.forEach(function(r){
-      var tag = (r.mucDo === 'Nang') ? 'nang' : 'nhe';
-      var tagLabel = (r.mucDo === 'Nang') ? 'Nặng' : 'Nhẹ';
-      html += '<div class="ql-cn-card">';
-      html += '<div><div class="cn-meta"><span>📅 ' + escHtml(r.ngay) + '</span><span class="cn-tag ' + tag + '">' + tagLabel + '</span><span style="color:#9ca3af">' + escHtml(r.gvcn) + '</span></div>';
-      html += '<div class="cn-title">👤 ' + escHtml(r.hoTen) + ' <span style="font-size:.78rem;color:#6b7280;font-weight:400">— ' + escHtml(r.loaiViPham || '(không phân loại)') + '</span></div>';
-      if (r.moTa) html += '<div class="cn-body">📝 ' + escHtml(r.moTa) + '</div>';
-      if (r.xuLy) html += '<div class="cn-body" style="margin-top:4px;color:#1e40af">🔧 Xử lý: ' + escHtml(r.xuLy) + '</div>';
-      html += '</div>';
-      html += '<button class="cn-del" onclick="qlCNVPDelete(' + escHtml(JSON.stringify(JSON.stringify({ ngay: r.ngay, maHS: r.maHS, moTa: r.moTa }))) + ')" title="Xoá">🗑</button>';
-      html += '</div>';
-    });
-    $('#qlCNVPWrap').innerHTML = html;
-  });
-};
-
-window.qlCNVPDelete = function(rowJSONStr){
-  if (!confirm('Xoá ghi nhận vi phạm này?')) return;
-  var r = JSON.parse(rowJSONStr);
-  callGAS('qlclDeleteViPham', {
-    namHoc: STATE.namHoc, lop: CN_STATE.currentLop, gvcn: STATE.user,
-    row: r
-  }).then(function(res){
-    if (!res.ok) { toast(res.error || 'Lỗi xoá', 'err'); return; }
-    toast('🗑 Đã xoá', 'ok');
-    qlCNVPReload(); qlCNReload();
-  });
-};
-
-// --- 3. HOẠT ĐỘNG -----------------------------------------------------------
-window.qlCNHDOpenForm = function(){
-  if (!CN_STATE.currentLop) { toast('Hãy chọn lớp', 'err'); return; }
-  $('#qlHDNgay').value = _cnTodayStr();
-  $('#qlHDLoai').value = 'SinhHoat';
-  $('#qlHDChuDe').value = '';
-  $('#qlHDNoiDung').value = '';
-  $('#qlHDKetLuan').value = '';
-  $('#qlHDSoHS').value = '';
-  qlOpenModal('qlHDModal');
-};
-
-window.qlCNHDSave = function(){
-  var ngay = $('#qlHDNgay').value;
-  var chuDe = $('#qlHDChuDe').value.trim();
-  if (!ngay) { toast('Thiếu ngày', 'err'); return; }
-  if (!chuDe) { toast('Hãy nhập chủ đề', 'err'); return; }
-  callGAS('qlclSaveHoatDong', {
-    namHoc: STATE.namHoc, lop: CN_STATE.currentLop, gvcn: STATE.user,
-    row: {
-      ngay: ngay, loai: $('#qlHDLoai').value,
-      chuDe: chuDe, noiDung: $('#qlHDNoiDung').value.trim(),
-      ketLuan: $('#qlHDKetLuan').value.trim(),
-      soHSThamGia: $('#qlHDSoHS').value
-    }
-  }).then(function(res){
-    if (!res.ok) { toast(res.error || 'Lỗi', 'err'); return; }
-    toast('✅ Đã thêm hoạt động', 'ok');
-    qlCloseModal('qlHDModal');
-    qlCNHDReload();
-    qlCNReload();
-  });
-};
-
-window.qlCNHDReload = function(){
-  if (!CN_STATE.currentLop || !getGAS_URL()) return;
-  callGAS('qlclGetHoatDong', { namHoc: STATE.namHoc, lop: CN_STATE.currentLop }).then(function(res){
-    if (!res.ok) return;
-    var rows = (res.data && res.data.rows) || [];
-    var stats = (res.data && res.data.stats) || {};
-    CN_STATE.hdRows = rows;
-    $('#qlCNHDTotal').textContent = stats.total || 0;
-    if (!rows.length) { $('#qlCNHDWrap').innerHTML = '<div class="ql-empty"><div class="ql-empty-icon">🎉</div>Chưa có hoạt động nào.</div>'; return; }
-    var html = '';
-    rows.forEach(function(r){
-      var cls = _cnLoaiClass(r.loai);
-      var label = _cnLoaiLabel(r.loai);
-      html += '<div class="ql-cn-card">';
-      html += '<div><div class="cn-meta"><span>📅 ' + escHtml(r.ngay) + '</span><span class="cn-tag ' + cls + '">' + escHtml(label) + '</span>';
-      if (r.soHSThamGia) html += '<span style="color:#6b7280">👥 ' + escHtml(r.soHSThamGia) + ' HS</span>';
-      html += '<span style="color:#9ca3af">' + escHtml(r.gvcn) + '</span></div>';
-      html += '<div class="cn-title">' + escHtml(r.chuDe) + '</div>';
-      if (r.noiDung) html += '<div class="cn-body">📝 ' + escHtml(r.noiDung) + '</div>';
-      if (r.ketLuan) html += '<div class="cn-body" style="margin-top:4px;color:#15803d">🎯 ' + escHtml(r.ketLuan) + '</div>';
-      html += '</div>';
-      html += '<button class="cn-del" onclick="qlCNHDDelete(' + escHtml(JSON.stringify(JSON.stringify({ ngay: r.ngay, loai: r.loai, chuDe: r.chuDe }))) + ')" title="Xoá">🗑</button>';
-      html += '</div>';
-    });
-    $('#qlCNHDWrap').innerHTML = html;
-  });
-};
-
-window.qlCNHDDelete = function(rowJSONStr){
-  if (!confirm('Xoá hoạt động này?')) return;
-  var r = JSON.parse(rowJSONStr);
-  callGAS('qlclDeleteHoatDong', {
-    namHoc: STATE.namHoc, lop: CN_STATE.currentLop, gvcn: STATE.user,
-    row: r
-  }).then(function(res){
-    if (!res.ok) { toast(res.error || 'Lỗi xoá', 'err'); return; }
-    toast('🗑 Đã xoá', 'ok');
-    qlCNHDReload(); qlCNReload();
-  });
-};
-
-// ============ EXPORT TO GLOBAL ============
-function onDataRefresh(){
-  STATE.classes = window.CLASSES || [];
-  STATE.teachers = window.TEACHERS || [];
-  var cfg = (window.STATS && window.STATS.config) || {};
-  var pillS = $('#qlSchoolPill'); if (pillS && pillS.firstElementChild) pillS.firstElementChild.textContent = cfg.name || 'Trường…';
-  var pillY = $('#qlYearPill'); if (pillY && pillY.firstElementChild) pillY.firstElementChild.textContent = cfg.schoolYear || STATE.namHoc;
-  // Re-populate filters (force refresh)
-  ['qlfLop','qlnxLop','qlnlpcLop','qlxlLop','qlhbLop','qlpcLop','qlCNLop','qlbtLop'].forEach(function(id){
-    var el = $('#' + id); if (el) { el.innerHTML = ''; }
-  });
-  ['qlfMon','qlnxMon'].forEach(function(id){
-    var el = $('#' + id); if (el) { el.innerHTML = ''; }
-  });
-  ['qlfNamHoc','qlnxNamHoc','qlnlpcNamHoc','qlxlNamHoc','qlhbNamHoc','qldashNamHoc','qlpcNamHoc','qlbtNamHoc'].forEach(function(id){
-    var el = $('#' + id); if (el) { el.innerHTML = ''; }
-  });
-  fillNamHocSelects();
-  fillLopSelects();
-  fillMonSelects();
-  fillHSSelects();
-}
-window.QLCL = {
-  init: init,
-  STATE: STATE,
-  onDataRefresh: onDataRefresh
-};
 
 })();
 
@@ -5961,7 +4215,8 @@ function _hsMgrRenderFromClasses(f, msg){
     (cls.students || []).forEach(function(s){
       allData.push({
         stt: String(s.stt || ''),
-        lop: String(s.classCode || ''),
+        // 2026-05-08 fix: chuẩn hoá "Lớp 1A" → "1A" để khớp value dropdown filter
+        lop: String(s.classCode || '').replace(/^Lớp\s+/i, ''),
         ma: String(s.studentCode || ''),
         ten: String(s.name || ''),
         ns: String(s.dob || ''),
@@ -6055,7 +4310,7 @@ function hsMgrRender(){
             + ' <button class="adm-btn" style="padding:3px 7px;font-size:.75rem;background:#fee2e2;color:#991b1b;border:1px solid #fca5a5" onclick="hsMgrDelete(\'' + s.ma + '\',\'' + safeName + '\',\'' + s.lop + '\')" title="Xoá vĩnh viễn — CHỈ khi nhập nhầm/sai sót">🗑</button>';
         return '<tr style="border-bottom:1px solid #f1f5f9">'
           + '<td style="text-align:center;color:#94a3b8">' + stt + '</td>'
-          + '<td style="text-align:center"><b>' + s.lop + '</b></td>'
+          + '<td style="text-align:center"><b>Lớp ' + s.lop + '</b></td>'
           + '<td style="text-align:center;font-family:monospace;font-size:.78rem">' + s.ma + '</td>'
           + '<td style="padding:6px 8px"><b>' + s.ten + '</b></td>'
           + '<td style="text-align:center;font-size:.78rem">' + s.ns + '</td>'

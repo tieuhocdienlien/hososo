@@ -11,7 +11,27 @@
 <!-- 2026-05-08: PizZip + docxtemplater để xuất học bạ Word đúng template chuẩn TT 27 -->
 <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.min.js" defer></script>
 <script src="https://unpkg.com/docxtemplater@3.50.0/build/docxtemplater.js" defer></script>
-<link rel="stylesheet" href="qlcl-style.css?v=2026.05.08-dshs-auto">
+<!-- 2026-05-09 v3: Bỏ image-module-free vì chỉ tạo inline drawing (không position
+     được 2 chữ ký ở 2 cột TT27). Thay bằng phương án post-process: template đã
+     có drawing anchor floating ở đúng vị trí (copy từ file mẫu của thầy), FE chỉ
+     thay BYTES của 3 PNG trong /word/media/ — vị trí giữ nguyên 100%. -->
+<link rel="stylesheet" href="qlcl-style.css?v=2026.05.09-mobile-diem-hb">
+<style>
+/* Eye toggle cho password input — 2026-05-09 */
+.pw-wrap{position:relative;display:block}
+.pw-wrap input{padding-right:40px!important}
+.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;cursor:pointer;padding:6px;color:#94a3b8;font-size:16px;line-height:1;border-radius:4px}
+.pw-eye:hover{color:#475569;background:#f1f5f9}
+@media(max-width:640px){.pw-eye{padding:10px;font-size:18px;min-width:40px;min-height:40px}.pw-wrap input{padding-right:48px!important}}
+</style>
+<script>
+function pwToggle(btn){
+  var inp = btn.previousElementSibling;
+  if(!inp || (inp.type!=='password' && inp.type!=='text')) return;
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  btn.textContent = inp.type==='password' ? '👁' : '🙈';
+}
+</script>
 </head>
 <body>
 <div class="ldr" id="ldr"><div class="ldr-sp"></div><div class="ldr-t" id="ldr-t">Đang xử lý...</div></div>
@@ -26,8 +46,8 @@
   </div>
   <div class="lbox-sub">Hệ thống Quản lý Chất lượng Giáo dục Tiểu học<br>Năm học 2025–2026</div>
   <div class="lerr" id="lerr"></div>
-  <div class="lf"><label>Tên đăng nhập</label><input type="text" id="lu" placeholder="Nhập tên đăng nhập" autocomplete="username"></div>
-  <div class="lf"><label>Mật khẩu</label><input type="password" id="lp" placeholder="Nhập mật khẩu" autocomplete="current-password"></div>
+  <div class="lf"><label>Tên đăng nhập</label><input type="text" id="lu" placeholder="Nhập tên đăng nhập" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+  <div class="lf"><label>Mật khẩu</label><span class="pw-wrap"><input type="password" id="lp" placeholder="Nhập mật khẩu" autocomplete="current-password"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span></div>
   <button class="lbtn" id="lbtn" onclick="doLogin()">Đăng nhập</button>
   <div class="lmode" id="lmode"></div>
   <div style="margin-top:14px;text-align:center;font-size:.85rem">
@@ -91,6 +111,7 @@
       <div class="sb-section-title">Quản trị hệ thống</div>
       <div class="sb-item ao lock-guest" onclick="if(needAdmin('Phân quyền CBGV'))gp('pg-users',this)"><span class="ico">👥</span><span>Phân quyền CBGV</span></div>
 <!-- 2026-05-06: BỎ "Nhập danh sách HS" — chuyển sang HSS Admin (single source of truth) -->
+      <div class="sb-item ao lock-guest" onclick="if(needAdmin('Quản lý ảnh chữ ký'))gp('pg-chuky',this);loadSignatures&&loadSignatures()"><span class="ico">✍️</span><span>Ảnh chữ ký &amp; dấu</span></div>
       <div class="sb-item ao lock-guest" onclick="if(needAdmin('Cài đặt hệ thống'))gp('pg-settings',this)"><span class="ico">⚙️</span><span>Cài đặt hệ thống</span></div>
     </div>
   </div>
@@ -215,6 +236,7 @@
     <button class="btn bpur" onclick="hbAiBatch()">🤖 AI Nhận xét</button>
     <button class="btn bg" onclick="hbSaveBatch()">☁️ Lưu tất cả</button>
     <button class="btn bout" onclick="hbExportWord()">📄 Word</button>
+    <button class="btn bout" onclick="hbExportClassToDrive()" style="color:#0d9488;border-color:#0d9488" title="Render Word + PDF từng HS, lưu Drive, zip cả lớp">☁️ Lưu Drive lớp</button>
     <button class="btn bout" onclick="hbExportExcel()">📊 Excel</button>
     <span class="rc" id="hb-rc"></span>
   </div>
@@ -387,6 +409,23 @@
   </div>
 </div>
 
+<!-- ẢNH CHỮ KÝ & DẤU TRƯỜNG (2026-05-09 — Phase 1 Hồ sơ số học bạ) -->
+<div class="page" id="pg-chuky">
+  <div class="tw" style="padding:20px">
+    <h2 style="font-size:18px;margin-bottom:18px;color:var(--navy);font-family:system-ui,-apple-system,'Segoe UI','Be Vietnam Pro',Roboto,sans-serif;font-weight:700;letter-spacing:.2px">✍️ Quản lý ảnh chữ ký &amp; dấu trường</h2>
+
+    <!-- Section 1: HT + Dấu -->
+    <h3 style="font-size:13px;margin:0 0 10px 0;color:var(--navy);font-weight:700;text-transform:uppercase;letter-spacing:.5px">🏫 Toàn trường</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:24px" id="ck-truong"></div>
+
+    <!-- Section 2: GVCN list -->
+    <h3 style="font-size:13px;margin:0 0 10px 0;color:var(--navy);font-weight:700;text-transform:uppercase;letter-spacing:.5px">📝 GVCN từng lớp</h3>
+    <div id="ck-gvcn-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+      <div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--slate3);font-size:13px">Đang tải danh sách giáo viên…</div>
+    </div>
+  </div>
+</div>
+
 <!-- CÀI ĐẶT -->
 <div class="page" id="pg-settings">
   <div class="tw" style="padding:24px">
@@ -475,6 +514,7 @@
     <div class="mft-r">
       <button class="btn bout" onclick="cm('hbBg')">Đóng</button>
       <button class="btn bout" onclick="hbExportWordOne()" style="color:var(--violet);border-color:var(--violet)">📄 Xuất Word</button>
+      <button class="btn bout" onclick="hbExportToDrive()" style="color:#0d9488;border-color:#0d9488" title="Render Word + convert PDF + lưu Google Drive">☁️ Lưu Drive (Word+PDF)</button>
       <button class="btn bpur" onclick="hbAiOne()">🤖 AI Nhận xét</button>
       <button class="btn bp" onclick="hbSaveOne()" style="background:var(--violet)">💾 Lưu</button>
     </div>
@@ -510,13 +550,13 @@
     <div class="uf">
       <div class="ufi uf-full">
         <label>Tên đăng nhập *</label>
-        <input type="text" id="lu2" placeholder="VD: trinh2026, khue2026..." autocomplete="username"
+        <input type="text" id="lu2" placeholder="Nhập tên đăng nhập" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
                onkeydown="if(event.key==='Enter')doLoginModal()">
       </div>
       <div class="ufi uf-full">
         <label>Mật khẩu *</label>
-        <input type="password" id="lp2" placeholder="Nhập mật khẩu" autocomplete="current-password"
-               onkeydown="if(event.key==='Enter')doLoginModal()">
+        <span class="pw-wrap"><input type="password" id="lp2" placeholder="Nhập mật khẩu" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')doLoginModal()"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span>
       </div>
     </div>
     <div id="lerr2" style="display:none;color:#dc2626;background:#fef2f2;border:1px solid #fecaca;padding:8px 12px;border-radius:6px;margin-top:10px;font-size:13px"></div>
@@ -540,9 +580,9 @@
   <div class="mhd" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"><div><h2>🔑 Đổi mật khẩu</h2><p id="chpass-user"></p></div><button class="mcl" onclick="cm('chPassBg')">✕</button></div>
   <div class="mbd">
     <div class="uf">
-      <div class="ufi uf-full"><label>Mật khẩu hiện tại *</label><input type="password" id="cp-old" placeholder="Nhập mật khẩu cũ"></div>
-      <div class="ufi uf-full"><label>Mật khẩu mới *</label><input type="password" id="cp-new" placeholder="Tối thiểu 4 ký tự"></div>
-      <div class="ufi uf-full"><label>Nhập lại mật khẩu mới *</label><input type="password" id="cp-confirm" placeholder="Nhập lại để xác nhận"></div>
+      <div class="ufi uf-full"><label>Mật khẩu hiện tại *</label><span class="pw-wrap"><input type="password" id="cp-old" placeholder="Nhập mật khẩu cũ"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span></div>
+      <div class="ufi uf-full"><label>Mật khẩu mới *</label><span class="pw-wrap"><input type="password" id="cp-new" placeholder="Tối thiểu 4 ký tự"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span></div>
+      <div class="ufi uf-full"><label>Nhập lại mật khẩu mới *</label><span class="pw-wrap"><input type="password" id="cp-confirm" placeholder="Nhập lại để xác nhận"><button type="button" class="pw-eye" onclick="pwToggle(this)" title="Hiện/ẩn mật khẩu" tabindex="-1">👁</button></span></div>
     </div>
   </div>
   <div class="mft">
@@ -573,7 +613,7 @@
 </script>
 
 <!-- ⭐ Logic JS chính QLCL v2 — tách ra để cache + maintain (Refactor 2026-05-05) -->
-<script src="qlcl-app.js?v=2026.05.08-dshs-auto" defer></script>
+<script src="qlcl-app.js?v=2026.05.09-mobile-polish" defer></script>
 
 </body>
 </html>

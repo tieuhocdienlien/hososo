@@ -2,28 +2,33 @@
  * =====================================================================================
  *  BACKEND CHUNG - HỆ THỐNG HỒ SƠ SỐ TRƯỜNG TIỂU HỌC
  *  Mặc định: Trường Tiểu học Diễn Liên (đổi qua Admin → Thông tin trường)
- *  1 FILE DUY NHẤT gộp Router + HSS (Hồ sơ số) + TDG (KĐCL-TĐG) + QLCL
+ *  1 FILE DUY NHẤT gộp Router + HSS + TDG + QLCL v1 + QLCL Template + MOET
  *
- *  • Router   — doGet/doPost dispatch + setupAll tạo 7 tab
- *  • HSS      — backend Hồ sơ số (đã đổi doGet → _hssDoGet, doPost → _hssDoPost)
- *  • TDG      — backend KĐCL-TĐG + AI Gemini/Claude
+ *  • Router    — doGet/doPost dispatch + setupAll tạo các tab cần thiết
+ *  • HSS       — Hồ sơ số: danh mục, DSGV, DS HS, minh chứng, ảnh, config,
+ *                CRUD HS đơn lẻ, chữ ký số, học bạ
+ *  • TDG       — KĐCL-TĐG: saveReport/loadReport, AI Gemini/Claude
+ *  • QLCL v1   — workspace điểm + NLPC + xếp loại + sổ chủ nhiệm
+ *  • QLCL TPL  — wide format V3.0 (nhập điểm theo TT 27/2020 + CTGDPT 2018)
+ *  • MOET      — getKetQuaMOET cho extension Chrome xuất CSDL ngành
  *
- *  ✅ HƯỚNG DẪN 4 BƯỚC (xem backend/HUONG_DAN_CAI_DAT.md cho bản đầy đủ 12 bước):
+ *  ✅ HƯỚNG DẪN 4 BƯỚC (xem Data/HUONG_DAN_CAI.md cho bản đầy đủ):
  *
  *  ① Tạo Google Sheet mới → Tiện ích mở rộng → Apps Script
  *     → Đổi tên project: TH_Backend
  *
- *  ② Xoá Code.gs mặc định → Tạo 1 file mới tên 'Code' → Dán TOÀN BỘ file này → Lưu
+ *  ② Xoá Code.gs mặc định → Dán TOÀN BỘ file này → Lưu
  *
  *  ③ Chọn hàm 'setupAll' → ▶ Chạy → cấp quyền.
- *     Quay lại Sheet, F5 → 7 tab tự xuất hiện.
+ *     Quay lại Sheet, F5 → các tab tự xuất hiện.
  *
  *  ④ Script Properties (⚙ Cài đặt dự án): thêm AI_PROVIDER=gemini + GEMINI_API_KEY=...
  *     → Triển khai → Web app → Anyone → Deploy → Copy URL /exec
  *     → Dán URL vào index.html (2 chỗ: API_URL_EARLY + API_URL)
  *
- *  File sinh tự động bằng gộp 3 file backend/Router.gs + HSS.gs + TDG.gs.
- *  Nếu cần sửa: khuyến khích sửa từng file gốc rồi chạy lại build_gs.js.
+ *  Lịch sử: D-3 Final Refactor (2026-05-06) đã gộp 3 file Router.gs + HSS.gs +
+ *  TDG.gs thành 1 Code.gs. Sau đó 2026-05-08 merge tiếp APPS_SCRIPT_ENDPOINT.gs
+ *  (MOET sync). Các module hiện được phân tách bằng SECTION marker bên dưới.
  * =====================================================================================
  */
 
@@ -33,23 +38,46 @@
 
 /**
  * ============================================================================
- * ROUTER.gs — Dispatch trung tâm cho Hồ sơ số MN + Hệ thống KĐCL-TĐG
+ * ROUTER.gs — Dispatch trung tâm cho Hồ sơ số TH + KĐCL-TĐG + QLCL Template
  * ============================================================================
  *
  * Một Apps Script project duy nhất, một URL deploy, một Google Sheet.
- * File này CHỈ có doGet + doPost — nhận request rồi dispatch sang:
- *   - HSS.gs  (Hồ sơ số: danh mục, DSGV, DS trẻ, minh chứng, config, ảnh)
- *   - TDG.gs  (KĐCL-TĐG: saveReport/loadReport, gọi AI Gemini/Claude)
+ * File này CHỈ có doGet + doPost — nhận request rồi dispatch sang các module:
+ *   - HSS      (Hồ sơ số: danh mục, DSGV, DS trẻ, minh chứng, config, ảnh,
+ *               quản lý HS đơn lẻ CRUD, chữ ký số, học bạ)
+ *   - TDG      (KĐCL-TĐG: saveReport/loadReport, gọi AI Gemini/Claude)
+ *   - QLCL v1  (workspace điểm + nhận xét + sổ chủ nhiệm)
+ *   - QLCL TPL (wide format V3.0 — nhập điểm/NLPC/xếp loại theo TT 27/2020)
+ *   - HSS Status (Đã có/Chưa có cho từng hồ sơ Drive)
+ *   - MOET     (getKetQuaMOET — extension Chrome xuất Excel CSDL ngành)
  *
- * HSS actions (GET chủ yếu, JSONP):
- *   all (default) · hss · teachers · students · classes · images
- *   · minhchung · config · stats
- * HSS POST actions:
- *   updateHSS · updateMinhChung · resetMinhChungSeed · importTeachers · importStudents
- *
- * TDG actions (POST JSON):
- *   ping · saveReport · loadReport · listReports · deleteReport
- *   · ai · claude · readDriveFolder
+ * ⭐ DANH MỤC ACTION — nguồn truth là các array bên dưới (cập nhật khi đổi):
+ *   _HSS_GET_ACTIONS      — GET (JSONP): danh mục/DSGV/HS/lớp/ảnh/MC/config/stats
+ *   _HSS_POST_ACTIONS     — POST: updateHSS · updateMinhChung · resetMinhChungSeed
+ *                            · importTeachers · importStudents · updateConfig
+ *                            · studentsAuthed · CRUD HS đơn lẻ (add/update/transfer/
+ *                            restore/deletePermanent/listAdmin) · chữ ký + học bạ
+ *                            (uploadSignature/deleteSignature/getSignatures/
+ *                            getSignatureImage/exportHocBaSingle/zipClassFolder)
+ *   _TDG_POST_ACTIONS     — POST: ping · saveReport · loadReport · listReports
+ *                            · deleteReport · ai · claude · readDriveFolder
+ *   (QLCL v1 long format ĐÃ DEPRECATED 2026-05-09 — toàn bộ 22 action `qlcl*`
+ *    đã thay thế bằng QLCL Template wide format bên dưới.)
+ *   _QLCL_TPL_ACTIONS     — GET hoặc POST: getGrades · saveGrade · saveGrades
+ *                            · autoSave · deleteGrade · getNhanXet · saveNhanXet
+ *                            · saveNhanXetBatch · getLop · saveLop · getUsers
+ *                            · saveUser · deleteUser · changePassword
+ *                            · syncUsersFromDSGV · getConfig · saveConfig
+ *                            · createTemplate · fixDiemSheet
+ *   _HSS_STATUS_ACTIONS   — POST: getHssStatus · saveHssStatus · rescanHssDrive
+ *                            · checkFolderBatch
+ *   Action đặc biệt (route trực tiếp, không nằm trong array nào):
+ *     - login          (GET hoặc POST) — _qtDoLogin
+ *     - pingAuth       (POST) — verify token, trả role
+ *     - updateAuthTokens (POST) — HT đổi mã GV/Admin
+ *     - getKetQuaMOET  (GET hoặc gaspost) — extension xuất CSDL ngành
+ *     - gaspost        (GET) — fallback POST giả qua GET khi CORS block
+ *     - status         (GET) — trang HTML giới thiệu backend
  *
  * ============================================================================
  */
@@ -63,14 +91,19 @@ const _HSS_GET_ACTIONS  = ['all','hss','teachers','students','classes','images',
 //   • deleteStudentPermanent: XOÁ VĨNH VIỄN (chỉ cho trường hợp NHẬP NHẦM/SAI)
 //   • listStudentsAdmin: list với filter trạng thái
 const _HSS_POST_ACTIONS = ['updateHSS','updateMinhChung','resetMinhChungSeed','importTeachers','importStudents','updateConfig','studentsAuthed',
-  'addStudent','updateStudent','transferStudent','restoreStudent','deleteStudentPermanent','listStudentsAdmin'];
+  'addStudent','updateStudent','transferStudent','restoreStudent','deleteStudentPermanent','listStudentsAdmin',
+  // 2026-05-09 — Phase 1 Hồ sơ số học bạ (chữ ký + dấu trường + xuất Drive + zip cả lớp)
+  'uploadSignature','deleteSignature','getSignatures','getSignatureImage',
+  'exportHocBaSingle','zipClassFolder'];
 const _TDG_POST_ACTIONS  = ['ping','saveReport','loadReport','listReports','deleteReport','ai','claude','readDriveFolder'];
-const _QLCL_POST_ACTIONS = ['qlclConfig','qlclGetDiem','qlclSaveDiem','qlclGetNhanXet','qlclSaveNhanXet','qlclGetNLPC','qlclSaveNLPC','qlclGetXepLoai','qlclSaveXepLoai','qlclGetPhanCong','qlclSavePhanCong','qlclDashboard','qlclAudit',
-  // Sổ chủ nhiệm — workspace #10
-  'qlclGetDiemDanh','qlclSaveDiemDanh',
-  'qlclGetViPham','qlclSaveViPham','qlclDeleteViPham',
-  'qlclGetHoatDong','qlclSaveHoatDong','qlclDeleteHoatDong',
-  'qlclChuNhiemSummary'];
+// 2026-05-09 → 2026-05-10: QLCL v1 (long format) DEPRECATED — toàn bộ 22 action `qlcl*`
+//   (qlclSaveDiem, qlclSaveNhanXet, qlclSaveNLPC, qlclSaveXepLoai, sổ chủ nhiệm, ...) đã
+//   được thay thế bằng QLCL Template wide format (_QLCL_TPL_ACTIONS bên dưới). FE không còn gọi.
+//   Đã xoá: _QLCL_POST_ACTIONS array + _qlclHandle dispatcher + 22 hàm action handler
+//           + _qlclFilterRows + _qlclFmtDate + _qlclValidScore_ + _qlclReadAll
+//           + 9 const SHEET_QLCL_* + 2 const seed (QLCL_SUBJECTS_SEED, QLCL_NLPC_DEF).
+//   Còn giữ: _qlclSheet + _qlclAudit (HSS Status audit), _qlclValidGrade_ (Template validate).
+//   Xem section QLCL HELPERS.
 // QLCL Template (wide format) — adopted từ project QLCL_V3.0 của Chung Trần (May 2026)
 // Backend chạy trên cùng Sheet HSS (data đã migrate từ Sheet THDienLien_05.2026 → 9 tab gốc).
 // Action name giữ nguyên template (không xung đột với QLCL v1 vì khác hẳn).
@@ -198,11 +231,7 @@ function doPost(e) {
     return _hssDoPost(e);
   }
 
-  // QLCL POST actions — trả JSON
-  if (_QLCL_POST_ACTIONS.indexOf(action) >= 0) {
-    const result = _qlclHandle(action, body);
-    return _jsonOut_(result);
-  }
+  // 2026-05-09: dispatch _QLCL_POST_ACTIONS → _qlclHandle ĐÃ XOÁ vì QLCL v1 deprecated.
 
   // QLCL Template (wide format) — route TRƯỚC _WRITE_ACTIONS_ check vì template
   // tự dùng bảng Users để xác thực, không qua AUTH_TOKEN.
@@ -228,17 +257,18 @@ function doPost(e) {
 //   ⚠️ PHÁT HIỆN tab dư thừa nhưng KHÔNG tự xoá (an toàn)
 //   🗑 Việc xoá → chạy hàm `cleanupObsoleteSheets()` riêng (có confirm)
 //
-// Cấu trúc Sheet chuẩn:
+// Cấu trúc Sheet chuẩn (cập nhật 2026-05-10 sau khi xoá QLCL_AuditLog):
 //   • HSS module (8 tab): Danh muc HSS, DSGV, DS HocSinh, Hinh Anh, CauHinh,
 //     MinhChung, HSS_Status, HSS_FileCheck
 //   • TĐG/KĐCL module (1 tab): _Index_BaoCao
 //   • QLCL Template module (8 tab): Config, Lop, Users, NhanXet,
-//     GK1, CK1, GK2, CN
-//   → Tổng: 17 tab cần thiết
+//     GK1, CK1, GK2, CN — Users là single source cho phân công GVCN/GVBM
+//   → Tổng: 17 tab cần thiết (KHÔNG còn tab QLCL_* nào)
 //
 // Tab dư thừa (sẽ phát hiện + đề xuất xoá):
 //   • HocSinh (duplicate DS HocSinh — đã refactor 2026-05-06)
-//   • 10 tab QLCL_* (QLCL v1 long format — dead code sau D-3)
+//   • 10 tab QLCL_* (QLCL v1 long format — dead code sau D-3, deprecated 2026-05-09;
+//     QLCL_PhanCong + QLCL_AuditLog xoá tiếp 2026-05-10)
 // ============================================================================
 
 // 17 tab cần thiết — cấu trúc chuẩn của hệ thống
@@ -254,10 +284,10 @@ const _NEEDED_SHEETS = [
   { name: 'HSS_FileCheck',module: 'HSS', desc: 'Kiểm tra file Drive' },
   // ── TĐG/KĐCL module (1 tab) ──
   { name: '_Index_BaoCao',module: 'TĐG', desc: 'Index báo cáo TĐG/KĐCL' },
-  // ── QLCL Template module (8 tab) ──
+  // ── QLCL Template module (8 tab) — Users là single source cho phân công ──
   { name: 'Config',       module: 'QLCL', desc: 'Cấu hình QLCL (lockedPeriods, ...)' },
   { name: 'Lop',          module: 'QLCL', desc: 'Danh sách lớp + GVCN' },
-  { name: 'Users',        module: 'QLCL', desc: 'Tài khoản user QLCL' },
+  { name: 'Users',        module: 'QLCL', desc: 'Tài khoản + role + lop_phu_trach + phan_cong_giang_day' },
   { name: 'NhanXet',      module: 'QLCL', desc: 'Nhận xét học bạ' },
   { name: 'GK1',          module: 'QLCL', desc: 'Điểm Giữa HK1' },
   { name: 'CK1',          module: 'QLCL', desc: 'Điểm Cuối HK1' },
@@ -265,11 +295,13 @@ const _NEEDED_SHEETS = [
   { name: 'CN',           module: 'QLCL', desc: 'Điểm Cuối năm' }
 ];
 
-// 11 tab dư thừa — phát hiện trong rà soát 2026-05-06
+// 11 tab dư thừa — rà soát 2026-05-06, cập nhật 2026-05-09 + 2026-05-10.
+// (Toàn bộ QLCL_* đã obsolete sau 2026-05-10: phân công tra Users.lop_phu_trach,
+//  audit chuyển sang Logger.log.)
 const _OBSOLETE_SHEETS = [
   // QLCL Template duplicate (refactor 2026-05-06)
   'HocSinh',
-  // QLCL v1 long format (dead code sau D-3)
+  // QLCL v1 long format (dead code sau D-3 — deprecated 2026-05-09 + 2026-05-10)
   'QLCL_CauHinh', 'QLCL_PhanCong', 'QLCL_DiemDK', 'QLCL_NhanXet',
   'QLCL_NangLuc', 'QLCL_XepLoai', 'QLCL_AuditLog',
   'QLCL_DiemDanh', 'QLCL_ViPham', 'QLCL_HoatDongLop'
@@ -328,16 +360,26 @@ function setupAll() {
   }
   Logger.log('');
 
-  // ── PHASE 4: HSS_Status + HSS_FileCheck ──
+  // ── PHASE 4: HSS_FileCheck ──
   Logger.log('═══ PHASE 4: HSS phụ trợ ═══');
-  ['HSS_Status', 'HSS_FileCheck'].forEach(name => {
-    if (!ss.getSheetByName(name)) {
-      ss.insertSheet(name);
-      Logger.log('  ✅ Tạo: "' + name + '"');
-    } else {
-      Logger.log('  💾 Giữ: "' + name + '" (' + ss.getSheetByName(name).getLastRow() + ' dòng)');
-    }
-  });
+  if (!ss.getSheetByName('HSS_FileCheck')) {
+    ss.insertSheet('HSS_FileCheck');
+    Logger.log('  ✅ Tạo: "HSS_FileCheck"');
+  } else {
+    Logger.log('  💾 Giữ: "HSS_FileCheck" (' + ss.getSheetByName('HSS_FileCheck').getLastRow() + ' dòng)');
+  }
+  Logger.log('');
+
+  // ── PHASE 4.5: HSS_Status (gọi setupQLCL — idempotent) ──
+  // 2026-05-10: setupQLCL chỉ còn tạo 1 tab HSS_Status (xoá QLCL_AuditLog vì
+  //   _qlclAudit chuyển sang Logger.log — audit cũ chưa từng hoạt động).
+  Logger.log('═══ PHASE 4.5: HSS_Status ═══');
+  try {
+    setupQLCL();
+    Logger.log('  ✅ Đã setup 1 tab (HSS_Status)');
+  } catch (err) {
+    Logger.log('  ⚠ setupQLCL: ' + err.message);
+  }
   Logger.log('');
 
   // ── PHASE 5: QLCL Template (8 tab wide format) ──
@@ -584,9 +626,13 @@ const _WRITE_ACTIONS_ = [
   'updateHSS','updateMinhChung','resetMinhChungSeed','importTeachers','importStudents','updateConfig',
   // 2026-05-07: HSS — Quản lý HS đơn lẻ (Phase 2)
   'addStudent','updateStudent','transferStudent','restoreStudent','deleteStudentPermanent',
-  // QLCL — mọi action save/delete
-  'qlclSaveDiem','qlclSaveNhanXet','qlclSaveNLPC','qlclSaveXepLoai','qlclSavePhanCong',
-  'qlclSaveDiemDanh','qlclSaveViPham','qlclDeleteViPham','qlclSaveHoatDong','qlclDeleteHoatDong',
+  // 2026-05-09: Phase 1 hồ sơ số học bạ — chữ ký + dấu (chỉ HT/PHT/Admin)
+  'uploadSignature','deleteSignature',
+  // 2026-05-09: xuất học bạ Word/PDF + zip cả lớp — GVCN cũng dùng được
+  'exportHocBaSingle','zipClassFolder',
+  // 2026-05-10: QLCL v1 long format đã DEPRECATED — handler bị xoá ở section QLCL HELPERS.
+  //   FE dead code (view-qlcl trong index.html + IIFE Phần 4 trong app.js) cũng xoá cùng phiên này.
+  //   Action save/delete qlcl* không còn liệt kê ở đây — request đến sẽ trả "Unknown action".
   // HSS Status
   'saveHssStatus','rescanHssDrive',
   // TDG
@@ -604,8 +650,10 @@ const _ADMIN_ACTIONS_ = [
   // 2026-05-07: Quản lý HS đơn lẻ — chỉ admin (HT/PHT)
   'addStudent','updateStudent','transferStudent','restoreStudent','deleteStudentPermanent',
   'saveHssStatus','rescanHssDrive',
-  // QLCL — phân công GVCN/GVBM cho lớp (chỉ BGH)
-  'qlclSavePhanCong',
+  // 2026-05-09: chữ ký + dấu trường (chỉ HT/PHT/Admin)
+  'uploadSignature','deleteSignature',
+  // 2026-05-10: qlclSavePhanCong (QLCL v1) đã deprecated — phân công GVCN/GVBM
+  //   chuyển sang Users.lop_phu_trach + phan_cong_giang_day (saveUser trong _QLCL_TPL_ACTIONS).
   // TDG/KĐCL — toàn bộ
   'saveReport','deleteReport'
 ];
@@ -799,17 +847,8 @@ function _resolveRole_(emailOrUser) {
   return null;
 }
 
-/**
- * Kiểm điểm hợp lệ: rỗng, hoặc số 0..10 (cho phép thập phân 0.1 bước).
- * @return null nếu OK, hoặc string mô tả lỗi.
- */
-function _qlclValidScore_(v) {
-  if (v === '' || v === null || v === undefined) return null;
-  const n = Number(v);
-  if (isNaN(n)) return 'không phải số';
-  if (n < 0 || n > 10) return 'phải nằm trong khoảng 0–10';
-  return null;
-}
+// 2026-05-09: _qlclValidScore_ ĐÃ XOÁ — chỉ QLCL v1 dùng (deprecated).
+//   QLCL Template dùng _qlclValidGrade_ ở dưới (whitelist T/H/C/Đ + số 0..10).
 
 /**
  * Bao bọc thao tác ghi bằng LockService để chống race condition.
@@ -1765,6 +1804,54 @@ function _hssDoPost(e) {
           .createTextOutput(JSON.stringify({ ok: true, data: students }))
           .setMimeType(ContentService.MimeType.JSON);
       }
+      // ── 2026-05-09: Phase 1 — Quản lý ảnh chữ ký + dấu cho học bạ số ──
+      case 'uploadSignature': {
+        const a = _authCheck_(body, 'admin');
+        if (!a.ok) return ContentService.createTextOutput(JSON.stringify(a))
+          .setMimeType(ContentService.MimeType.JSON);
+        result = _uploadSignature_(body, a);
+        break;
+      }
+      case 'deleteSignature': {
+        const a = _authCheck_(body, 'admin');
+        if (!a.ok) return ContentService.createTextOutput(JSON.stringify(a))
+          .setMimeType(ContentService.MimeType.JSON);
+        result = _deleteSignature_(body, a);
+        break;
+      }
+      case 'getSignatures': {
+        const a = _authCheck_(body, 'admin');
+        if (!a.ok) return ContentService.createTextOutput(JSON.stringify(a))
+          .setMimeType(ContentService.MimeType.JSON);
+        return ContentService
+          .createTextOutput(JSON.stringify({ ok: true, data: _getSignatures_() }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      case 'getSignatureImage': {
+        // GV cũng cần ảnh chữ ký HT/dấu để render học bạ → auth 'gv' đủ
+        const a = _authCheck_(body, 'gv');
+        if (!a.ok) return ContentService.createTextOutput(JSON.stringify(a))
+          .setMimeType(ContentService.MimeType.JSON);
+        return ContentService
+          .createTextOutput(JSON.stringify({ ok: true, data: _getSignatureImage_(body) }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      case 'exportHocBaSingle': {
+        // FE đã render Word blob, server lưu Drive + convert PDF + ghi HSS_Status
+        const a = _authCheck_(body, 'gv');
+        if (!a.ok) return ContentService.createTextOutput(JSON.stringify(a))
+          .setMimeType(ContentService.MimeType.JSON);
+        result = _exportHocBaSingle_(body, a);
+        break;
+      }
+      case 'zipClassFolder': {
+        // Sau khi FE đã loop xuất xong cả lớp → gọi action này tạo ZIP folder lớp
+        const a = _authCheck_(body, 'gv');
+        if (!a.ok) return ContentService.createTextOutput(JSON.stringify(a))
+          .setMimeType(ContentService.MimeType.JSON);
+        result = _zipClassFolder_(body);
+        break;
+      }
       default:
         throw new Error('Unknown action: ' + action);
     }
@@ -2269,6 +2356,11 @@ function getTeachers() {
 function getStudents(opts) {
   const role  = (opts && opts.role) || null;
   const lopCN = (opts && opts.lopChuNhiem) || [];
+  // 2026-05-09: thầy Chung quyết định nới rào — user đã đăng nhập là thấy đủ
+  // field cha/mẹ/SĐT/nơi sinh/xóm để form học bạ luôn có data từ HSS, không
+  // phụ thuộc role match đúng "Hiệu trưởng" / "Chủ nhiệm" trong DSGV.
+  // Vẫn giữ rào public ở action 'students' (allFields không set ⇒ chỉ public).
+  const allFields = !!(opts && opts.allFields);
   const lopCNSet = {};
   lopCN.forEach(function (l) { lopCNSet[String(l).trim()] = 1; });
 
@@ -2298,8 +2390,9 @@ function getStudents(opts) {
       else dob = String(dob || '');
 
       const classCode = String(r[1] || '').trim();
-      // Quyền xem đầy đủ: HT toàn trường, hoặc GVCN của đúng lớp HS này
-      const fullAccess = (role === _ROLE_HT_) ||
+      // Quyền xem đầy đủ: allFields=true (đã login), hoặc HT toàn trường, hoặc GVCN của đúng lớp HS này
+      const fullAccess = allFields ||
+                         (role === _ROLE_HT_) ||
                          (role === _ROLE_GVCN_ && lopCNSet[classCode] === 1);
 
       // Field công khai — luôn trả
@@ -2339,48 +2432,53 @@ function getStudents(opts) {
 
 /**
  * Wrapper cho getStudents khi gọi qua POST đã xác thực.
- * Resolve role thật từ DSGV và tra QLCL_PhanCong để biết lớp user chủ nhiệm.
+ *
+ * 2026-05-10 REFACTOR: tra THẲNG tab Users (single source of truth cho phân công)
+ * thay vì QLCL_PhanCong (tab này không bao giờ có data thực tế — đã xoá).
+ * Fallback DSGV qua _resolveRole_ nếu user không tồn tại trong Users.
  */
 function _getStudentsAuthed(body) {
   const userKey = String(body.user || '').toLowerCase().trim();
   if (!userKey) return getStudents(); // fallback public
 
-  const role = _resolveRole_(body.user);
-
-  // GVCN/GV: tra danh sách lớp chủ nhiệm từ QLCL_PhanCong
+  let role = null;
   let lopChuNhiem = [];
-  if (role === _ROLE_GVCN_ || role === _ROLE_GV_) {
-    try {
-      // 1) Tìm MaGV từ DSGV (so khớp email hoặc tên — giống _resolveRole_)
-      const sh = _getSS().getSheetByName(SHEET_DSGV);
-      let maGV = '';
-      if (sh && sh.getLastRow() > 1) {
-        const teachers = sh.getRange(2, 1, sh.getLastRow() - 1, 8).getValues();
-        for (let i = 0; i < teachers.length; i++) {
-          const email = String(teachers[i][6] || '').toLowerCase().trim();
-          const name  = String(teachers[i][1] || '').toLowerCase().trim();
-          if (email === userKey || name === userKey) {
-            maGV = String(teachers[i][0] || '').trim();
-            break;
-          }
+
+  // 1) Ưu tiên tra tab Users — chứa cả role + lop_phu_trach do anh maintain
+  try {
+    const sh = _getSS().getSheetByName(SHEET_QT_USERS);
+    if (sh && sh.getLastRow() > 1) {
+      const lastCol = sh.getLastColumn();
+      const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+      const userIdx = headers.indexOf('username');
+      const roleIdx = headers.indexOf('role');
+      const lopIdx  = headers.indexOf('lop_phu_trach');
+      if (userIdx >= 0) {
+        const data = sh.getRange(2, 1, sh.getLastRow() - 1, lastCol).getValues();
+        for (let i = 0; i < data.length; i++) {
+          if (String(data[i][userIdx]).toLowerCase().trim() !== userKey) continue;
+          // Map text role Users → enum _ROLE_*
+          const roleVal = roleIdx >= 0 ? String(data[i][roleIdx] || '').trim() : '';
+          if (/hiệu trưởng/i.test(roleVal))      role = _ROLE_HT_;
+          else if (/gvcn|chủ nhiệm/i.test(roleVal)) role = _ROLE_GVCN_;
+          else if (/teacher|giáo viên|^gv/i.test(roleVal)) role = _ROLE_GV_;
+          else if (/admin/i.test(roleVal))            role = _ROLE_HT_; // admin = quyền HT
+          // lop_phu_trach: có thể là 1 lớp ('1A') hoặc nhiều ('1A,1B')
+          const lopVal = lopIdx >= 0 ? String(data[i][lopIdx] || '').trim() : '';
+          if (lopVal) lopChuNhiem = lopVal.split(/[,;]\s*/).map(function(s){return s.trim();}).filter(Boolean);
+          break;
         }
       }
-      // 2) Tra QLCL_PhanCong: lấy mọi Lop có MaGV này + Role='GVCN'
-      if (maGV) {
-        const all = _qlclReadAll(SHEET_QLCL_PHANCONG).rows;
-        all.forEach(function (r) {
-          if (String(r.MaGV).trim() === maGV &&
-              String(r.Role || '').toUpperCase().trim() === 'GVCN') {
-            lopChuNhiem.push(String(r.Lop).trim());
-          }
-        });
-      }
-    } catch (e) {
-      Logger.log('[getStudentsAuthed] ' + e.message);
     }
+  } catch (e) {
+    Logger.log('[getStudentsAuthed Users] ' + e.message);
   }
 
-  return getStudents({ role: role, lopChuNhiem: lopChuNhiem });
+  // 2) Fallback: nếu không tìm thấy trong Users → tra DSGV qua _resolveRole_
+  if (role === null) role = _resolveRole_(body.user);
+
+  // user đã login (đi qua doPost đã verify session) ⇒ allFields=true
+  return getStudents({ role: role, lopChuNhiem: lopChuNhiem, allFields: true });
 }
 
 function getImages() {
@@ -3605,79 +3703,34 @@ function testConfig() {
 
 
 // ============================================================================
-// SECTION 4/4: QLCL.gs — Quản lý Chất lượng (nhập điểm · nhận xét · học bạ)
-// Tuân thủ: Thông tư 27/2020/TT-BGDĐT + CTGDPT 2018 + TT 22/2024 (KĐCL)
+// SECTION 4/4: QLCL HELPERS + Phase 1 Hồ sơ số học bạ
+// (QLCL v1 long format đã DEPRECATED 2026-05-09 — chỉ giữ 2 const + 3 helper
+//  còn được module khác dùng. Phần lớn data flow QLCL chuyển sang
+//  SECTION QLCL TEMPLATE bên dưới — wide format V3.0.)
 // ============================================================================
 
-const SHEET_QLCL_CAUHINH  = 'QLCL_CauHinh';
-const SHEET_QLCL_PHANCONG = 'QLCL_PhanCong';
-const SHEET_QLCL_DIEMDK   = 'QLCL_DiemDK';
-const SHEET_QLCL_NHANXET  = 'QLCL_NhanXet';
-const SHEET_QLCL_NANGLUC  = 'QLCL_NangLuc';
-const SHEET_QLCL_XEPLOAI  = 'QLCL_XepLoai';
-const SHEET_QLCL_AUDIT    = 'QLCL_AuditLog';
-// ⭐ Sổ chủ nhiệm (workspace #10) — 3 sheet mới
-const SHEET_QLCL_DIEMDANH = 'QLCL_DiemDanh';   // Sĩ số + chuyên cần hàng ngày
-const SHEET_QLCL_VIPHAM   = 'QLCL_ViPham';     // Theo dõi nề nếp - vi phạm
-const SHEET_QLCL_HOATDONG = 'QLCL_HoatDongLop';// Sinh hoạt + hoạt động lớp
+// 2026-05-10: KHÔNG còn const SHEET_QLCL_* nào.
+//   - SHEET_QLCL_PHANCONG đã XOÁ — phân công GVCN tra Users.lop_phu_trach
+//   - SHEET_QLCL_AUDIT đã XOÁ — _qlclAudit chuyển sang Logger.log (audit cũ chưa từng
+//     hoạt động vì code gốc try/catch silent + setupAll không gọi setupQLCL)
 // HSS Status — trạng thái Đã có/Chưa có cho từng hồ sơ (giống MN Diễn Xuân)
 const SHEET_HSS_STATUS = 'HSS_Status';
-
-// Cấu hình môn — theo TT 27/2020 (bắt buộc)
-// Cột: MonHoc · KhoiCoDiem (khối có điểm ĐGĐK CHK1+CN) · KhoiCoGHK (khối có thêm GHK1+GHK2) · SoTietTuan
-const QLCL_SUBJECTS_SEED = [
-  ['Tiếng Việt',             '1,2,3,4,5', '4,5', 10],
-  ['Toán',                    '1,2,3,4,5', '4,5', 7],
-  ['Tiếng Anh',               '3,4,5',     '',    4],
-  ['Tin học',                 '3,4,5',     '',    2],
-  ['Công nghệ',               '3,4,5',     '',    1],
-  ['Khoa học',                '4,5',       '',    2],
-  ['Lịch sử và Địa lí',       '4,5',       '',    3],
-  ['Đạo đức',                 '',          '',    1],
-  ['Tự nhiên và Xã hội',      '',          '',    2],
-  ['Âm nhạc',                 '',          '',    1],
-  ['Mỹ thuật',                '',          '',    1],
-  ['Giáo dục thể chất',       '',          '',    2],
-  ['Hoạt động trải nghiệm',   '',          '',    3]
-];
-
-// Năng lực + Phẩm chất (CTGDPT 2018) — seed vào tab CauHinh khi cần
-const QLCL_NLPC_DEF = [
-  // Loại, Mã, Tên
-  ['NL','TuChuTuHoc',   'Tự chủ và tự học'],
-  ['NL','GiaoTiepHopTac','Giao tiếp và hợp tác'],
-  ['NL','GiaiQuyetVanDe','Giải quyết vấn đề và sáng tạo'],
-  ['PC','YeuNuoc',      'Yêu nước'],
-  ['PC','NhanAi',       'Nhân ái'],
-  ['PC','ChamChi',      'Chăm chỉ'],
-  ['PC','TrungThuc',    'Trung thực'],
-  ['PC','TrachNhiem',   'Trách nhiệm']
-];
+// QLCL Template (wide format, V3.0 — May 2026): tab Users + Config nằm cùng Sheet HSS.
+// Khác với SHEET_QLCL_* ở trên (QLCL v1 với prefix `QLCL_`). Đặt const để tránh hardcode rải rác.
+const SHEET_QT_USERS  = 'Users';
+const SHEET_QT_CONFIG = 'Config';
 
 // ============================================================================
-// Setup 7 tabs QLCL (gọi từ setupAll)
+// Setup 1 tab cần thiết (gọi từ setupAll)
+// 2026-05-10: rút từ 2 tab xuống 1 sau khi xoá QLCL_AuditLog (audit chuyển Logger.log).
+// Giữ: HSS_Status (Đã có/Chưa có) — _qlclAudit không cần sheet nữa.
 // ============================================================================
 function setupQLCL() {
   const ss = _getSS();
   const tabs = [
-    { name: SHEET_QLCL_CAUHINH,  headers: ['MonHoc','KhoiCoDiem','KhoiCoGHK','SoTietTuan'] },
-    { name: SHEET_QLCL_PHANCONG, headers: ['NamHoc','MaGV','HoTenGV','Lop','MonHoc','Role','CapNhat'] },
-    { name: SHEET_QLCL_DIEMDK,   headers: ['NamHoc','MaHS','HoTen','Lop','MonHoc','GHK1','CHK1','GHK2','CN','NhapBoi','CapNhat'] },
-    { name: SHEET_QLCL_NHANXET,  headers: ['NamHoc','MaHS','Lop','MonHoc','HocKy','Muc','NhanXet','GV','CapNhat'] },
-    { name: SHEET_QLCL_NANGLUC,  headers: ['NamHoc','MaHS','Lop','HocKy','Loai','Ma','TenLoai','Muc','NhanXet','GV','CapNhat'] },
-    { name: SHEET_QLCL_XEPLOAI,  headers: ['NamHoc','MaHS','HoTen','Lop','XepLoai','LenLop','KhenThuong','NhanXetChung','GVCN','HT','CapNhat'] },
-    { name: SHEET_QLCL_AUDIT,    headers: ['Time','User','Role','Action','Target','OldValue','NewValue','Note'] },
-    // ⭐ Sổ chủ nhiệm — 3 sheet mới
-    // DiemDanh: 1 dòng = 1 HS / 1 ngày. TrangThai: P (có mặt), K (nghỉ có phép), KP (nghỉ không phép), M (đi muộn)
-    { name: SHEET_QLCL_DIEMDANH, headers: ['NamHoc','Lop','Ngay','MaHS','HoTen','TrangThai','GhiChu','GVCN','CapNhat'] },
-    // ViPham: 1 dòng = 1 lần ghi nhận. MucDo: 'Nhe' / 'Nang'. XuLy: hình thức xử lý
-    { name: SHEET_QLCL_VIPHAM,   headers: ['NamHoc','Lop','Ngay','MaHS','HoTen','LoaiViPham','MucDo','MoTa','XuLy','GVCN','CapNhat'] },
-    // HoatDongLop: nhật ký sinh hoạt + hoạt động ngoại khoá. Loai: 'SinhHoat' / 'NgoaiKhoa' / 'ChaoCo' / 'Khac'
-    { name: SHEET_QLCL_HOATDONG, headers: ['NamHoc','Lop','Ngay','Loai','ChuDe','NoiDung','KetLuan','SoHSThamGia','GVCN','CapNhat'] },
     // ⭐ HSS Status: trạng thái Đã có/Chưa có cho từng hồ sơ (giống MN Diễn Xuân)
     // MaHS: mã hồ sơ (vd: '1.1.1', '1.2.3'). TrangThai: 'co' (đã có) | 'chua' (chưa có) | 'auto' (theo link Drive)
-    // NguoiPhuTrach: ai chịu trách nhiệm hồ sơ này. GhiChu: lưu ý thêm.
-    { name: SHEET_HSS_STATUS,    headers: ['MaHS','TrangThai','NguoiPhuTrach','GhiChu','CapNhat','User'] }
+    { name: SHEET_HSS_STATUS, headers: ['MaHS','TrangThai','NguoiPhuTrach','GhiChu','CapNhat','User'] }
   ];
   let created = 0;
   tabs.forEach(t => {
@@ -3691,648 +3744,624 @@ function setupQLCL() {
       sh.setFrozenRows(1);
     }
   });
-  // Seed cấu hình môn
-  const shCH = ss.getSheetByName(SHEET_QLCL_CAUHINH);
-  if (shCH.getLastRow() <= 1) {
-    shCH.getRange(2, 1, QLCL_SUBJECTS_SEED.length, 4).setValues(QLCL_SUBJECTS_SEED);
+  Logger.log('[QLCL] Đã tạo/kiểm tra 1 tab (HSS_Status)' + (created ? ' (tạo mới ' + created + ')' : ''));
+}
+
+// ============================================================================
+// 2026-05-09 — Schema cho Phase 1 Hồ sơ số học bạ
+// (chữ ký + xuất Word/PDF + lưu Drive theo cấu trúc thầy Chung chốt 2026-05-09)
+// Chạy thủ công 1 lần từ Apps Script editor sau khi deploy.
+// Idempotent — chạy lại nhiều lần không trùng cột/không hỏng data.
+// ============================================================================
+function setupSignatureSchema() {
+  const ss = _getSS();
+  const report = { cfgAdded: 0, dsgvAdded: 0, hssStatusAdded: 0 };
+
+  // 1) Seed key Config rỗng (NAM_HOC mặc định 2025-2026, các ID Drive để thầy paste sau)
+  const cfgKeys = [
+    ['DRIVE_ROOT_FOLDER_ID',  ''],
+    ['SIGNATURE_FOLDER_ID',   ''],
+    ['HOCBA_FOLDER_ID',       ''],
+    ['TEMPLATE_GRADE_1_2_ID', ''],
+    ['TEMPLATE_GRADE_3_ID',   ''],
+    ['TEMPLATE_GRADE_4_5_ID', ''],
+    ['CHUKY_HT_FILE_ID',      ''],
+    ['DAU_TRUONG_FILE_ID',    ''],
+    ['NAM_HOC',               '2025-2026']
+  ];
+  let cfgSh = ss.getSheetByName(SHEET_CFG);
+  if (!cfgSh) {
+    cfgSh = ss.insertSheet(SHEET_CFG);
+    cfgSh.getRange(1, 1, 1, 2).setValues([['Khoá', 'Giá trị']])
+      .setBackground('#0c5da5').setFontColor('#ffffff').setFontWeight('bold')
+      .setVerticalAlignment('middle').setHorizontalAlignment('center');
+    cfgSh.setFrozenRows(1);
   }
-  Logger.log('[QLCL] Đã tạo/kiểm tra 11 tab' + (created ? ' (tạo mới ' + created + ')' : ''));
+  const existing = {};
+  if (cfgSh.getLastRow() >= 2) {
+    cfgSh.getRange(2, 1, cfgSh.getLastRow() - 1, 1).getValues()
+      .forEach(function (r) { if (r[0]) existing[String(r[0]).trim()] = true; });
+  }
+  const toAddCfg = cfgKeys.filter(function (kv) { return !existing[kv[0]]; });
+  if (toAddCfg.length) {
+    cfgSh.getRange(cfgSh.getLastRow() + 1, 1, toAddCfg.length, 2).setValues(toAddCfg);
+    report.cfgAdded = toAddCfg.length;
+  }
+
+  // 2) Users — thêm 4 cột chữ ký vào cuối (2026-05-09 v2: source of truth GVCN)
+  //    Trước đây ghi vào DSGV nhưng DSGV thực tế trống, Users mới chứa danh sách GV thật.
+  report.usersAdded = _ensureColumnsAtEnd_('Users',
+    ['ChuKyURL', 'ChuKyFileId', 'ChuKyUpdatedAt', 'ChuKyUpdatedBy']);
+  // Giữ DSGV nếu cần (HSS) — không bắt buộc cột chữ ký nữa, nhưng vẫn tạo cho compat
+  report.dsgvAdded = _ensureColumnsAtEnd_(SHEET_DSGV,
+    ['ChuKyURL', 'ChuKyFileId', 'ChuKyUpdatedAt', 'ChuKyUpdatedBy']);
+
+  // 3) HSS_Status — thêm 5 cột học bạ vào cuối
+  report.hssStatusAdded = _ensureColumnsAtEnd_(SHEET_HSS_STATUS,
+    ['HocBaWordURL', 'HocBaPDFURL', 'HocBaStatus', 'HocBaError', 'HocBaUpdatedAt']);
+
+  Logger.log('[setupSignatureSchema] ' + JSON.stringify(report));
+  return report;
+}
+
+/**
+ * Thêm các cột mới vào CUỐI sheet (so header row 1). Idempotent.
+ * @param {string} sheetName
+ * @param {string[]} newHeaders
+ * @return {number} số cột thực sự thêm
+ */
+function _ensureColumnsAtEnd_(sheetName, newHeaders) {
+  const sh = _getSS().getSheetByName(sheetName);
+  if (!sh) {
+    Logger.log('[_ensureColumnsAtEnd_] Sheet chưa tồn tại: ' + sheetName +
+               ' — chạy setupAll/setupQLCL trước.');
+    return 0;
+  }
+  const lastCol = sh.getLastColumn();
+  const headers = lastCol > 0 ? sh.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+  const have = {};
+  headers.forEach(function (h) { if (h) have[String(h).trim()] = true; });
+  const toAdd = newHeaders.filter(function (h) { return !have[h]; });
+  if (toAdd.length) {
+    sh.getRange(1, lastCol + 1, 1, toAdd.length).setValues([toAdd]);
+    sh.getRange(1, lastCol + 1, 1, toAdd.length)
+      .setBackground('#0c5da5').setFontColor('#ffffff').setFontWeight('bold')
+      .setVerticalAlignment('middle').setHorizontalAlignment('center');
+  }
+  return toAdd.length;
+}
+
+// ============================================================================
+// 2026-05-09 — Backend chữ ký + dấu (Phase 1 hồ sơ số học bạ)
+// File ảnh lưu trong Drive PRIVATE (chỉ owner của Apps Script đọc được).
+// FE truy cập qua API getSignatureImage(fileId) trả base64 — không share public.
+// ============================================================================
+const _DRIVE_ROOT_NAME = 'HoSoSo_THDienLien';
+
+/**
+ * Bootstrap cấu trúc folder Drive theo namHoc, ID lưu vào Config.
+ * Idempotent — tìm folder theo tên, không tồn tại mới tạo.
+ *   HoSoSo_THDienLien/{namHoc}/ChuKy/ChuKy_GVCN/
+ *   HoSoSo_THDienLien/{namHoc}/HocBa/
+ */
+function _ensureDriveFolders_(namHoc) {
+  const root       = _findOrCreateFolder_(DriveApp.getRootFolder(), _DRIVE_ROOT_NAME);
+  const yearFolder = _findOrCreateFolder_(root, namHoc);
+  const chuKy      = _findOrCreateFolder_(yearFolder, 'ChuKy');
+  const chuKyGVCN  = _findOrCreateFolder_(chuKy, 'ChuKy_GVCN');
+  const hocBa      = _findOrCreateFolder_(yearFolder, 'HocBa');
+
+  _setCfg_('DRIVE_ROOT_FOLDER_ID', root.getId());
+  _setCfg_('SIGNATURE_FOLDER_ID',  chuKy.getId());
+  _setCfg_('HOCBA_FOLDER_ID',      hocBa.getId());
+
+  return {
+    root:      root.getId(),
+    year:      yearFolder.getId(),
+    chuKy:     chuKy.getId(),
+    chuKyGVCN: chuKyGVCN.getId(),
+    hocBa:     hocBa.getId()
+  };
+}
+
+function _findOrCreateFolder_(parent, name) {
+  const it = parent.getFoldersByName(name);
+  if (it.hasNext()) return it.next();
+  return parent.createFolder(name);
+}
+
+/** Đọc sheet CauHinh thành map {key: value}. */
+function _getCfgMap_() {
+  const sh = _getSS().getSheetByName(SHEET_CFG);
+  const map = {};
+  if (sh && sh.getLastRow() >= 2) {
+    sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(function (r) {
+      if (r[0]) map[String(r[0]).trim()] = String(r[1] || '').trim();
+    });
+  }
+  return map;
+}
+
+/** Set/append 1 cặp key-value vào sheet CauHinh. */
+function _setCfg_(key, value) {
+  const sh = _getSS().getSheetByName(SHEET_CFG);
+  if (!sh) throw new Error('Sheet CauHinh không tồn tại — chạy setupSignatureSchema trước.');
+  if (sh.getLastRow() >= 2) {
+    const data = sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues();
+    for (let i = 0; i < data.length; i++) {
+      if (String(data[i][0]).trim() === key) {
+        sh.getRange(i + 2, 2).setValue(value);
+        return;
+      }
+    }
+  }
+  sh.appendRow([key, value]);
+}
+
+/** Slug tiếng Việt (loại dấu, ký tự đặc biệt → _). Dùng cho tên file Drive. */
+function _slugVi_(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .substring(0, 50);
+}
+
+/**
+ * Upload ảnh chữ ký / dấu lên Drive + ghi sheet.
+ * body: {type: 'HT'|'DAU'|'GVCN', maGV?, hoTenGV?, fileName?, base64, mimeType?, namHoc?}
+ * Chỉ HT/PHT/Admin gọi (đã _authCheck_ ở doPost).
+ */
+function _uploadSignature_(body, auth) {
+  const type = String(body.type || '').toUpperCase();
+  if (['HT','DAU','GVCN'].indexOf(type) < 0) throw new Error('type không hợp lệ: ' + type);
+  if (!body.base64) throw new Error('Thiếu base64 ảnh');
+
+  const cfg    = _getCfgMap_();
+  const namHoc = String(body.namHoc || cfg.NAM_HOC || '2025-2026').trim();
+  const folders = _ensureDriveFolders_(namHoc);
+
+  let folderId, fileName;
+  if (type === 'HT') {
+    folderId = folders.chuKy;
+    fileName = 'ChuKy_HT.png';
+  } else if (type === 'DAU') {
+    folderId = folders.chuKy;
+    fileName = 'Dau_Truong.png';
+  } else {  // GVCN
+    if (!body.maGV) throw new Error('Thiếu maGV cho chữ ký GVCN');
+    folderId = folders.chuKyGVCN;
+    fileName = String(body.maGV).trim() + '_' + _slugVi_(body.hoTenGV || '') + '.png';
+  }
+
+  const folder = DriveApp.getFolderById(folderId);
+  // Replace nếu đã tồn tại file cùng tên (move to trash)
+  const existing = folder.getFilesByName(fileName);
+  while (existing.hasNext()) existing.next().setTrashed(true);
+
+  const bytes = Utilities.base64Decode(body.base64);
+  const blob  = Utilities.newBlob(bytes, body.mimeType || 'image/png', fileName);
+  const file  = folder.createFile(blob);
+  const fileId = file.getId();
+  const url    = file.getUrl();
+  const now    = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+  const user   = (auth && auth.user) || String(body.user || '').trim() || 'unknown';
+
+  if (type === 'HT')      _setCfg_('CHUKY_HT_FILE_ID', fileId);
+  else if (type === 'DAU') _setCfg_('DAU_TRUONG_FILE_ID', fileId);
+  else                     _writeChuKyUsers_(body.maGV, url, fileId, now, user);
+  // 2026-05-09 v2: GVCN identifier (param `maGV`) THỰC CHẤT là `username` của Users
+  // (FE giữ tên param maGV để khỏi sửa nhiều — backend lookup Users.username).
+
+  return { ok: true, type: type, fileId: fileId, url: url, fileName: fileName, updatedAt: now, updatedBy: user };
+}
+
+/** 2026-05-09 v2: Ghi 4 cột chữ ký vào Users cho 1 GV theo username. */
+function _writeChuKyUsers_(username, url, fileId, updatedAt, updatedBy) {
+  const sh = _getSS().getSheetByName(SHEET_QT_USERS);
+  if (!sh) throw new Error('Không tìm thấy sheet ' + SHEET_QT_USERS);
+  const lastCol = sh.getLastColumn();
+  const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  const c = {};
+  headers.forEach(function (h, i) { c[String(h).trim()] = i + 1; });
+  if (!c.ChuKyURL || !c.ChuKyFileId) throw new Error('Users thiếu cột chữ ký — chạy setupSignatureSchema');
+  if (c.username === undefined) throw new Error('Users thiếu cột username');
+
+  const lastRow = sh.getLastRow();
+  if (lastRow < 2) throw new Error('Users trống');
+  const unCol = sh.getRange(2, c.username, lastRow - 1, 1).getValues();
+  for (let i = 0; i < unCol.length; i++) {
+    if (String(unCol[i][0]).toLowerCase().trim() === String(username).toLowerCase().trim()) {
+      const row = i + 2;
+      sh.getRange(row, c.ChuKyURL).setValue(url);
+      sh.getRange(row, c.ChuKyFileId).setValue(fileId);
+      if (c.ChuKyUpdatedAt) sh.getRange(row, c.ChuKyUpdatedAt).setValue(updatedAt);
+      if (c.ChuKyUpdatedBy) sh.getRange(row, c.ChuKyUpdatedBy).setValue(updatedBy);
+      return;
+    }
+  }
+  throw new Error('Không tìm thấy user với username=' + username + ' trong Users');
+}
+
+/**
+ * Xoá ảnh chữ ký + clear cell.
+ * body: {type, maGV?}
+ */
+function _deleteSignature_(body, auth) {
+  const type = String(body.type || '').toUpperCase();
+  const cfg  = _getCfgMap_();
+  const user = (auth && auth.user) || String(body.user || '').trim() || 'unknown';
+  const now  = Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+
+  if (type === 'HT') {
+    if (cfg.CHUKY_HT_FILE_ID) try { DriveApp.getFileById(cfg.CHUKY_HT_FILE_ID).setTrashed(true); } catch (e) {}
+    _setCfg_('CHUKY_HT_FILE_ID', '');
+  } else if (type === 'DAU') {
+    if (cfg.DAU_TRUONG_FILE_ID) try { DriveApp.getFileById(cfg.DAU_TRUONG_FILE_ID).setTrashed(true); } catch (e) {}
+    _setCfg_('DAU_TRUONG_FILE_ID', '');
+  } else if (type === 'GVCN') {
+    if (!body.maGV) throw new Error('Thiếu maGV (= username)');
+    const sh = _getSS().getSheetByName(SHEET_QT_USERS);
+    const lastCol = sh.getLastColumn();
+    const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+    const c = {};
+    headers.forEach(function (h, i) { c[String(h).trim()] = i + 1; });
+    if (!c.ChuKyFileId) throw new Error(SHEET_QT_USERS + ' thiếu cột chữ ký — chạy setupSignatureSchema');
+    if (c.username === undefined) throw new Error(SHEET_QT_USERS + ' thiếu cột username');
+    const unCol = sh.getRange(2, c.username, sh.getLastRow() - 1, 1).getValues();
+    for (let i = 0; i < unCol.length; i++) {
+      if (String(unCol[i][0]).toLowerCase().trim() === String(body.maGV).toLowerCase().trim()) {
+        const row = i + 2;
+        const oldId = String(sh.getRange(row, c.ChuKyFileId).getValue() || '').trim();
+        if (oldId) try { DriveApp.getFileById(oldId).setTrashed(true); } catch (e) {}
+        sh.getRange(row, c.ChuKyURL).setValue('');
+        sh.getRange(row, c.ChuKyFileId).setValue('');
+        if (c.ChuKyUpdatedAt) sh.getRange(row, c.ChuKyUpdatedAt).setValue(now);
+        if (c.ChuKyUpdatedBy) sh.getRange(row, c.ChuKyUpdatedBy).setValue(user + ' (xoá)');
+        break;
+      }
+    }
+  } else {
+    throw new Error('type không hợp lệ: ' + type);
+  }
+  return { ok: true, type: type, deletedAt: now, deletedBy: user };
+}
+
+/**
+ * Trả danh sách chữ ký: HT, dấu, và mỗi GV có lop_phu_trach.
+ * 2026-05-09 v3: Đọc THẲNG sheet Users — Users là source of truth GVCN,
+ *   không phụ thuộc DSGV (DSGV thực tế trống ở instance THDienLien).
+ *   Field `maGV` trong response thực chất là `username` của Users.
+ */
+function _getSignatures_() {
+  const cfg = _getCfgMap_();
+  const out = {
+    namHoc: cfg.NAM_HOC || '',
+    ht:  { fileId: cfg.CHUKY_HT_FILE_ID    || '', url: '' },
+    dau: { fileId: cfg.DAU_TRUONG_FILE_ID  || '', url: '' },
+    gvcn: []
+  };
+  if (out.ht.fileId)  try { out.ht.url  = DriveApp.getFileById(out.ht.fileId).getUrl(); } catch (e) {}
+  if (out.dau.fileId) try { out.dau.url = DriveApp.getFileById(out.dau.fileId).getUrl(); } catch (e) {}
+
+  const sh = _getSS().getSheetByName(SHEET_QT_USERS);
+  if (!sh || sh.getLastRow() < 2) return out;
+
+  const lastCol = sh.getLastColumn();
+  const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  const c = {};
+  headers.forEach(function (h, i) { c[String(h).trim()] = i; });
+
+  const data = sh.getRange(2, 1, sh.getLastRow() - 1, lastCol).getValues();
+  data.forEach(function (r) {
+    const username = String(r[c.username] || '').trim();
+    const lop      = String(r[c.lop_phu_trach] || '').trim();
+    if (!username || !lop) return;  // chỉ user có lop_phu_trach mới được coi là GVCN
+    out.gvcn.push({
+      maGV:      username,  // identifier — FE truyền lại khi upload/delete
+      hoTen:     String(r[c.hoten] || '').trim(),
+      chucVu:    String(r[c.role] || '').trim(),
+      lop:       lop,
+      url:       String(r[c.ChuKyURL] || '').trim(),
+      fileId:    String(r[c.ChuKyFileId] || '').trim(),
+      updatedAt: String(r[c.ChuKyUpdatedAt] || '').trim(),
+      updatedBy: String(r[c.ChuKyUpdatedBy] || '').trim()
+    });
+  });
+  return out;
+}
+
+/**
+ * 2026-05-09 — Debug: in mapping Users.lop_phu_trach ↔ DSGV.MaGV.
+ * Chạy thủ công từ Apps Script Editor (Run button) → xem Execution log.
+ * Không sửa data. Trả object để dễ inspect.
+ */
+function debugGVCNMapping() {
+  const ss = _getSS();
+  const dsgvSh  = ss.getSheetByName(SHEET_DSGV);
+  const usersSh = ss.getSheetByName(SHEET_QT_USERS);
+  const out = { dsgvCount: 0, usersCount: 0, usersWithLop: 0, matched: [], unmatched: [], dsgvSample: [] };
+
+  if (!dsgvSh || dsgvSh.getLastRow() < 2) { Logger.log('DSGV trống'); return out; }
+  if (!usersSh || usersSh.getLastRow() < 2) { Logger.log(SHEET_QT_USERS + ' trống'); return out; }
+
+  const dData = dsgvSh.getRange(2, 1, dsgvSh.getLastRow() - 1, dsgvSh.getLastColumn()).getValues();
+  out.dsgvCount = dData.length;
+  // In sample 3 GV để check email/hoten thực tế
+  out.dsgvSample = dData.slice(0, 3).map(function (r) {
+    return { maGV: r[0], hoTen: r[1], chucVu: r[3], email: r[6] };
+  });
+  Logger.log('DSGV ' + dData.length + ' rows. Sample 3 đầu: ' + JSON.stringify(out.dsgvSample));
+
+  const uHdr = usersSh.getRange(1, 1, 1, usersSh.getLastColumn()).getValues()[0];
+  const u = {};
+  uHdr.forEach(function (h, i) { u[String(h).trim()] = i; });
+  Logger.log('Users headers: ' + JSON.stringify(uHdr) + ' → indices: ' + JSON.stringify(u));
+
+  if (u.lop_phu_trach === undefined) {
+    Logger.log('!! Users không có cột "lop_phu_trach" — kiểm header sheet Users');
+    out.error = 'Users thiếu cột lop_phu_trach';
+    return out;
+  }
+
+  const uData = usersSh.getRange(2, 1, usersSh.getLastRow() - 1, usersSh.getLastColumn()).getValues();
+  out.usersCount = uData.length;
+
+  uData.forEach(function (urow) {
+    const uname = String(urow[u.username] || '').toLowerCase().trim();
+    const uho   = String(urow[u.hoten] || '').toLowerCase().trim();
+    const lop   = String(urow[u.lop_phu_trach] || '').trim();
+    if (!lop) return;
+    out.usersWithLop++;
+
+    let matched = null;
+    let matchedBy = '';
+    for (let i = 0; i < dData.length; i++) {
+      const r = dData[i];
+      const email = String(r[6] || '').toLowerCase().trim();
+      const ho    = String(r[1] || '').toLowerCase().trim();
+      if (uname && email === uname) { matched = r; matchedBy = 'username==email'; break; }
+      if (uname && ho === uname)    { matched = r; matchedBy = 'username==hoten'; break; }
+      if (uho && ho === uho)        { matched = r; matchedBy = 'hoten==hoten';    break; }
+    }
+    if (matched) {
+      out.matched.push({ username: uname, hoten: uho, lop: lop, maGV: matched[0], dsgvHoTen: matched[1], by: matchedBy });
+    } else {
+      out.unmatched.push({ username: uname, hoten: uho, lop: lop });
+    }
+  });
+
+  Logger.log('Users: ' + uData.length + ' rows, có lop_phu_trach: ' + out.usersWithLop);
+  Logger.log('MATCHED ' + out.matched.length + ': ' + JSON.stringify(out.matched));
+  Logger.log('UNMATCHED ' + out.unmatched.length + ': ' + JSON.stringify(out.unmatched));
+  return out;
+}
+
+/**
+ * Trả base64 ảnh chữ ký để FE preview / docxtemplater render.
+ * body: {fileId}
+ */
+function _getSignatureImage_(body) {
+  const fileId = String(body.fileId || '').trim();
+  if (!fileId) throw new Error('Thiếu fileId');
+  const file = DriveApp.getFileById(fileId);
+  const blob = file.getBlob();
+  return {
+    fileId:    fileId,
+    fileName:  file.getName(),
+    mimeType:  blob.getContentType(),
+    base64:    Utilities.base64Encode(blob.getBytes())
+  };
+}
+
+// ============================================================================
+// 2026-05-09 — Phase 1E: Xuất học bạ cá nhân (Word + PDF) lên Drive
+// FE render Word qua docxtemplater (đã có ảnh chữ ký) → POST blob base64 →
+// server lưu DOCX + convert PDF + ghi HSS_Status. Cấu trúc folder:
+//   HoSoSo_THDienLien/{namhoc}/HocBa/{lop}/{ma_hs}_{ho_ten}/{*.docx, *.pdf}
+// ============================================================================
+
+/**
+ * Xuất 1 học bạ: lưu DOCX, convert PDF, ghi HSS_Status.
+ * body: {maHS, hoTen?, lop?, docxBase64, namHoc?}
+ * Trả: {ok, maHS, wordUrl, pdfUrl, folderUrl, updatedAt}
+ */
+function _exportHocBaSingle_(body, auth) {
+  const maHS = String(body.maHS || '').trim();
+  if (!maHS) throw new Error('Thiếu maHS');
+  if (!body.docxBase64) throw new Error('Thiếu docxBase64');
+
+  // Lookup HS từ DS HocSinh (lấy hoTen + lop chuẩn). Nếu body có thì dùng, nhưng
+  // verify lại để tên file Drive nhất quán.
+  const hs = _findHSByMa_(maHS);
+  if (!hs) throw new Error('Không tìm thấy HS với mã: ' + maHS);
+  const hoTen = String(body.hoTen || hs.hoTen).trim();
+  const lop   = String(body.lop   || hs.lop).trim();
+  if (!hoTen || !lop) throw new Error('HS thiếu hoTen hoặc lop');
+
+  const cfg     = _getCfgMap_();
+  const namHoc  = String(body.namHoc || cfg.NAM_HOC || '2025-2026').trim();
+  const folders = _ensureDriveFolders_(namHoc);
+  const hocBaRoot = DriveApp.getFolderById(folders.hocBa);
+
+  const lopFolder = _findOrCreateFolder_(hocBaRoot, lop);
+  const baseName  = maHS + '_' + _slugVi_(hoTen);
+  const hsFolder  = _findOrCreateFolder_(lopFolder, baseName);
+
+  // Replace nếu file cũ tồn tại (move to trash)
+  ['_HocBa.docx', '_HocBa.pdf'].forEach(function (suffix) {
+    const it = hsFolder.getFilesByName(baseName + suffix);
+    while (it.hasNext()) it.next().setTrashed(true);
+  });
+
+  // Lưu DOCX
+  const docxBytes = Utilities.base64Decode(body.docxBase64);
+  const docxBlob  = Utilities.newBlob(
+    docxBytes,
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    baseName + '_HocBa.docx'
+  );
+  const docxFile = hsFolder.createFile(docxBlob);
+
+  // Convert PDF — DriveApp.getAs() tự convert .docx → PDF qua Google Drive backend
+  let pdfFile = null, pdfErr = '';
+  try {
+    const pdfBlob = docxFile.getAs('application/pdf');
+    pdfBlob.setName(baseName + '_HocBa.pdf');
+    pdfFile = hsFolder.createFile(pdfBlob);
+  } catch (e) {
+    pdfErr = e.message || String(e);
+    Logger.log('[exportHocBaSingle] convert PDF lỗi cho ' + maHS + ': ' + pdfErr);
+  }
+
+  const now = Utilities.formatDate(
+    new Date(),
+    Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh',
+    'yyyy-MM-dd HH:mm:ss'
+  );
+
+  const wordUrl = docxFile.getUrl();
+  const pdfUrl  = pdfFile ? pdfFile.getUrl() : '';
+
+  _writeHocBaStatus_(maHS, {
+    HocBaWordURL:   wordUrl,
+    HocBaPDFURL:    pdfUrl,
+    HocBaStatus:    pdfErr ? 'PARTIAL' : 'DONE',
+    HocBaError:     pdfErr,
+    HocBaUpdatedAt: now
+  });
+
+  return {
+    ok:        true,
+    maHS:      maHS,
+    hoTen:     hoTen,
+    lop:       lop,
+    wordUrl:   wordUrl,
+    pdfUrl:    pdfUrl,
+    pdfError:  pdfErr,
+    folderUrl: hsFolder.getUrl(),
+    updatedAt: now,
+    updatedBy: (auth && auth.user) || ''
+  };
+}
+
+/** Tìm HS theo mã trong DS HocSinh — return {maHS, hoTen, lop} hoặc null. */
+function _findHSByMa_(maHS) {
+  const sh = _getSS().getSheetByName(SHEET_HS);
+  if (!sh || sh.getLastRow() < 2) return null;
+  // Cột: A=STT(0), B=Mã lớp(1), C=Mã HS(2), D=Họ tên(3), ...
+  const data = sh.getRange(2, 1, sh.getLastRow() - 1, 4).getValues();
+  const target = String(maHS).trim();
+  for (let i = 0; i < data.length; i++) {
+    if (String(data[i][2]).trim() === target) {
+      return {
+        maHS:  target,
+        lop:   String(data[i][1] || '').trim(),
+        hoTen: String(data[i][3] || '').trim()
+      };
+    }
+  }
+  return null;
+}
+
+/** Upsert 1 dòng HSS_Status theo MaHS với các field đã chỉ định. */
+function _writeHocBaStatus_(maHS, fields) {
+  const sh = _getSS().getSheetByName(SHEET_HSS_STATUS);
+  if (!sh) throw new Error('Sheet HSS_Status không tồn tại');
+  const lastCol = sh.getLastColumn();
+  const headers = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  const c = {};
+  headers.forEach(function (h, i) { c[String(h).trim()] = i + 1; });
+  if (!c.MaHS) throw new Error('HSS_Status thiếu cột MaHS');
+
+  const lastRow = sh.getLastRow();
+  let rowNum = -1;
+  if (lastRow >= 2) {
+    const ma = sh.getRange(2, c.MaHS, lastRow - 1, 1).getValues();
+    for (let i = 0; i < ma.length; i++) {
+      if (String(ma[i][0]).trim() === String(maHS).trim()) { rowNum = i + 2; break; }
+    }
+  }
+  if (rowNum < 0) {
+    // Append row mới
+    rowNum = sh.getLastRow() + 1;
+    sh.getRange(rowNum, c.MaHS).setValue(maHS);
+  }
+  Object.keys(fields).forEach(function (k) {
+    if (c[k]) sh.getRange(rowNum, c[k]).setValue(fields[k]);
+  });
+}
+
+/**
+ * Tạo file ZIP chứa toàn bộ học bạ đã xuất của 1 lớp.
+ * body: {lop, namHoc?}
+ * Cấu trúc ZIP: {ma_hs}_{ho_ten}/{*.docx, *.pdf}
+ * Trả: {ok, lop, fileCount, zipUrl, zipName, folderUrl}
+ */
+function _zipClassFolder_(body) {
+  const lop = String(body.lop || '').trim();
+  if (!lop) throw new Error('Thiếu lop');
+
+  const cfg     = _getCfgMap_();
+  const namHoc  = String(body.namHoc || cfg.NAM_HOC || '2025-2026').trim();
+  const folders = _ensureDriveFolders_(namHoc);
+  const hocBaRoot = DriveApp.getFolderById(folders.hocBa);
+
+  const lopIt = hocBaRoot.getFoldersByName(lop);
+  if (!lopIt.hasNext()) throw new Error('Chưa có folder lớp ' + lop + ' — chưa xuất học bạ nào');
+  const lopFolder = lopIt.next();
+
+  // Collect blob từng file (bỏ qua file ZIP cũ nếu có)
+  const blobs = [];
+  const oldZipName = lop + '_HocBa.zip';
+  const hsFolders = lopFolder.getFolders();
+  while (hsFolders.hasNext()) {
+    const hsFolder = hsFolders.next();
+    const fs = hsFolder.getFiles();
+    while (fs.hasNext()) {
+      const f = fs.next();
+      const name = f.getName();
+      if (name === oldZipName) continue;  // skip ZIP cũ ở root lớp (không có ở đây nhưng cẩn thận)
+      const blob = f.getBlob().setName(hsFolder.getName() + '/' + name);
+      blobs.push(blob);
+    }
+  }
+  if (!blobs.length) throw new Error('Folder lớp ' + lop + ' không có file nào để zip');
+
+  // Replace ZIP cũ ở folder lớp
+  const oldIt = lopFolder.getFilesByName(oldZipName);
+  while (oldIt.hasNext()) oldIt.next().setTrashed(true);
+
+  const zipBlob = Utilities.zip(blobs, oldZipName);
+  const zipFile = lopFolder.createFile(zipBlob);
+
+  return {
+    ok:        true,
+    lop:       lop,
+    fileCount: blobs.length,
+    zipUrl:    zipFile.getUrl(),
+    zipName:   zipFile.getName(),
+    folderUrl: lopFolder.getUrl()
+  };
 }
 
 // ============================================================================
 // Helpers
 // ============================================================================
-function _qlclSheet(name) {
-  const ss = _getSS();
-  let sh = ss.getSheetByName(name);
-  if (!sh) { setupQLCL(); sh = ss.getSheetByName(name); }
-  return sh;
-}
+// 2026-05-09: _qlclFilterRows ĐÃ XOÁ — chỉ QLCL v1 dùng (deprecated).
+// 2026-05-10: _qlclReadAll + _qlclSheet ĐÃ XOÁ — sau khi _getStudentsAuthed refactor sang
+//   Users + _qlclAudit chuyển sang Logger.log (bỏ tab QLCL_AuditLog vô dụng do try/catch
+//   silent của code gốc — audit chưa từng hoạt động trong production).
 
-function _qlclReadAll(sheetName) {
-  const sh = _qlclSheet(sheetName);
-  const data = sh.getDataRange().getValues();
-  if (data.length <= 1) return { headers: data[0] || [], rows: [] };
-  const headers = data[0];
-  const rows = data.slice(1).map(r => {
-    const o = {};
-    headers.forEach((h, i) => { o[h] = r[i]; });
-    return o;
-  });
-  return { headers: headers, rows: rows };
-}
-
-/**
- * Lọc rows từ một sheet QLCL theo bộ filter — thay thế 5 hàm Get có logic lặp.
- * @param {string} sheetName  tên sheet QLCL_*
- * @param {object} filters    { ColumnName: value } — bỏ qua key có value rỗng/null/undefined.
- *                            Cho phép value là Array → match bất kỳ phần tử (in-set).
- * @param {object} [options]
- *   - includeDeleted: mặc định false. Bỏ row có IsDeleted === true (cho Bước 2 soft delete).
- * @return {{headers: string[], rows: object[]}}
- */
-function _qlclFilterRows(sheetName, filters, options) {
-  const all = _qlclReadAll(sheetName);
-  const includeDeleted = !!(options && options.includeDeleted === true);
-  const f = filters || {};
-  // Chỉ giữ những key có giá trị thực sự để match
-  const keys = Object.keys(f).filter(function (k) {
-    const v = f[k];
-    if (v === '' || v === null || v === undefined) return false;
-    if (Array.isArray(v) && v.length === 0) return false;
-    return true;
-  });
-
-  const rows = all.rows.filter(function (r) {
-    // Soft delete: bỏ row đã đánh dấu xoá (sheet cũ chưa có cột → r.IsDeleted = undefined → giữ)
-    if (!includeDeleted && r.IsDeleted === true) return false;
-
-    for (let i = 0; i < keys.length; i++) {
-      const k = keys[i];
-      const target = f[k];
-      const cell = String(r[k] == null ? '' : r[k]).trim();
-      if (Array.isArray(target)) {
-        const hit = target.some(function (v) { return String(v).trim() === cell; });
-        if (!hit) return false;
-      } else {
-        if (String(target).trim() !== cell) return false;
-      }
-    }
-    return true;
-  });
-
-  return { headers: all.headers, rows: rows };
-}
-
+// _qlclAudit — chỉ còn ghi Logger.log thay vì sheet (audit cần thì xem Execution log).
 function _qlclAudit(user, role, action, target, oldVal, newVal, note) {
-  try {
-    const sh = _qlclSheet(SHEET_QLCL_AUDIT);
-    sh.appendRow([new Date(), user || 'unknown', role || '', action || '', target || '',
-                  JSON.stringify(oldVal == null ? '' : oldVal), JSON.stringify(newVal == null ? '' : newVal),
-                  note || '']);
-  } catch (e) { Logger.log('[audit] ' + e.message); }
+  Logger.log('[audit] ' + new Date().toISOString() + ' | ' + (user || 'unknown') + '/' +
+             (role || '') + ' | ' + (action || '') + ' | ' + (target || '') +
+             ' | old=' + JSON.stringify(oldVal == null ? '' : oldVal) +
+             ' | new=' + JSON.stringify(newVal == null ? '' : newVal) +
+             (note ? ' | note=' + note : ''));
 }
-
-// ============================================================================
-// Dispatch
-// ============================================================================
-// Set action ghi của QLCL — dùng để áp role check + lock + audit
-const _QLCL_WRITE_SET_ = {
-  qlclSaveDiem:1, qlclSaveNhanXet:1, qlclSaveNLPC:1, qlclSaveXepLoai:1, qlclSavePhanCong:1,
-  qlclSaveDiemDanh:1, qlclSaveViPham:1, qlclDeleteViPham:1,
-  qlclSaveHoatDong:1, qlclDeleteHoatDong:1
-};
-
-function _qlclHandle(action, body) {
-  try {
-    // ⭐ BẢO MẬT: với action ghi, tra role thật từ DSGV — KHÔNG tin role do client gửi
-    if (_QLCL_WRITE_SET_[action]) {
-      const realRole = _resolveRole_(body.user);
-      if (realRole === null) {
-        // Trường hợp DSGV trống (lần đầu cài đặt) → cho qua. Có DSGV mà không thấy user → reject.
-        let teacherCount = 0;
-        try {
-          const sh = _getSS().getSheetByName(SHEET_DSGV);
-          if (sh) teacherCount = Math.max(0, sh.getLastRow() - 1);
-        } catch (e) {}
-        if (teacherCount > 0) {
-          return { ok: false, error: '⛔ Không tìm thấy "' + (body.user || '?') + '" trong Danh sách giáo viên (DSGV). Liên hệ Hiệu trưởng bổ sung trước khi nhập dữ liệu.' };
-        }
-        // DSGV trống → fallback role client (chỉ dùng giai đoạn setup)
-      } else if (realRole === _ROLE_KHAC_) {
-        return { ok: false, error: '⛔ Vai trò của bạn (' + (body.user || '') + ') không có quyền ghi dữ liệu Quản lý chất lượng. Chỉ Hiệu trưởng và Giáo viên được cấp quyền.' };
-      } else {
-        body.role = realRole; // override role bằng giá trị server tra cứu
-      }
-    }
-
-    switch (action) {
-      case 'qlclConfig':      return _qlclGetConfig();
-      case 'qlclGetDiem':     return _qlclGetDiem(body.namHoc, body.lop, body.monHoc);
-      case 'qlclSaveDiem':    return _withLock_(function(){ return _qlclSaveDiem(body); });
-      case 'qlclGetNhanXet':  return _qlclGetNhanXet(body.namHoc, body.lop, body.monHoc, body.hocKy);
-      case 'qlclSaveNhanXet': return _withLock_(function(){ return _qlclSaveNhanXet(body); });
-      case 'qlclGetNLPC':     return _qlclGetNLPC(body.namHoc, body.lop, body.hocKy);
-      case 'qlclSaveNLPC':    return _withLock_(function(){ return _qlclSaveNLPC(body); });
-      case 'qlclGetXepLoai':  return _qlclGetXepLoai(body.namHoc, body.lop);
-      case 'qlclSaveXepLoai': return _withLock_(function(){ return _qlclSaveXepLoai(body); });
-      case 'qlclGetPhanCong': return _qlclGetPhanCong(body.namHoc);
-      case 'qlclSavePhanCong':return _withLock_(function(){ return _qlclSavePhanCong(body); });
-      case 'qlclDashboard':   return _qlclDashboard(body.namHoc);
-      case 'qlclAudit':       return _qlclGetAudit(body.limit || 50);
-      // ⭐ Sổ chủ nhiệm — workspace #10
-      case 'qlclGetDiemDanh':    return _qlclGetDiemDanh(body.namHoc, body.lop, body.tuNgay, body.denNgay);
-      case 'qlclSaveDiemDanh':   return _withLock_(function(){ return _qlclSaveDiemDanh(body); });
-      case 'qlclGetViPham':      return _qlclGetViPham(body.namHoc, body.lop);
-      case 'qlclSaveViPham':     return _withLock_(function(){ return _qlclSaveViPham(body); });
-      case 'qlclDeleteViPham':   return _withLock_(function(){ return _qlclDeleteViPham(body); });
-      case 'qlclGetHoatDong':    return _qlclGetHoatDong(body.namHoc, body.lop);
-      case 'qlclSaveHoatDong':   return _withLock_(function(){ return _qlclSaveHoatDong(body); });
-      case 'qlclDeleteHoatDong': return _withLock_(function(){ return _qlclDeleteHoatDong(body); });
-      case 'qlclChuNhiemSummary':return _qlclChuNhiemSummary(body.namHoc, body.lop);
-      default: return { ok: false, error: 'Unknown QLCL action: ' + action };
-    }
-  } catch (err) {
-    return { ok: false, error: String(err) + '\n' + (err.stack || '') };
-  }
-}
-
-// ============================================================================
-// Config
-// ============================================================================
-function _qlclGetConfig() {
-  return { ok: true, data: {
-    subjects: _qlclReadAll(SHEET_QLCL_CAUHINH).rows,
-    nlpc: QLCL_NLPC_DEF.map(r => ({ Loai: r[0], Ma: r[1], TenLoai: r[2] }))
-  }};
-}
-
-// ============================================================================
-// Điểm định kỳ
-// ============================================================================
-function _qlclGetDiem(namHoc, lop, monHoc) {
-  const r = _qlclFilterRows(SHEET_QLCL_DIEMDK, { NamHoc: namHoc, Lop: lop, MonHoc: monHoc });
-  return { ok: true, data: r.rows };
-}
-
-function _qlclSaveDiem(body) {
-  // body: { namHoc, lop, monHoc, rows: [{maHS, hoTen, GHK1, CHK1, GHK2, CN}...], user, role }
-
-  // ⭐ VALIDATE INPUT
-  if (!body.namHoc) return { ok: false, error: 'Thiếu năm học' };
-  if (!body.lop)    return { ok: false, error: 'Thiếu lớp' };
-  if (!body.monHoc) return { ok: false, error: 'Thiếu môn học' };
-
-  // Kiểm môn học có trong cấu hình QLCL_CauHinh
-  const subjects = _qlclReadAll(SHEET_QLCL_CAUHINH).rows;
-  const subjectExists = subjects.some(s => String(s.MonHoc).trim() === String(body.monHoc).trim());
-  if (subjects.length > 0 && !subjectExists) {
-    return { ok: false, error: 'Môn học "' + body.monHoc + '" không có trong cấu hình. Vào QLCL_CauHinh kiểm tra.' };
-  }
-
-  // Validate từng điểm: rỗng hoặc 0..10
-  const errs = [];
-  (body.rows || []).forEach((r, idx) => {
-    if (!r.maHS) { errs.push('Dòng ' + (idx+1) + ': thiếu mã học sinh'); return; }
-    [['GHK1', r.GHK1], ['CHK1', r.CHK1], ['GHK2', r.GHK2], ['CN', r.CN]].forEach(p => {
-      const e = _qlclValidScore_(p[1]);
-      if (e) errs.push('HS ' + (r.hoTen || r.maHS) + ' · ' + p[0] + ' (' + p[1] + '): ' + e);
-    });
-  });
-  if (errs.length) return { ok: false, error: 'Dữ liệu điểm không hợp lệ:\n• ' + errs.slice(0, 8).join('\n• ') + (errs.length > 8 ? '\n…(còn ' + (errs.length - 8) + ' lỗi)' : '') };
-
-  const sh = _qlclSheet(SHEET_QLCL_DIEMDK);
-  const existing = _qlclReadAll(SHEET_QLCL_DIEMDK);
-  const idxKey = {};
-  existing.rows.forEach((r, i) => {
-    const k = [r.NamHoc, r.MaHS, r.Lop, r.MonHoc].join('|');
-    idxKey[k] = i + 2; // row number (1-based header + 1)
-  });
-
-  const now = new Date();
-  const user = body.user || 'unknown';
-  const role = body.role || '';
-  let updated = 0, inserted = 0;
-  (body.rows || []).forEach(r => {
-    const k = [body.namHoc, r.maHS, body.lop, body.monHoc].join('|');
-    const row = [body.namHoc, r.maHS, r.hoTen || '', body.lop, body.monHoc,
-                 r.GHK1 === undefined ? '' : r.GHK1,
-                 r.CHK1 === undefined ? '' : r.CHK1,
-                 r.GHK2 === undefined ? '' : r.GHK2,
-                 r.CN   === undefined ? '' : r.CN,
-                 user, now];
-    if (idxKey[k]) {
-      // Compare old vs new for audit
-      const oldRow = sh.getRange(idxKey[k], 1, 1, 11).getValues()[0];
-      const oldDiem = { GHK1: oldRow[5], CHK1: oldRow[6], GHK2: oldRow[7], CN: oldRow[8] };
-      const newDiem = { GHK1: row[5], CHK1: row[6], GHK2: row[7], CN: row[8] };
-      sh.getRange(idxKey[k], 1, 1, 11).setValues([row]);
-      updated++;
-      if (JSON.stringify(oldDiem) !== JSON.stringify(newDiem)) {
-        _qlclAudit(user, role, 'updateDiem', k, oldDiem, newDiem, '');
-      }
-    } else {
-      sh.appendRow(row);
-      inserted++;
-      _qlclAudit(user, role, 'insertDiem', k, null, row.slice(5, 9), '');
-    }
-  });
-  return { ok: true, data: { updated: updated, inserted: inserted } };
-}
-
-// ============================================================================
-// Nhận xét thường xuyên
-// ============================================================================
-function _qlclGetNhanXet(namHoc, lop, monHoc, hocKy) {
-  const r = _qlclFilterRows(SHEET_QLCL_NHANXET, {
-    NamHoc: namHoc, Lop: lop, MonHoc: monHoc, HocKy: hocKy
-  });
-  return { ok: true, data: r.rows };
-}
-
-function _qlclSaveNhanXet(body) {
-  const sh = _qlclSheet(SHEET_QLCL_NHANXET);
-  const existing = _qlclReadAll(SHEET_QLCL_NHANXET);
-  const idxKey = {};
-  existing.rows.forEach((r, i) => {
-    const k = [r.NamHoc, r.MaHS, r.Lop, r.MonHoc, r.HocKy].join('|');
-    idxKey[k] = i + 2;
-  });
-  const now = new Date();
-  const user = body.user || 'unknown';
-  const role = body.role || '';
-  let updated = 0, inserted = 0;
-  (body.rows || []).forEach(r => {
-    const k = [body.namHoc, r.maHS, body.lop, body.monHoc, body.hocKy].join('|');
-    const row = [body.namHoc, r.maHS, body.lop, body.monHoc, body.hocKy, r.muc || '', r.nhanXet || '', user, now];
-    if (idxKey[k]) {
-      const oldRow = sh.getRange(idxKey[k], 1, 1, 9).getValues()[0];
-      sh.getRange(idxKey[k], 1, 1, 9).setValues([row]);
-      updated++;
-      if (oldRow[5] !== row[5] || oldRow[6] !== row[6]) {
-        _qlclAudit(user, role, 'updateNhanXet', k, {muc:oldRow[5], nx:oldRow[6]}, {muc:row[5], nx:row[6]}, '');
-      }
-    } else {
-      sh.appendRow(row);
-      inserted++;
-      _qlclAudit(user, role, 'insertNhanXet', k, null, {muc:row[5], nx:row[6]}, '');
-    }
-  });
-  return { ok: true, data: { updated: updated, inserted: inserted } };
-}
-
-// ============================================================================
-// Năng lực + Phẩm chất
-// ============================================================================
-function _qlclGetNLPC(namHoc, lop, hocKy) {
-  const r = _qlclFilterRows(SHEET_QLCL_NANGLUC, { NamHoc: namHoc, Lop: lop, HocKy: hocKy });
-  return { ok: true, data: r.rows };
-}
-
-function _qlclSaveNLPC(body) {
-  // Validate mức NLPC theo TT27: T (Tốt) / Đ (Đạt) / C (Cần cố gắng) — có thể rỗng khi chưa đánh giá
-  const MUC_HOPLE = ['', 'T', 'Đ', 'C'];
-  const errs = [];
-  (body.rows || []).forEach((r, idx) => {
-    if (!r.maHS) { errs.push('Dòng ' + (idx+1) + ': thiếu mã học sinh'); return; }
-    if (r.muc && MUC_HOPLE.indexOf(String(r.muc).trim()) < 0) {
-      errs.push('HS ' + (r.maHS) + ' · ' + (r.tenLoai || r.ma) + ': mức "' + r.muc + '" không hợp lệ (phải T/Đ/C theo TT27)');
-    }
-  });
-  if (errs.length) return { ok: false, error: 'Dữ liệu năng lực-phẩm chất không hợp lệ:\n• ' + errs.slice(0, 8).join('\n• ') };
-
-  const sh = _qlclSheet(SHEET_QLCL_NANGLUC);
-  const existing = _qlclReadAll(SHEET_QLCL_NANGLUC);
-  const idxKey = {};
-  existing.rows.forEach((r, i) => {
-    const k = [r.NamHoc, r.MaHS, r.Lop, r.HocKy, r.Ma].join('|');
-    idxKey[k] = i + 2;
-  });
-  const now = new Date();
-  const user = body.user || 'unknown';
-  const role = body.role || '';
-  let updated = 0, inserted = 0;
-  (body.rows || []).forEach(r => {
-    const k = [body.namHoc, r.maHS, body.lop, body.hocKy, r.ma].join('|');
-    const row = [body.namHoc, r.maHS, body.lop, body.hocKy, r.loai || '', r.ma || '', r.tenLoai || '',
-                 r.muc || '', r.nhanXet || '', user, now];
-    if (idxKey[k]) {
-      const oldRow = sh.getRange(idxKey[k], 1, 1, 11).getValues()[0];
-      sh.getRange(idxKey[k], 1, 1, 11).setValues([row]);
-      updated++;
-      if (oldRow[7] !== row[7] || oldRow[8] !== row[8]) {
-        _qlclAudit(user, role, 'updateNLPC', k, {muc:oldRow[7], nx:oldRow[8]}, {muc:row[7], nx:row[8]}, '');
-      }
-    } else {
-      sh.appendRow(row);
-      inserted++;
-      _qlclAudit(user, role, 'insertNLPC', k, null, {muc:row[7], nx:row[8]}, '');
-    }
-  });
-  return { ok: true, data: { updated: updated, inserted: inserted } };
-}
-
-// ============================================================================
-// Xếp loại cuối năm
-// ============================================================================
-function _qlclGetXepLoai(namHoc, lop) {
-  const r = _qlclFilterRows(SHEET_QLCL_XEPLOAI, { NamHoc: namHoc, Lop: lop });
-  return { ok: true, data: r.rows };
-}
-
-function _qlclSaveXepLoai(body) {
-  // Validate khenThuong theo TT27: chỉ 2 danh hiệu hợp lệ
-  // (Hoặc rỗng khi học sinh không đạt khen thưởng)
-  const errs = [];
-  (body.rows || []).forEach((r, idx) => {
-    if (!r.maHS) { errs.push('Dòng ' + (idx+1) + ': thiếu mã học sinh'); return; }
-    if (r.khenThuong && _KHEN_THUONG_VALID_.indexOf(String(r.khenThuong).trim()) < 0) {
-      errs.push('HS ' + (r.hoTen || r.maHS) + ': khen thưởng "' + r.khenThuong +
-                '" không hợp lệ (theo TT27 chỉ có "Xuất sắc" hoặc "Tiêu biểu hoàn thành tốt")');
-    }
-  });
-  if (errs.length) return { ok: false, error: 'Dữ liệu xếp loại không hợp lệ:\n• ' + errs.slice(0, 8).join('\n• ') };
-
-  const sh = _qlclSheet(SHEET_QLCL_XEPLOAI);
-  const existing = _qlclReadAll(SHEET_QLCL_XEPLOAI);
-  const idxKey = {};
-  existing.rows.forEach((r, i) => {
-    const k = [r.NamHoc, r.MaHS, r.Lop].join('|');
-    idxKey[k] = i + 2;
-  });
-  const now = new Date();
-  const user = body.user || 'unknown';
-  const role = body.role || '';
-  let updated = 0, inserted = 0;
-  (body.rows || []).forEach(r => {
-    const k = [body.namHoc, r.maHS, body.lop].join('|');
-    const row = [body.namHoc, r.maHS, r.hoTen || '', body.lop, r.xepLoai || '',
-                 r.lenLop || '', r.khenThuong || '', r.nhanXetChung || '',
-                 r.gvcn || '', r.ht || '', now];
-    if (idxKey[k]) {
-      const oldRow = sh.getRange(idxKey[k], 1, 1, 11).getValues()[0];
-      sh.getRange(idxKey[k], 1, 1, 11).setValues([row]);
-      updated++;
-      const oldXL = { xl: oldRow[4], lenLop: oldRow[5], khen: oldRow[6] };
-      const newXL = { xl: row[4],    lenLop: row[5],    khen: row[6]    };
-      if (JSON.stringify(oldXL) !== JSON.stringify(newXL)) {
-        _qlclAudit(user, role, 'updateXepLoai', k, oldXL, newXL, '');
-      }
-    } else {
-      sh.appendRow(row);
-      inserted++;
-      _qlclAudit(user, role, 'insertXepLoai', k, null,
-        { xl: row[4], lenLop: row[5], khen: row[6] }, '');
-    }
-  });
-  return { ok: true, data: { updated: updated, inserted: inserted } };
-}
-
-// ============================================================================
-// Phân công dạy học
-// ============================================================================
-function _qlclGetPhanCong(namHoc) {
-  const r = _qlclFilterRows(SHEET_QLCL_PHANCONG, { NamHoc: namHoc });
-  return { ok: true, data: r.rows };
-}
-
-function _qlclSavePhanCong(body) {
-  const sh = _qlclSheet(SHEET_QLCL_PHANCONG);
-  // body.rows: [{maGV, hoTenGV, lop, monHoc, role(GVCN|GVBM)}]
-  // Strategy: thay toàn bộ dữ liệu cho namHoc
-  const namHoc = body.namHoc;
-  const all = _qlclReadAll(SHEET_QLCL_PHANCONG).rows;
-  const keepOther = all.filter(r => String(r.NamHoc) !== String(namHoc));
-  // Clear all + re-append
-  sh.clear();
-  sh.getRange(1, 1, 1, 7).setValues([['NamHoc','MaGV','HoTenGV','Lop','MonHoc','Role','CapNhat']]);
-  sh.getRange(1, 1, 1, 7).setBackground('#0c5da5').setFontColor('#ffffff').setFontWeight('bold');
-  const now = new Date();
-  const rowsOut = keepOther.map(r => [r.NamHoc, r.MaGV, r.HoTenGV, r.Lop, r.MonHoc, r.Role, r.CapNhat])
-    .concat((body.rows || []).map(r => [namHoc, r.maGV, r.hoTenGV, r.lop, r.monHoc, r.role, now]));
-  if (rowsOut.length) sh.getRange(2, 1, rowsOut.length, 7).setValues(rowsOut);
-  return { ok: true, data: { total: rowsOut.length } };
-}
-
-// ============================================================================
-// Dashboard thống kê
-// ============================================================================
-function _qlclDashboard(namHoc) {
-  const diem = _qlclReadAll(SHEET_QLCL_DIEMDK).rows.filter(r => String(r.NamHoc) === String(namHoc));
-  const xl = _qlclReadAll(SHEET_QLCL_XEPLOAI).rows.filter(r => String(r.NamHoc) === String(namHoc));
-  const nx = _qlclReadAll(SHEET_QLCL_NHANXET).rows.filter(r => String(r.NamHoc) === String(namHoc));
-  // Xếp loại phân bố
-  const xlDist = { 'Hoàn thành xuất sắc':0, 'Hoàn thành tốt':0, 'Hoàn thành':0, 'Chưa hoàn thành':0 };
-  xl.forEach(r => { if (xlDist[r.XepLoai] != null) xlDist[r.XepLoai]++; });
-  // Môn yếu nhất (TB thấp nhất theo lớp+môn)
-  const groupTB = {};
-  diem.forEach(r => {
-    const g = r.Lop + '|' + r.MonHoc;
-    const scores = [r.GHK1, r.CHK1, r.GHK2, r.CN].filter(x => x !== '' && x != null && !isNaN(Number(x)));
-    if (!scores.length) return;
-    const avg = scores.reduce((a,b) => a + Number(b), 0) / scores.length;
-    if (!groupTB[g]) groupTB[g] = { lop: r.Lop, mon: r.MonHoc, sum: 0, n: 0 };
-    groupTB[g].sum += avg;
-    groupTB[g].n++;
-  });
-  const bottom = Object.values(groupTB).map(g => ({ lop: g.lop, mon: g.mon, tb: g.n ? (g.sum / g.n) : 0 }))
-    .sort((a, b) => a.tb - b.tb).slice(0, 10);
-  return { ok: true, data: {
-    totalDiem: diem.length,
-    totalNX: nx.length,
-    totalXL: xl.length,
-    xlDist: xlDist,
-    bottomMon: bottom
-  }};
-}
-
-// ============================================================================
-// Audit log
-// ============================================================================
-function _qlclGetAudit(limit) {
-  const all = _qlclReadAll(SHEET_QLCL_AUDIT).rows;
-  return { ok: true, data: all.slice(-Math.min(limit || 500, 500)).reverse() };
-}
-
-// ============================================================================
-// ⭐ SỔ CHỦ NHIỆM — Workspace #10 (TT 27/2020 + Điều lệ Trường tiểu học)
-// 3 nhóm chức năng: Điểm danh • Vi phạm • Hoạt động lớp
-// ============================================================================
-
-// --- Helper: Format date 'YYYY-MM-DD' (chuẩn input <type="date">)
-function _qlclFmtDate(d) {
-  if (!d) return '';
-  if (typeof d === 'string') return d.substring(0, 10);
-  try {
-    return Utilities.formatDate(new Date(d), Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
-  } catch (e) { return ''; }
-}
-
-// --- 1. ĐIỂM DANH HÀNG NGÀY ---------------------------------------------------
-// Lấy điểm danh trong 1 khoảng ngày, mặc định 7 ngày gần nhất nếu không truyền
-function _qlclGetDiemDanh(namHoc, lop, tuNgay, denNgay) {
-  const all = _qlclReadAll(SHEET_QLCL_DIEMDANH).rows;
-  const filtered = all.filter(r => {
-    if (String(r.NamHoc) !== String(namHoc)) return false;
-    if (lop && String(r.Lop) !== String(lop)) return false;
-    const ngay = _qlclFmtDate(r.Ngay);
-    if (tuNgay && ngay < tuNgay) return false;
-    if (denNgay && ngay > denNgay) return false;
-    return true;
-  }).map(r => ({
-    namHoc: r.NamHoc, lop: r.Lop, ngay: _qlclFmtDate(r.Ngay),
-    maHS: r.MaHS, hoTen: r.HoTen, trangThai: r.TrangThai || 'P',
-    ghiChu: r.GhiChu || '', gvcn: r.GVCN || ''
-  }));
-  // Thống kê nhanh: theo trạng thái
-  const stats = { P: 0, K: 0, KP: 0, M: 0 };
-  filtered.forEach(r => { if (stats[r.trangThai] != null) stats[r.trangThai]++; });
-  return { ok: true, data: { rows: filtered, stats: stats } };
-}
-
-// Lưu điểm danh: nhận body.rows[] = {ngay, maHS, hoTen, trangThai, ghiChu}
-// Logic: xoá toàn bộ điểm danh của (namHoc + lop + ngày) rồi ghi lại
-function _qlclSaveDiemDanh(body) {
-  const namHoc = body.namHoc, lop = body.lop, ngay = body.ngay;
-  const gvcn = body.gvcn || 'unknown';
-  if (!namHoc || !lop || !ngay) return { ok: false, error: 'Thiếu namHoc / lop / ngay' };
-
-  const sh = _qlclSheet(SHEET_QLCL_DIEMDANH);
-  const all = _qlclReadAll(SHEET_QLCL_DIEMDANH).rows;
-  // Giữ lại các dòng KHÔNG thuộc (namHoc+lop+ngay)
-  const ngayStr = _qlclFmtDate(ngay);
-  const keepOther = all.filter(r => !(
-    String(r.NamHoc) === String(namHoc) &&
-    String(r.Lop) === String(lop) &&
-    _qlclFmtDate(r.Ngay) === ngayStr
-  ));
-  // Xoá toàn bộ data + ghi lại
-  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 9).clearContent();
-  const now = new Date();
-  const rowsOut = keepOther.map(r => [r.NamHoc, r.Lop, r.Ngay, r.MaHS, r.HoTen, r.TrangThai, r.GhiChu, r.GVCN, r.CapNhat])
-    .concat((body.rows || []).map(r => [namHoc, lop, ngayStr, r.maHS, r.hoTen, r.trangThai || 'P', r.ghiChu || '', gvcn, now]));
-  if (rowsOut.length) sh.getRange(2, 1, rowsOut.length, 9).setValues(rowsOut);
-  _qlclAudit(gvcn, 'GVCN', 'saveDiemDanh', namHoc + '|' + lop + '|' + ngayStr, null, '+' + (body.rows || []).length + ' HS', '');
-  return { ok: true, data: { saved: (body.rows || []).length, total: rowsOut.length } };
-}
-
-// --- 2. VI PHẠM NỀ NẾP --------------------------------------------------------
-function _qlclGetViPham(namHoc, lop) {
-  const all = _qlclReadAll(SHEET_QLCL_VIPHAM).rows;
-  const filtered = all.filter(r => {
-    if (String(r.NamHoc) !== String(namHoc)) return false;
-    if (lop && String(r.Lop) !== String(lop)) return false;
-    return true;
-  }).map((r, idx) => ({
-    rowIdx: idx,  // index trong filtered, không phải sheet (frontend dùng để xác định dòng cần xoá)
-    namHoc: r.NamHoc, lop: r.Lop, ngay: _qlclFmtDate(r.Ngay),
-    maHS: r.MaHS, hoTen: r.HoTen, loaiViPham: r.LoaiViPham || '',
-    mucDo: r.MucDo || 'Nhe', moTa: r.MoTa || '', xuLy: r.XuLy || '',
-    gvcn: r.GVCN || ''
-  })).sort((a, b) => (b.ngay || '').localeCompare(a.ngay || ''));
-  // Thống kê
-  const stats = { Nhe: 0, Nang: 0, total: filtered.length };
-  filtered.forEach(r => { if (stats[r.mucDo] != null) stats[r.mucDo]++; });
-  return { ok: true, data: { rows: filtered, stats: stats } };
-}
-
-// Append 1 vi phạm mới
-function _qlclSaveViPham(body) {
-  const r = body.row || {};
-  if (!body.namHoc || !body.lop || !r.maHS || !r.ngay) {
-    return { ok: false, error: 'Thiếu namHoc / lop / maHS / ngay' };
-  }
-  const sh = _qlclSheet(SHEET_QLCL_VIPHAM);
-  const gvcn = body.gvcn || 'unknown';
-  sh.appendRow([body.namHoc, body.lop, _qlclFmtDate(r.ngay), r.maHS, r.hoTen || '',
-                r.loaiViPham || '', r.mucDo || 'Nhe', r.moTa || '', r.xuLy || '', gvcn, new Date()]);
-  _qlclAudit(gvcn, 'GVCN', 'addViPham', body.namHoc + '|' + body.lop + '|' + r.maHS, null, r.loaiViPham + '/' + r.mucDo, r.moTa);
-  return { ok: true, data: { added: 1 } };
-}
-
-// Xoá theo (namHoc, lop, ngay, maHS, moTa) — match đầy đủ để tránh xoá nhầm
-function _qlclDeleteViPham(body) {
-  const sh = _qlclSheet(SHEET_QLCL_VIPHAM);
-  const data = sh.getDataRange().getValues();
-  if (data.length <= 1) return { ok: true, data: { deleted: 0 } };
-  const r = body.row || {};
-  const ngayStr = _qlclFmtDate(r.ngay);
-  let deleted = 0;
-  // Duyệt từ dưới lên để xoá an toàn
-  for (let i = data.length - 1; i >= 1; i--) {
-    const row = data[i];
-    if (String(row[0]) === String(body.namHoc) &&
-        String(row[1]) === String(body.lop) &&
-        _qlclFmtDate(row[2]) === ngayStr &&
-        String(row[3]) === String(r.maHS) &&
-        String(row[7]) === String(r.moTa || '')) {
-      sh.deleteRow(i + 1);
-      deleted++;
-    }
-  }
-  _qlclAudit(body.gvcn || 'unknown', 'GVCN', 'deleteViPham', body.namHoc + '|' + body.lop + '|' + r.maHS, r.moTa, null, '');
-  return { ok: true, data: { deleted: deleted } };
-}
-
-// --- 3. HOẠT ĐỘNG LỚP / SINH HOẠT --------------------------------------------
-function _qlclGetHoatDong(namHoc, lop) {
-  const all = _qlclReadAll(SHEET_QLCL_HOATDONG).rows;
-  const filtered = all.filter(r => {
-    if (String(r.NamHoc) !== String(namHoc)) return false;
-    if (lop && String(r.Lop) !== String(lop)) return false;
-    return true;
-  }).map((r, idx) => ({
-    rowIdx: idx,
-    namHoc: r.NamHoc, lop: r.Lop, ngay: _qlclFmtDate(r.Ngay),
-    loai: r.Loai || 'SinhHoat', chuDe: r.ChuDe || '',
-    noiDung: r.NoiDung || '', ketLuan: r.KetLuan || '',
-    soHSThamGia: r.SoHSThamGia || '', gvcn: r.GVCN || ''
-  })).sort((a, b) => (b.ngay || '').localeCompare(a.ngay || ''));
-  // Thống kê theo loại
-  const stats = { SinhHoat: 0, NgoaiKhoa: 0, ChaoCo: 0, Khac: 0, total: filtered.length };
-  filtered.forEach(r => { if (stats[r.loai] != null) stats[r.loai]++; });
-  return { ok: true, data: { rows: filtered, stats: stats } };
-}
-
-function _qlclSaveHoatDong(body) {
-  const r = body.row || {};
-  if (!body.namHoc || !body.lop || !r.ngay) {
-    return { ok: false, error: 'Thiếu namHoc / lop / ngay' };
-  }
-  const sh = _qlclSheet(SHEET_QLCL_HOATDONG);
-  const gvcn = body.gvcn || 'unknown';
-  sh.appendRow([body.namHoc, body.lop, _qlclFmtDate(r.ngay), r.loai || 'SinhHoat',
-                r.chuDe || '', r.noiDung || '', r.ketLuan || '', r.soHSThamGia || '', gvcn, new Date()]);
-  _qlclAudit(gvcn, 'GVCN', 'addHoatDong', body.namHoc + '|' + body.lop, null, r.loai + ': ' + r.chuDe, r.noiDung);
-  return { ok: true, data: { added: 1 } };
-}
-
-function _qlclDeleteHoatDong(body) {
-  const sh = _qlclSheet(SHEET_QLCL_HOATDONG);
-  const data = sh.getDataRange().getValues();
-  if (data.length <= 1) return { ok: true, data: { deleted: 0 } };
-  const r = body.row || {};
-  const ngayStr = _qlclFmtDate(r.ngay);
-  let deleted = 0;
-  for (let i = data.length - 1; i >= 1; i--) {
-    const row = data[i];
-    if (String(row[0]) === String(body.namHoc) &&
-        String(row[1]) === String(body.lop) &&
-        _qlclFmtDate(row[2]) === ngayStr &&
-        String(row[3]) === String(r.loai) &&
-        String(row[4]) === String(r.chuDe || '')) {
-      sh.deleteRow(i + 1);
-      deleted++;
-    }
-  }
-  _qlclAudit(body.gvcn || 'unknown', 'GVCN', 'deleteHoatDong', body.namHoc + '|' + body.lop, r.chuDe, null, '');
-  return { ok: true, data: { deleted: deleted } };
-}
-
-// --- 4. TỔNG HỢP SỔ CHỦ NHIỆM (cho dashboard lớp) -----------------------------
-// Trả về số liệu nhanh để hiển thị trên đầu Sổ chủ nhiệm
-function _qlclChuNhiemSummary(namHoc, lop) {
-  if (!namHoc || !lop) return { ok: false, error: 'Thiếu namHoc / lop' };
-  // Điểm danh tháng này
-  const today = new Date();
-  const tuNgay = Utilities.formatDate(new Date(today.getFullYear(), today.getMonth(), 1),
-                                      Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
-  const denNgay = Utilities.formatDate(today, Session.getScriptTimeZone() || 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd');
-  const dd = _qlclGetDiemDanh(namHoc, lop, tuNgay, denNgay).data;
-  const vp = _qlclGetViPham(namHoc, lop).data;
-  const hd = _qlclGetHoatDong(namHoc, lop).data;
-  // Đếm HS có vi phạm trong tháng
-  const vpThisMonth = vp.rows.filter(r => r.ngay >= tuNgay && r.ngay <= denNgay);
-  const hdThisMonth = hd.rows.filter(r => r.ngay >= tuNgay && r.ngay <= denNgay);
-  return { ok: true, data: {
-    thang: today.getMonth() + 1,
-    diemDanh: { ...dd.stats },
-    viPham:   { thang: vpThisMonth.length, tongCong: vp.stats.total, nhe: vp.stats.Nhe, nang: vp.stats.Nang },
-    hoatDong: { thang: hdThisMonth.length, tongCong: hd.stats.total }
-  }};
-}
-
-
 
 // ============================================================================
 // SECTION QLCL TEMPLATE (Wide Format) — adopted từ project QLCL_V3.0
@@ -4803,6 +4832,10 @@ function _qtSaveLop(data) {
 }
 
 // ── NHẬN XÉT ─────────────────────────────────────────────────────────────
+// 2026-05-08: nhan_xet có thể là string (legacy) hoặc OBJECT (mới — chứa chieu_cao,
+// ho_cha, ho_me, noi_sinh, noi_o, giam_ho, so_dang_bo, ngay_nhap_hoc, nx_pham_chat,
+// nx_nl_chung, nx_nl_dacthu, nx_<mon>, khen_text, hoan_thanh_text, ...).
+// Object được JSON.stringify trước khi setValue, JSON.parse sau khi getValue.
 function _qtGetNhanXet() {
   const sh = _qtSheet(_QT_SN.NHANXET);
   const d = sh.getDataRange().getValues();
@@ -4813,14 +4846,25 @@ function _qtGetNhanXet() {
   const result = {};
   for (let i = 1; i < d.length; i++) {
     const ma = String(d[i][maCol]);
-    if (ma) result[ma] = String(d[i][nxCol] || '');
+    if (!ma) continue;
+    const raw = String(d[i][nxCol] || '');
+    // Auto-parse JSON nếu ô bắt đầu bằng '{' (cell mới chứa object)
+    if (raw && raw.charAt(0) === '{') {
+      try { result[ma] = JSON.parse(raw); continue; } catch(e) {}
+    }
+    result[ma] = raw; // fallback string thuần (legacy)
   }
   return { ok: true, data: result };
 }
 
 function _qtSaveNhanXet(data) {
   const ma = String(data.ma || '');
-  const nx = data.nhan_xet || '';
+  let nx = data.nhan_xet;
+  if (nx === undefined || nx === null) nx = '';
+  // Object → JSON string (để setValue không thành "[object Object]")
+  if (typeof nx === 'object') {
+    try { nx = JSON.stringify(nx); } catch(e) { nx = ''; }
+  }
   const user = data.user || '?';
   if (!ma) return { ok: false, error: 'Thiếu mã HS' };
   const sh = _qtSheet(_QT_SN.NHANXET);
@@ -5016,9 +5060,9 @@ function _qtSyncUsersFromDSGV(ctx){
 // ── CONFIG ─────────────────────────────────────────────────────────────
 function _qtConfigSheet() {
   const ss = _getSS();
-  let sh = ss.getSheetByName('Config');
+  let sh = ss.getSheetByName(SHEET_QT_CONFIG);
   if (!sh) {
-    sh = ss.insertSheet('Config');
+    sh = ss.insertSheet(SHEET_QT_CONFIG);
     sh.getRange(1, 1, 1, 2).setValues([['key','value']]);
   }
   return sh;
@@ -5314,3 +5358,127 @@ function _moetNormVN(str) {
 }
 
 // ═══════ END SECTION MOET SYNC ═══════
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SMOKE TEST — chạy trước khi Deploy để bắt regression sớm
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Bài học từ HOTFIX 2026-05-08 (CHANGELOG): bug parser HTML "im lặng tự sửa"
+// đã được phòng ngừa cho phía HTML. Hàm này thêm rào tương tự cho Code.gs:
+// gọi thử các action chính (read-only) và verify constants tab tồn tại.
+//
+// Cách dùng:
+//   1. Mở Apps Script editor → dropdown hàm → chọn 'runSmokeTest' → ▶ Run
+//   2. Xem 'Nhật ký thực thi' — phải có dòng cuối "TỔNG: X OK, Y WARN, Z FAIL"
+//   3. Nếu FAIL > 0 → fix trước khi Deploy. WARN cho thấy tab chưa init data.
+//
+// Chỉ READ — KHÔNG thao tác Drive/ghi sheet.
+// ═══════════════════════════════════════════════════════════════════════════
+function runSmokeTest() {
+  const results = { ok: 0, warn: 0, fail: 0, checks: [] };
+
+  function pass(name, detail) {
+    results.ok++;
+    results.checks.push({ name: name, status: 'ok', detail: String(detail || '') });
+    Logger.log('✅ ' + name + (detail ? ' — ' + detail : ''));
+  }
+  function warn(name, detail) {
+    results.warn++;
+    results.checks.push({ name: name, status: 'warn', detail: String(detail || '') });
+    Logger.log('⚠ ' + name + (detail ? ' — ' + detail : ''));
+  }
+  function fail(name, err) {
+    results.fail++;
+    const msg = err && err.message ? err.message : String(err);
+    results.checks.push({ name: name, status: 'fail', error: msg });
+    Logger.log('❌ ' + name + ' — ' + msg);
+  }
+  function check(name, fn) {
+    try {
+      const r = fn();
+      if (r && r._warn) warn(name, r._warn);
+      else pass(name, r);
+    } catch (err) { fail(name, err); }
+  }
+
+  Logger.log('═══════════════════════════════════════');
+  Logger.log('🧪 SMOKE TEST — ' + new Date().toLocaleString('vi-VN'));
+  Logger.log('═══════════════════════════════════════');
+
+  // ── 1) Sheet existence — verify constants trỏ đúng tab ─────────────────
+  const ss = _getSS();
+  if (!ss) { fail('Spreadsheet bound', 'Không lấy được SpreadsheetApp.getActiveSpreadsheet()'); return results; }
+  pass('Spreadsheet bound', ss.getName());
+
+  const sheetConstants = [
+    ['SHEET_HSS', SHEET_HSS], ['SHEET_DSGV', SHEET_DSGV], ['SHEET_HS', SHEET_HS],
+    ['SHEET_IMG', SHEET_IMG], ['SHEET_CFG', SHEET_CFG], ['SHEET_MC', SHEET_MC],
+    // 2026-05-10: KHÔNG còn tab QLCL_* nào (Users single source + Logger.log audit)
+    ['SHEET_HSS_STATUS', SHEET_HSS_STATUS],
+    ['SHEET_QT_USERS', SHEET_QT_USERS], ['SHEET_QT_CONFIG', SHEET_QT_CONFIG]
+  ];
+  sheetConstants.forEach(function (pair) {
+    const sh = ss.getSheetByName(pair[1]);
+    if (sh) pass('Tab ' + pair[0], '"' + pair[1] + '" — ' + sh.getLastRow() + ' dòng');
+    else warn('Tab ' + pair[0], '"' + pair[1] + '" CHƯA tồn tại — chạy setupAll');
+  });
+
+  // ── 2) Action handlers (read-only) ─────────────────────────────────────
+  check('getAllData()', function () {
+    const d = getAllData();
+    return 'HSS=' + (d.hss || []).length + ' nhóm, GV=' + (d.teachers || []).length +
+           ', HS=' + (d.students || []).length + ', MC=' + (d.minhchung || []).length;
+  });
+  check('getMinhChung()', function () {
+    const mc = getMinhChung();
+    return Array.isArray(mc) ? mc.length + ' TC' : '(không phải array)';
+  });
+  check("_qlclTplHandle('getLop')", function () {
+    const r = _qlclTplHandle('getLop', {});
+    if (!r || r.ok === false) throw new Error(r && r.error || 'không có response');
+    return (r.data && r.data.length || 0) + ' lớp';
+  });
+  check("_qlclTplHandle('getConfig')", function () {
+    const r = _qlclTplHandle('getConfig', {});
+    if (!r || r.ok === false) throw new Error(r && r.error || 'không có response');
+    return 'OK';
+  });
+
+  // ── 3) AI config — không log API key, chỉ check có/không ──────────────
+  check('AI_PROVIDER', function () {
+    return getProp_('AI_PROVIDER') || '(chưa đặt — mặc định gemini)';
+  });
+  check('GEMINI_API_KEY', function () {
+    const k = getProp_('GEMINI_API_KEY');
+    if (!k) return { _warn: 'CHƯA đặt — KĐCL/AI sẽ không hoạt động' };
+    return '✓ đã đặt (độ dài ' + k.length + ' ký tự)';
+  });
+
+  // ── 4) MOET — sẽ FAIL nếu sheet name bug chưa fix (sheet HocSinh/DSHS) ─
+  check("getKetQuaMOET('1','cn','all')", function () {
+    const r = getKetQuaMOET('1', 'cn', 'all');
+    if (!r) throw new Error('không có response');
+    if (r.success === false) return { _warn: r.message };
+    return r.count + ' HS khối 1 kỳ CN';
+  });
+
+  // ── 5) Action arrays consistency ──────────────────────────────────────
+  // 2026-05-09: bỏ _QLCL_POST_ACTIONS sau khi QLCL v1 deprecated.
+  check('Action arrays', function () {
+    const total = _HSS_GET_ACTIONS.length + _HSS_POST_ACTIONS.length +
+                  _TDG_POST_ACTIONS.length +
+                  _QLCL_TPL_ACTIONS.length + _HSS_STATUS_ACTIONS.length;
+    return 'GET=' + _HSS_GET_ACTIONS.length + ', POST: HSS=' + _HSS_POST_ACTIONS.length +
+           ' TDG=' + _TDG_POST_ACTIONS.length +
+           ' TPL=' + _QLCL_TPL_ACTIONS.length + ' Status=' + _HSS_STATUS_ACTIONS.length +
+           ' (tổng ' + total + ')';
+  });
+
+  Logger.log('───────────────────────────────────────');
+  Logger.log('TỔNG: ' + results.ok + ' OK, ' + results.warn + ' WARN, ' + results.fail + ' FAIL');
+  Logger.log('═══════════════════════════════════════');
+  if (results.fail > 0) Logger.log('⛔ Fix các FAIL trước khi Deploy.');
+  else if (results.warn > 0) Logger.log('⚠ Có WARN — nên kiểm tra trước khi Deploy.');
+  else Logger.log('🎉 Toàn bộ check OK — sẵn sàng Deploy.');
+  return results;
+}

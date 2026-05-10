@@ -168,12 +168,14 @@ function kqText(kq){return{HTXS:'Hoàn thành Xuất sắc',HTT:'Hoàn thành T�
 //   • Cache localStorage 5 phút (qlcl_sb_v2) — giảm load, nhanh khi chuyển trang.
 //   • Khi mạng lỗi: fallback cache cũ (có thông báo độ trễ).
 //   • Map schema HSS → QLCL: classCode→lop, studentCode→ma, name→ten, dob→ns, gender→gt
-const _DSHS_CACHE_KEY = 'qlcl_sb_v2';
+const _DSHS_CACHE_KEY = 'qlcl_sb_v7'; // 2026-05-09: bump v6→v7 force refresh sau khi backend redeploy lần 2 — cache cũ vẫn rỗng cha/mẹ/SĐT
 const _DSHS_CACHE_TTL = 60*1000;  // 2026-05-08: giảm 5 phút → 1 phút (safety net cho cross-machine sync)
 const _DSHS_DIRTY_KEY = '_dshs_dirty';  // 2026-05-08: flag set bởi Hồ sơ số khi admin import/save HS → QLCL force refresh
 
 function _mapHSSStudent(s, idx){
-  var classCode = String(s.classCode || s.lop || '').trim();
+  // 2026-05-08 fix: API có thể trả "Lớp 1A" hoặc "1A". Chuẩn hoá về "1A" (no prefix) để
+  // khớp với value dropdown bldLop/myBldLop (= "1A"). Render UI tự thêm "Lớp " prefix.
+  var classCode = String(s.classCode || s.lop || '').trim().replace(/^Lớp\s+/i, '');
   var khoi = parseInt(classCode) || 1;
   return {
     stt: String(s.stt || (idx+1)),
@@ -182,7 +184,22 @@ function _mapHSSStudent(s, idx){
     ten: String(s.name || s.ten || '').trim(),
     ns:  String(s.dob || s.ns || '').trim(),
     khoi: khoi,
-    gt:  String(s.gender || s.gt || '').trim()
+    gt:  String(s.gender || s.gt || '').trim(),
+    // 2026-05-08: thêm các field từ Lý lịch HSS (cho học bạ Word)
+    // Code.gs getStudents trả: ethnic, religion, province, ward (public)
+    //   + hamlet, birthplace, phone, father, mother (authed)
+    dan_toc:    String(s.ethnic || s.dan_toc || '').trim(),
+    ton_giao:   String(s.religion || s.ton_giao || '').trim(),
+    quoc_tich:  String(s.nationality || s.quoc_tich || 'Việt Nam').trim(),
+    province:   String(s.province || '').trim(),
+    ward:       String(s.ward || '').trim(),
+    hamlet:     String(s.hamlet || '').trim(),
+    noi_sinh:   String(s.birthplace || s.noi_sinh || '').trim(),
+    cho_o:      String(s.hamlet ? (s.hamlet + (s.ward ? ', ' + s.ward : '') + (s.province ? ', ' + s.province : '')) : (s.address || s.cho_o || '')).trim(),
+    que_quan:   String(s.hometown || s.que_quan || (s.ward ? s.ward + (s.province ? ', ' + s.province : '') : '')).trim(),
+    cha:        String(s.father || s.cha || '').trim(),
+    me:         String(s.mother || s.me || '').trim(),
+    sdt:        String(s.phone || s.sdt || '').trim()
   };
 }
 
@@ -205,8 +222,33 @@ async function loadDSHSFromHSS(force){
   if(!GAS) throw new Error('GAS chưa cấu hình');
 
   try{
-    // Action 'students' của HSS — public, không cần sessionToken
-    var r = await gasCall({action:'students'});
+    // 2026-05-08: Nếu user đã login (HT/GVCN) → gọi studentsAuthed qua POST
+    // để có thêm field nhạy cảm (cha, mẹ, nơi sinh, xóm, SĐT) cho học bạ
+    // Khách/chưa login → fallback action 'students' public (chỉ 10 fields cơ bản)
+    var r;
+    var hasSession = !!(CU && CU.sessionToken);
+    console.log('[loadDSHS] CU=', CU ? CU.username : 'null', 'sessionToken=', hasSession ? 'có' : 'KHÔNG');
+    if (hasSession) {
+      try {
+        r = await gasPost({action:'studentsAuthed', user: CU.username || ''});
+        console.log('[loadDSHS] studentsAuthed response:', r && r.ok, 'count=', r && r.data ? r.data.length : 0);
+        // Verify lấy được field nhạy cảm — kiểm random 1 HS có cha/mẹ
+        if (r && r.ok && Array.isArray(r.data) && r.data.length) {
+          var sample = r.data.find(function(x){return x.father || x.mother || x.birthplace;});
+          if (!sample) {
+            console.warn('[loadDSHS] studentsAuthed trả về NHƯNG không có field nhạy cảm — auth có thể không pass full');
+          } else {
+            console.log('[loadDSHS] OK có data nhạy cảm — sample HS:', sample.name, 'cha=', sample.father || '(trống)');
+          }
+        }
+      } catch(authErr) {
+        console.warn('[loadDSHS] studentsAuthed lỗi, fallback public:', authErr.message);
+        r = await gasCall({action:'students'});
+      }
+    } else {
+      console.log('[loadDSHS] Khách/chưa login → dùng public students API');
+      r = await gasCall({action:'students'});
+    }
     if(!r || r.ok===false || !Array.isArray(r.data)){
       throw new Error((r && r.error) || 'API trả không hợp lệ');
     }
@@ -863,7 +905,7 @@ function renderHS(){
     if(!canAccessStudent(s)){return '';}
     var choO=s.cho_o||'';
     var choOHtml=choO?'<span title="'+choO.replace(/"/g,'&quot;')+'" style="max-width:140px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px">'+choO+'</span>':'<span style="color:#ccc">—</span>';
-    return'<tr><td style="color:var(--tx3);font-size:11px">'+((hsP-1)*PZ+i+1)+'</td><td><span class="bl bl-lop">'+s.lop+'</span></td><td class="tdn">'+s.ten+'<small>'+s.ma+'</small></td><td style="font-size:11px">'+s.ns+'</td><td><span class="bl '+(s.gt==='Nam'?'bl-nam':'bl-nu')+'">'+s.gt+'</span></td><td>'+choOHtml+'</td></tr>';
+    return'<tr><td style="color:var(--tx3);font-size:11px">'+((hsP-1)*PZ+i+1)+'</td><td><span class="bl bl-lop">Lớp '+s.lop+'</span></td><td class="tdn">'+s.ten+'<small>'+s.ma+'</small></td><td style="font-size:11px">'+s.ns+'</td><td><span class="bl '+(s.gt==='Nam'?'bl-nam':'bl-nu')+'">'+s.gt+'</span></td><td>'+choOHtml+'</td></tr>';
   }).join('');T('hs-rc').textContent=tot+' HS';mkPagi('hs-pb','hs-pi',hsP,hsF,'hsPg');
 }
 function hsPg(p){hsP=Math.max(1,Math.min(p,Math.ceil(hsF.length/PZ)));renderHS();}
@@ -929,7 +971,7 @@ function renderD(){
     var gi=SB.findIndex(function(b){return b.ma===s.ma;}),g=grades[s.ma]||{},kq=cTT(s.ma,s.khoi);
     var abtn=canE(s.lop)?'<button class="abtn ae" onclick="openM('+gi+')" style="padding:0 5px">✏️</button>':'<button class="abtn alck" style="padding:0 5px">🔒</button>';
     var r='<tr>';
-    r+='<td style="position:sticky;left:0;z-index:1;background:#fff"><span class="bl bl-lop" style="font-size:9px">'+s.lop+'</span></td>';
+    r+='<td style="position:sticky;left:0;z-index:1;background:#fff"><span class="bl bl-lop" style="font-size:9px">Lớp '+s.lop+'</span></td>';
     r+='<td style="position:sticky;left:38px;z-index:1;background:#fff" class="tdn"><span style="font-size:11.5px">'+s.ten+'</span></td>';
     sj.forEach(function(mn){
       var mv=g[mn[1]]||'',hasDiem=_hasDiem(mn,s.khoi);
@@ -3070,6 +3112,45 @@ function openHB(idx){
   T('hbStat').textContent=kqText(kq)||'Chưa xác định';
   var k=String(s.khoi),sj=SUBJ[k]||SUBJ['1'];
   var h='';
+  // 2026-05-08: Lý lịch học sinh (cho phép admin override khi HSS sheet thiếu data)
+  // Pre-fill từ nx > s (HSS) — đồng bộ với _buildHocBaData
+  function _v(a, b){ return (a !== undefined && a !== null && a !== '') ? a : (b || ''); }
+  var llNoiSinh = _v(nx.noi_sinh, s.noi_sinh);
+  var llQueQuan = _v(nx.que_quan, s.que_quan);
+  var llNoiO    = _v(nx.noi_o,    s.cho_o);
+  var llCha     = _v(nx.ho_cha,   s.cha);
+  var llMe      = _v(nx.ho_me,    s.me);
+  var llGiamHo  = nx.giam_ho || '';
+  var llSoDB    = nx.so_dang_bo || '';
+  var llNNH     = nx.ngay_nhap_hoc || '';
+  function _liInp(id, label, val, ph, hssVal){
+    // hssVal = giá trị từ sheet HSS (s.field). Hiện ngay dưới input để thầy biết
+    // Sheet HSS có data hay không, và panel này có override hay không.
+    var hssBadge = '';
+    if (hssVal !== undefined) {
+      if (hssVal && hssVal.length) {
+        hssBadge = '<div style="font-size:10px;color:#16a34a;margin-top:2px">✓ Sheet HSS: '+hssVal.replace(/</g,'&lt;')+'</div>';
+      } else {
+        hssBadge = '<div style="font-size:10px;color:#dc2626;margin-top:2px">⚠ Sheet HSS trống — nhập tay tại đây</div>';
+      }
+    }
+    return '<div class="frow" style="flex-direction:column;align-items:stretch">'
+      +'<div style="font-size:10px;color:var(--tx3)">'+label+'</div>'
+      +'<input type="text" id="'+id+'" value="'+(val||'').replace(/"/g,'&quot;')+'" placeholder="'+(ph||'')+'" style="width:100%;height:30px;border:1px solid var(--bd2);border-radius:5px;padding:0 8px;font-size:12px;outline:none">'
+      +hssBadge+'</div>';
+  }
+  h+='<div class="fsect"><div class="fsect-h"><h3>📇 Lý lịch học sinh (in vào học bạ)</h3></div>';
+  h+='<div style="font-size:11px;color:var(--tx3);margin:-4px 0 6px 0">Để trống nếu giữ nguyên dữ liệu Hồ sơ số. Nhập để ghi đè khi HSS thiếu/sai. Badge xanh ✓ = HSS có sẵn; đỏ ⚠ = sheet trống cần nhập tay.</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  h+=_liInp('hb_so_dang_bo',  'Sổ đăng bộ',           llSoDB,    'VD: 671/2024');
+  h+=_liInp('hb_ngay_nhap_hoc','Ngày nhập học',       llNNH,     'dd/mm/yyyy');
+  h+=_liInp('hb_noi_sinh',    'Nơi sinh',             llNoiSinh, 'VD: BV Hữu nghị Đa khoa Nghệ An', s.noi_sinh || '');
+  h+=_liInp('hb_que_quan',    'Quê quán',             llQueQuan, 'VD: Xã Quảng Châu, tỉnh Nghệ An', s.que_quan || '');
+  h+=_liInp('hb_noi_o',       'Nơi ở hiện nay',       llNoiO,    'VD: Xóm 6, xã Quảng Châu...',     s.cho_o || '');
+  h+=_liInp('hb_giam_ho',     'Người giám hộ (nếu có)', llGiamHo, '');
+  h+=_liInp('hb_ho_cha',      'Họ và tên cha',        llCha,     '', s.cha || '');
+  h+=_liInp('hb_ho_me',       'Họ và tên mẹ',         llMe,      '', s.me || '');
+  h+='</div></div>';
   // Thông tin cá nhân
   h+='<div class="fsect"><div class="fsect-h"><h3>👤 Thông tin học sinh</h3></div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">';
@@ -3145,6 +3226,10 @@ function openHB(idx){
 
 function _collectHBData(){
   var s=SB[hbIdx],k=String(s.khoi),sj=SUBJ[k]||SUBJ['1'],nx={};
+  // 2026-05-08: lý lịch HS (admin override khi HSS thiếu data)
+  ['so_dang_bo','ngay_nhap_hoc','noi_sinh','que_quan','noi_o','giam_ho','ho_cha','ho_me'].forEach(function(k){
+    var el=T('hb_'+k); if(el){ var v=el.value.trim(); if(v) nx[k]=v; }
+  });
   nx.chieu_cao=T('hb_chieu_cao')?T('hb_chieu_cao').value.trim():'';
   nx.can_nang=T('hb_can_nang')?T('hb_can_nang').value.trim():'';
   nx.nghi_phep=T('hb_nghi_phep')?T('hb_nghi_phep').value.trim():'0';
@@ -3418,29 +3503,59 @@ function _buildHocBaData(s){
   var xa = 'Xã Quảng Châu';
   var tinh = 'Tỉnh Nghệ An';
   var nam_hoc = '2025-2026';
-  var ht = localStorage.getItem('hieu_truong') || '';
+  // 2026-05-08: Hiệu trưởng — default "Nguyễn Thị Hòa" (đã có ở trang chủ Hồ sơ số)
+  var ht = localStorage.getItem('hieu_truong') || 'Nguyễn Thị Hòa';
+  // 2026-05-08: GVCN lookup theo lớp HS
+  // Ưu tiên: nx.gvcn (admin nhập riêng) → allUsers.find(lop_phu_trach) → ''
   var gvcn = nx.gvcn || '';
+  if (!gvcn && typeof allUsers !== 'undefined' && allUsers && allUsers.length) {
+    var t = allUsers.find(function(u){ return u && u.lop_phu_trach && u.lop_phu_trach.trim() === (s.lop || '').trim(); });
+    if (t) gvcn = t.hoten || '';
+  }
   var now = new Date();
   var mucDatMap = {HTT:'T', HT:'Đ', CHT:'C'};
   var allNL = _getAllNL(k);
   var nlChung = allNL.slice(0, 3);
   var nlDacThu = allNL.slice(3);
 
+  // 2026-05-08: Map đúng mức môn học vs PC/NL theo TT27
+  // Môn học: HTT→T, HT→H, CHT→C
+  // PC/NL stored: T/Đ/C/CCG → display T/Đ/C
+  var mucMonMap = {HTT:'T', HT:'H', CHT:'C'};
+  var mucPcNlMap = {T:'T', Đ:'Đ', C:'C', CCG:'C'};
+  function _mucMon(key){ return mucMonMap[g[key]] || g[key] || ''; }
+  function _mucPcNl(key){ return mucPcNlMap[g[key]] || g[key] || ''; }
+  function _nxMon(key){ return nx['nx_' + key] || ''; }
+
   return {
+    // Tên HS — 2 dạng: proper + uppercase (template dùng cả 2)
     ten: s.ten || '',
     ten_upper: (s.ten || '').toUpperCase(),
+    ten_uppercase: (s.ten || '').toUpperCase(), // alias cho template
     ma_dinh_danh: nx.ma_dinh_danh || s.ma || '',
     lop: s.lop || '',
+    // Ngày sinh — 2 alias
     ngay_sinh: s.ns || '',
+    ns: s.ns || '',
+    // Giới tính — 2 alias
     gioi_tinh: s.gt || '',
-    dan_toc: nx.dan_toc || 'Kinh',
-    quoc_tich: 'Việt Nam',
-    noi_sinh: nx.noi_sinh || '',
-    que_quan: nx.que_quan || '',
-    noi_o: s.cho_o || nx.noi_o || '',
-    ho_cha: nx.ho_cha || '',
-    ho_me: nx.ho_me || '',
+    gt: s.gt || '',
+    // 2026-05-08: Ưu tiên admin override (nx) > HSS sheet (s) > default
+    // Vì admin có thể sửa qua panel openHB cho HS thiếu data trong HSS hoặc sai
+    dan_toc: nx.dan_toc || s.dan_toc || 'Kinh',
+    quoc_tich: nx.quoc_tich || s.quoc_tich || 'Việt Nam',
+    noi_sinh: nx.noi_sinh || s.noi_sinh || '',
+    que_quan: nx.que_quan || s.que_quan || '',
+    noi_o:    nx.noi_o    || s.cho_o    || '',
+    // Cha mẹ — 2 alias, admin override trước
+    ho_cha: nx.ho_cha || s.cha || '',
+    cha:    nx.ho_cha || s.cha || '',
+    ho_me:  nx.ho_me  || s.me  || '',
+    me:     nx.ho_me  || s.me  || '',
     giam_ho: nx.giam_ho || '',
+    // Sổ đăng bộ + ngày nhập học (cần cho template)
+    so_dang_bo: nx.so_dang_bo || '',
+    ngay_nhap_hoc: nx.ngay_nhap_hoc || '',
     truong: school,
     xa: xa,
     tinh: tinh,
@@ -3452,9 +3567,72 @@ function _buildHocBaData(s){
     nghi_phep: nx.nghi_phep || '0',
     nghi_kphep: nx.nghi_kphep || '0',
     ngay_thang_nam: xa + ', ngày ' + now.getDate() + ' tháng ' + (now.getMonth()+1) + ' năm ' + now.getFullYear(),
+    // 2026-05-08: dòng ký đầu trang HỌC BẠ (đầu năm học - 06/9/<năm-học>)
+    // Theo TT27: học bạ ký đầu năm khi nhận lớp = 06/9
+    xa_ky_dau: xa + ', ngày 06 tháng 9 năm ' + (parseInt(nam_hoc.split('-')[0]) || now.getFullYear()),
     danh_gia_kq: kqText(kq) || '',
     khen_thuong: nx.khen_text || '',
     hoan_thanh_ct: nx.hoan_thanh_text || ('Hoàn thành chương trình lớp ' + s.lop),
+
+    // === Mức đạt + Điểm + Nhận xét theo từng môn (cho template Mau-HocBa-Lop{1..5}.docx) ===
+    muc_tieng_viet:    _mucMon('mon_Tiếng_việt'),
+    muc_toan:          _mucMon('mon_Toán'),
+    muc_ngoai_ngu:     _mucMon('mon_Ngoại_ngữ'),
+    muc_dao_duc:       _mucMon('mon_Đạo_đức'),
+    muc_tnxh:          _mucMon('mon_Tự_nhiên_và_xã_hội'),
+    muc_am_nhac:       _mucMon('mon_Nghệ_thuật_Âm_nhạc'),
+    muc_mi_thuat:      _mucMon('mon_Nghệ_thuật_Mĩ_thuật'),
+    muc_the_chat:      _mucMon('mon_Giáo_dục_thể_chất'),
+    muc_hdtn:          _mucMon('mon_Hoạt_động_trải_nghiệm'),
+    // 2026-05-08: thêm cho lớp 3-5
+    muc_tin_hoc:       _mucMon('mon_TH-CN_Tin_học'),
+    muc_cong_nghe:     _mucMon('mon_TH-CN_Công_nghệ'),
+    muc_khoa_hoc:      _mucMon('mon_Khoa_học'),
+    muc_lich_su_dia_li:_mucMon('mon_Lịch_sử_và_Địa_lí'),
+    diem_tieng_viet:    g.diem_Tiếng_việt || '',
+    diem_toan:          g.diem_Toán || '',
+    diem_ngoai_ngu:     g['diem_Ngoại_ngữ'] || '',
+    diem_tin_hoc:       g['diem_TH-CN_Tin_học'] || '',
+    diem_cong_nghe:     g['diem_TH-CN_Công_nghệ'] || '',
+    diem_khoa_hoc:      g['diem_Khoa_học'] || '',
+    diem_lich_su_dia_li:g['diem_Lịch_sử_và_Địa_lí'] || '',
+    nx_tieng_viet:     _nxMon('mon_Tiếng_việt'),
+    nx_toan:           _nxMon('mon_Toán'),
+    nx_ngoai_ngu:      _nxMon('mon_Ngoại_ngữ'),
+    nx_dao_duc:        _nxMon('mon_Đạo_đức'),
+    nx_tnxh:           _nxMon('mon_Tự_nhiên_và_xã_hội'),
+    nx_am_nhac:        _nxMon('mon_Nghệ_thuật_Âm_nhạc'),
+    nx_mi_thuat:       _nxMon('mon_Nghệ_thuật_Mĩ_thuật'),
+    nx_the_chat:       _nxMon('mon_Giáo_dục_thể_chất'),
+    nx_hdtn:           _nxMon('mon_Hoạt_động_trải_nghiệm'),
+    nx_tin_hoc:        _nxMon('mon_TH-CN_Tin_học'),
+    nx_cong_nghe:      _nxMon('mon_TH-CN_Công_nghệ'),
+    nx_khoa_hoc:       _nxMon('mon_Khoa_học'),
+    nx_lich_su_dia_li: _nxMon('mon_Lịch_sử_và_Địa_lí'),
+    // Phẩm chất
+    pc_yeu_nuoc:     _mucPcNl('pc_Yêu_nước'),
+    pc_nhan_ai:      _mucPcNl('pc_Nhân_ái'),
+    pc_cham_chi:     _mucPcNl('pc_Chăm_chỉ'),
+    pc_trung_thuc:   _mucPcNl('pc_Trung_thực'),
+    pc_trach_nhiem:  _mucPcNl('pc_Trách_nhiệm'),
+    nx_pham_chat:    nx.nx_pham_chat || '',
+    // Năng lực chung
+    nl_tu_chu:        _mucPcNl('nl_Tự_chủ_và_tự_học'),
+    nl_giao_tiep:     _mucPcNl('nl_Giao_tiếp_và_hợp_tác'),
+    nl_giai_quyet_vd: _mucPcNl('nl_Giải_quyết_vấn_đề_và_sáng_tạo'),
+    nx_nl_chung:      nx.nx_nl_chung || '',
+    // Lớp 2: nx_nl_chung bị chia 2 chunks trong template — pass full vào p1, để p2 trống
+    nx_nl_chung_p1:   nx.nx_nl_chung || '',
+    nx_nl_chung_p2:   '',
+    // Năng lực đặc thù
+    nl_ngon_ngu:      _mucPcNl('nl_Ngôn_ngữ'),
+    nl_tinh_toan:     _mucPcNl('nl_Tính_toán'),
+    nl_khoa_hoc:      _mucPcNl('nl_Khoa_học'),
+    nl_cong_nghe:     _mucPcNl('nl_Công_nghệ'),
+    nl_tin_hoc:       _mucPcNl('nl_Tin_học'),
+    nl_tham_mi:       _mucPcNl('nl_Thẩm_mĩ'),
+    nl_the_chat:      _mucPcNl('nl_Thể_chất'),
+    nx_nl_dac_thu:    nx.nx_nl_dacthu || '',
 
     mon_hoc: sj.map(function(mn){
       var mv = g[mn[1]] || '';
@@ -3495,14 +3673,87 @@ function _buildHocBaData(s){
   };
 }
 
-// Generate 1 file .docx blob từ template + data của 1 HS
+// 2026-05-08: Lazy-load allUsers nếu chưa có (cần để lookup GVCN khi xuất học bạ)
+async function _ensureAllUsers(){
+  if (typeof allUsers !== 'undefined' && allUsers && allUsers.length) return;
+  if (!GAS) return; // không có GAS thì bỏ qua, GVCN sẽ trống
+  try {
+    var r = await gasCall({action:'getUsers'});
+    if (r && r.ok && Array.isArray(r.data)) {
+      allUsers = r.data;
+    }
+  } catch(e) { /* lỗi mạng — bỏ qua, GVCN sẽ trống */ }
+}
+
+// 2026-05-09: cache list chữ ký + cache binary ảnh (ArrayBuffer) — TTL 5 phút.
+var _sigList = null, _sigListAt = 0;
+var _sigImgCache = {};
+
+async function _ensureSigList(){
+  if (_sigList && (Date.now() - _sigListAt) < 5*60*1000) return _sigList;
+  try{
+    var r = await gasPost({action:'getSignatures'});
+    if (r && r.ok) { _sigList = r.data; _sigListAt = Date.now(); return _sigList; }
+  }catch(e){ console.warn('[SigList] fetch lỗi:', e.message); }
+  _sigList = { ht:{}, dau:{}, gvcn:[] };
+  return _sigList;
+}
+
+async function _getSigBytes(fileId){
+  if (!fileId) return null;
+  if (_sigImgCache[fileId]) return _sigImgCache[fileId];
+  try{
+    var r = await gasPost({action:'getSignatureImage', fileId:fileId});
+    if (!r || !r.ok) return null;
+    var b64 = r.data.base64;
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    _sigImgCache[fileId] = bytes.buffer;
+    return bytes.buffer;
+  }catch(e){
+    console.warn('[SigImg] fileId='+fileId+' lỗi:', e.message);
+    return null;
+  }
+}
+
+// PNG 1×1 transparent — fallback khi chưa có ảnh thật để render không bị crash
+var _EMPTY_PNG = (function(){
+  var b64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  var bin = atob(b64);
+  var bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes.buffer;
+})();
+
+async function _resolveSigsForHS(s){
+  var L = await _ensureSigList();
+  var lop = String(s.lop || '').trim();
+  var gv = (L.gvcn || []).find(function(g){
+    var lops = String(g.lop || '').split(',').map(function(x){return x.trim();});
+    return lops.indexOf(lop) >= 0;
+  });
+  return {
+    htFileId:   L.ht  && L.ht.fileId,
+    dauFileId:  L.dau && L.dau.fileId,
+    gvcnFileId: gv && gv.fileId,
+    gvcnHoTen:  (gv && gv.hoTen) || ''
+  };
+}
+
+// 2026-05-09 v6: GVCN-only approach
+// - HT: thầy chèn dấu+chữ ký TRỰC TIẾP vào template Word (1 lần per template)
+// - GVCN: code thay bytes render-time (chữ ký khác theo lớp)
+// - Template inject 1 placeholder sig_chuky_gvcn.png (rIdSigChukyGvcn)
 async function _genHocBaDocx(s){
   if (typeof PizZip === 'undefined') throw new Error('Thiếu thư viện PizZip — kiểm tra CDN');
   if (typeof window.docxtemplater === 'undefined') throw new Error('Thiếu thư viện docxtemplater — kiểm tra CDN');
 
+  await _ensureAllUsers();
+
   var khoi = parseInt(s.khoi) || 1;
   if (khoi < 1 || khoi > 5) khoi = 1;
-  var tplUrl = 'templates-hocba/Mau-HocBa-Lop' + khoi + '.docx';
+  var tplUrl = 'templates-hocba/Mau-HocBa-Lop' + khoi + '.docx?v=2026.05.09-manual-edit';
 
   var resp = await fetch(tplUrl);
   if (!resp.ok) throw new Error('Không tải được template: ' + tplUrl + ' (HTTP ' + resp.status + ')');
@@ -3515,7 +3766,38 @@ async function _genHocBaDocx(s){
     linebreaks: true
   });
 
-  doc.render(_buildHocBaData(s));
+  var _hbData = _buildHocBaData(s);
+  doc.render(_hbData);
+
+  // POST-PROCESS: chỉ thay bytes của ảnh chữ ký GVCN
+  // 2026-05-09 fix: Word khi save lại template đã rename `sig_chuky_gvcn.png` → `imageN.png`
+  // (và đổi rIdSigChukyGvcn → rIdN). Vì vậy KHÔNG ghi theo tên gốc — scan word/media/*.png
+  // tìm file < 1KB (placeholder 1×1 transparent ~68B) và thay bytes file đó.
+  var sigs    = await _resolveSigsForHS(s);
+  var gvcnBuf = await _getSigBytes(sigs.gvcnFileId);
+
+  var replacedAt = '';
+  if (gvcnBuf){
+    var zipObj = doc.getZip();
+    var mediaFiles = zipObj.file(/^word\/media\/.+\.png$/i) || [];
+    for (var i = 0; i < mediaFiles.length; i++){
+      var f = mediaFiles[i];
+      var origLen = (f.asUint8Array() || []).length;
+      if (origLen > 0 && origLen < 1024){
+        zipObj.file(f.name, new Uint8Array(gvcnBuf));
+        replacedAt = f.name + ' (' + origLen + 'B → ' + gvcnBuf.byteLength + 'B)';
+        break; // chỉ có 1 placeholder GVCN; HT do thầy chèn thủ công size lớn
+      }
+    }
+    if (!replacedAt) console.warn('[HỌC BẠ] Không tìm thấy placeholder PNG <1KB trong word/media/ — chữ ký GVCN sẽ không hiện');
+  }
+
+  var _nx = nhanXet[s.ma] || {};
+  console.log('[HỌC BẠ] HS:', s.ten, '| khối:', khoi);
+  console.log('  Sheet HSS (s):', {noi_sinh: s.noi_sinh, cha: s.cha, me: s.me, cho_o: s.cho_o, hamlet: s.hamlet, ward: s.ward, province: s.province});
+  console.log('  Override (nx):', {noi_sinh: _nx.noi_sinh, ho_cha: _nx.ho_cha, ho_me: _nx.ho_me, noi_o: _nx.noi_o, giam_ho: _nx.giam_ho});
+  console.log('  → Output text:', {noi_sinh: _hbData.noi_sinh, cha: _hbData.cha, me: _hbData.me, noi_o: _hbData.noi_o, giam_ho: _hbData.giam_ho});
+  console.log('  → GVCN signature:', {fileId: sigs.gvcnFileId, hoTen: sigs.gvcnHoTen, bytes: gvcnBuf ? gvcnBuf.byteLength+'B' : '(chưa upload)', replaced: replacedAt || '(không thay)'});
 
   return doc.getZip().generate({
     type: 'blob',
@@ -3728,6 +4010,131 @@ async function hbExportWordOne(){
     console.error(e);
     toast('❌ Lỗi xuất học bạ: '+(e.message||e),'err');
   }
+}
+
+// 2026-05-09 — Phase 1E: render Word + upload Drive + convert PDF + ghi HSS_Status.
+// Server xử lý Drive bên backend (action 'exportHocBaSingle'); FE chỉ gửi blob base64.
+async function hbExportToDrive(){
+  if(hbIdx===null){toast('⚠️ Chưa chọn HS','warn');return;}
+  var s=SB[hbIdx]; if(!s) return;
+  // Tự lưu nhận xét trước
+  var nx=_collectHBData();
+  nhanXet[s.ma]=nx;
+  try{localStorage.setItem('_nhanxet',JSON.stringify(nhanXet));}catch(e){}
+  loader('Đang render Word…');
+  try{
+    var blob = await _genHocBaDocx(s);
+    loader('Đang lưu Drive + convert PDF…');
+    var base64 = await _blobToBase64(blob);
+    var r = await gasPost({
+      action:    'exportHocBaSingle',
+      maHS:      s.ma,
+      hoTen:     s.ten,
+      lop:       s.lop,
+      docxBase64: base64
+    });
+    loader();
+    if(!r.ok) throw new Error(r.error || 'Server từ chối lưu');
+    var d = r.data;
+    var pdfMsg = d.pdfUrl ? '✅ DOCX + PDF đã lưu Drive' : '⚠ DOCX OK, PDF lỗi: '+(d.pdfError||'?');
+    toast(pdfMsg, d.pdfUrl ? 'ok' : 'warn');
+    _showExportLinks(s, d);
+  }catch(e){
+    loader();
+    console.error(e);
+    toast('❌ '+(e.message||e),'err');
+  }
+}
+
+function _blobToBase64(blob){
+  return new Promise(function(res, rej){
+    var reader = new FileReader();
+    reader.onload = function(){
+      var s = String(reader.result);
+      var i = s.indexOf(',');
+      res(i >= 0 ? s.substring(i+1) : s);
+    };
+    reader.onerror = rej;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// 2026-05-09 — Phase 1F + 1G: xuất cả lớp lên Drive + zip server-side.
+// Loop tuần tự từng HS (Phương án a — đơn giản, dễ debug). 30 HS × ~5s = ~2.5 phút.
+async function hbExportClassToDrive(){
+  var lop = T('hb-lop').value;
+  if (!lop) { toast('⚠️ Chọn lớp trước', 'warn'); return; }
+  var list = (typeof hbFiltered !== 'undefined' && hbFiltered.length) ? hbFiltered : SB.filter(function(s){return String(s.lop).trim()===String(lop).trim();});
+  if (!list.length) { toast('⚠️ Lớp không có HS', 'warn'); return; }
+  var est = Math.ceil(list.length * 5 / 60);  // phút ước tính
+  if (!confirm('Xuất Word + PDF của ' + list.length + ' HS lớp ' + lop + ' lên Google Drive?\n\nƯớc tính ~' + est + ' phút (tuần tự từng HS).\n\nKhông đóng/làm mới tab trong lúc đang chạy.')) return;
+
+  var ok = 0, fail = 0, errors = [];
+  var startTs = Date.now();
+  for (var i = 0; i < list.length; i++) {
+    var s = list[i];
+    loader('(' + (i + 1) + '/' + list.length + ') Đang xuất: ' + s.ten + '…');
+    try {
+      var blob = await _genHocBaDocx(s);
+      var b64  = await _blobToBase64(blob);
+      var r = await gasPost({
+        action:    'exportHocBaSingle',
+        maHS:      s.ma,
+        hoTen:     s.ten,
+        lop:       s.lop,
+        docxBase64: b64
+      });
+      if (!r.ok) throw new Error(r.error || 'server từ chối');
+      ok++;
+    } catch (e) {
+      fail++;
+      errors.push(s.ten + ': ' + (e.message || e));
+      console.error('[hbExportClassToDrive]', s.ten, e);
+    }
+  }
+
+  // Sau khi loop xong → server tạo ZIP
+  loader('Đang tạo file ZIP cả lớp…');
+  var zipR = null;
+  try {
+    zipR = await gasPost({ action:'zipClassFolder', lop: lop });
+  } catch (e) {
+    console.error('[hbExportClassToDrive] zip lỗi:', e);
+  }
+  loader();
+
+  var elapsed = Math.round((Date.now() - startTs) / 1000);
+  var msg = '📊 Kết quả xuất học bạ lớp ' + lop + ' (' + elapsed + 's):\n'
+    + '  ✅ ' + ok + ' thành công\n'
+    + (fail ? '  ❌ ' + fail + ' lỗi:\n    ' + errors.slice(0,5).join('\n    ') + (errors.length>5?'\n    …(và '+(errors.length-5)+' lỗi khác)':'') + '\n' : '');
+  if (zipR && zipR.ok && zipR.data) {
+    msg += '\n📦 ZIP: ' + zipR.data.zipName + ' (' + zipR.data.fileCount + ' file)';
+    if (zipR.data.folderUrl && confirm(msg + '\n\nMở thư mục Drive lớp ' + lop + '?')) {
+      window.open(zipR.data.folderUrl, '_blank');
+    } else {
+      toast(ok + '/' + list.length + ' HS đã lưu Drive', fail ? 'warn' : 'ok');
+    }
+  } else {
+    alert(msg + '\n\n⚠ Tạo ZIP thất bại — file riêng vẫn có trong Drive.');
+  }
+}
+
+function _showExportLinks(s, d){
+  var msg = '<div style="font-size:13px;line-height:1.7">'
+    + '<b>✅ Đã lưu học bạ lên Drive</b><br>'
+    + 'HS: <b>'+s.ten+'</b> · Lớp '+s.lop+'<br><br>'
+    + (d.wordUrl ? '<a href="'+d.wordUrl+'" target="_blank" style="color:#2563eb">📄 Mở file Word</a><br>' : '')
+    + (d.pdfUrl  ? '<a href="'+d.pdfUrl +'" target="_blank" style="color:#dc2626">📕 Mở file PDF</a><br>'  : (d.pdfError ? '<span style="color:#dc2626">⚠ PDF lỗi: '+d.pdfError+'</span><br>' : ''))
+    + (d.folderUrl ? '<a href="'+d.folderUrl+'" target="_blank" style="color:#0d9488">📁 Mở thư mục Drive</a>' : '')
+    + '</div>';
+  // Dùng confirm thay vì modal phức tạp — đơn giản, mobile-friendly
+  // Browser confirm không hỗ trợ HTML, nên cho ra alert text + auto-open Drive folder
+  var txt = '✅ Đã lưu học bạ lên Drive\n\n'
+    + 'HS: '+s.ten+' · Lớp '+s.lop+'\n\n'
+    + (d.wordUrl ? '📄 Word: '+d.wordUrl+'\n' : '')
+    + (d.pdfUrl  ? '📕 PDF: '+d.pdfUrl+'\n'  : (d.pdfError ? '⚠ PDF lỗi: '+d.pdfError+'\n' : ''))
+    + (d.folderUrl ? '\n📁 Mở thư mục Drive?' : '');
+  if (d.folderUrl && confirm(txt)) window.open(d.folderUrl, '_blank');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4082,6 +4489,191 @@ gp=function(id,el){
 document.querySelectorAll('.sb-item').forEach(function(item){
   item.addEventListener('click',function(){if(window.innerWidth<=640)setTimeout(closeMobMenu,100);});
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+// 2026-05-09 — Phase 1 Hồ sơ số học bạ: Quản lý ảnh chữ ký + dấu trường
+// Chỉ HT/PHT/Admin được dùng (sb-item có class "ao", needAdmin gate ở onclick).
+// API: getSignatures / getSignatureImage / uploadSignature / deleteSignature.
+// ════════════════════════════════════════════════════════════════════════════
+async function loadSignatures(){
+  var truongEl = document.getElementById('ck-truong');
+  var gvcnEl   = document.getElementById('ck-gvcn-list');
+  if(!truongEl || !gvcnEl) return;
+  var loadingHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;color:var(--slate3);font-size:13px">⏳ Đang tải…</div>';
+  truongEl.innerHTML = loadingHTML;
+  gvcnEl.innerHTML   = loadingHTML;
+  try{
+    var r = await gasPost({action:'getSignatures'});
+    if(!r.ok) throw new Error(r.error || 'Tải danh sách chữ ký lỗi');
+    _renderSigTruong(r.data);
+    _renderSigGVCN(r.data.gvcn || []);
+  }catch(e){
+    truongEl.innerHTML = '<div style="grid-column:1/-1;padding:14px;text-align:center;color:#dc2626;font-size:13px">⚠ '+e.message+'</div>';
+    gvcnEl.innerHTML = '';
+  }
+}
+
+function _renderSigTruong(data){
+  var el = document.getElementById('ck-truong');
+  if(!el) return;
+  el.innerHTML =
+    _sigCardHTML('HT',  '✍️ Chữ ký Hiệu trưởng', data.ht  || {}) +
+    _sigCardHTML('DAU', '🔴 Dấu trường',          data.dau || {});
+  if(data.ht  && data.ht.fileId)  setTimeout(function(){_loadSigPreview(data.ht.fileId,  'sig-prev-HT');},  50);
+  if(data.dau && data.dau.fileId) setTimeout(function(){_loadSigPreview(data.dau.fileId, 'sig-prev-DAU');}, 50);
+}
+
+function _sigCardHTML(type, title, info){
+  var hasFile = !!info.fileId;
+  // HT và DAU: blur mặc định để tránh lộ chữ ký/dấu Hiệu trưởng. Toggle hiện/ẩn bằng nút 👁.
+  var btn = hasFile
+    ? '<button class="btn bout" onclick="_toggleSigBlur(\''+type+'\')" style="font-size:11px" id="sig-eye-'+type+'" title="Hiện/ẩn ảnh">👁 Hiện</button>'
+      +' <button class="btn bout" onclick="pickSignature(\''+type+'\')" style="font-size:11px">🔄 Thay ảnh</button>'
+      +' <button class="btn bout" onclick="deleteSignature(\''+type+'\')" style="font-size:11px;color:#dc2626;border-color:#dc2626">🗑 Xoá</button>'
+    : '<button class="btn bp" onclick="pickSignature(\''+type+'\')" style="font-size:12px">📤 Tải ảnh lên</button>';
+  var preview = hasFile
+    ? '<div id="sig-prev-'+type+'" data-blur="1" style="min-height:90px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;margin-bottom:10px;padding:6px;filter:blur(12px);transition:filter .25s ease"><span style="color:#94a3b8;font-size:11px">⏳ Đang tải ảnh…</span></div>'
+    : '<div style="min-height:90px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:6px;margin-bottom:10px;color:#94a3b8;font-size:12px">Chưa có ảnh</div>';
+  return '<div class="ck-card" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)">'
+    +'<div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:8px">'+title+'</div>'
+    +preview
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'+btn+'</div>'
+    +'</div>';
+}
+
+function _toggleSigBlur(type){
+  var el = document.getElementById('sig-prev-'+type);
+  var btn = document.getElementById('sig-eye-'+type);
+  if(!el) return;
+  var blurred = el.getAttribute('data-blur') === '1';
+  if(blurred){
+    el.style.filter = 'blur(0)';
+    el.setAttribute('data-blur','0');
+    if(btn) btn.innerHTML = '🙈 Ẩn';
+  } else {
+    el.style.filter = 'blur(12px)';
+    el.setAttribute('data-blur','1');
+    if(btn) btn.innerHTML = '👁 Hiện';
+  }
+}
+
+function _renderSigGVCN(arr){
+  var el = document.getElementById('ck-gvcn-list');
+  if(!el) return;
+  var gvcn = arr.filter(function(g){return g.lop;});
+  if(!gvcn.length){
+    el.innerHTML = '<div style="grid-column:1/-1;padding:16px;text-align:center;color:var(--slate3);font-size:13px;background:#f8fafc;border-radius:8px">Chưa có GVCN. Vào <b>Phân quyền CBGV</b> điền cột <b>"Lớp PT"</b> cho từng GV (vd <code>1A</code>) — tài khoản phải có email hoặc họ tên trùng với DSGV.</div>';
+    return;
+  }
+  // Sắp xếp theo lớp 1A, 1B, ... 5C
+  gvcn.sort(function(a,b){return String(a.lop).localeCompare(String(b.lop), 'vi');});
+  el.innerHTML = gvcn.map(_gvcnCardHTML).join('');
+  gvcn.forEach(function(g){
+    if(g.fileId) setTimeout(function(){_loadSigPreview(g.fileId, 'sig-prev-gv-'+g.maGV);}, 50);
+  });
+}
+
+function _gvcnCardHTML(g){
+  var hasFile = !!g.fileId;
+  var safeNa = (g.hoTen || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  var btn = hasFile
+    ? '<button class="btn bout" onclick="pickSignature(\'GVCN\',\''+g.maGV+'\',\''+safeNa+'\')" style="font-size:10.5px;padding:4px 8px">🔄 Thay</button>'
+      +' <button class="btn bout" onclick="deleteSignature(\'GVCN\',\''+g.maGV+'\')" style="font-size:10.5px;padding:4px 8px;color:#dc2626;border-color:#dc2626">🗑</button>'
+    : '<button class="btn bp" onclick="pickSignature(\'GVCN\',\''+g.maGV+'\',\''+safeNa+'\')" style="font-size:11px;padding:4px 10px">📤 Tải lên</button>';
+  var preview = hasFile
+    ? '<div id="sig-prev-gv-'+g.maGV+'" style="min-height:60px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:5px;margin-bottom:8px;padding:4px"><span style="color:#94a3b8;font-size:10px">⏳…</span></div>'
+    : '<div style="min-height:60px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:5px;margin-bottom:8px;color:#94a3b8;font-size:11px">Chưa có ảnh</div>';
+  var lopLbl = '<b style="color:var(--blue);font-size:11.5px">Lớp '+g.lop+'</b>';
+  return '<div class="ck-card" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">'
+      +'<div style="font-size:12.5px;font-weight:700;color:var(--navy);flex:1">'+g.hoTen+'</div>'
+      +lopLbl
+    +'</div>'
+    +'<div style="font-size:10.5px;color:var(--slate3);margin-bottom:8px">MaGV: '+g.maGV+(g.updatedAt?(' · cập nhật: '+g.updatedAt):'')+'</div>'
+    +preview
+    +'<div style="display:flex;gap:5px;flex-wrap:wrap">'+btn+'</div>'
+    +'</div>';
+}
+
+async function _loadSigPreview(fileId, slotId){
+  var el = document.getElementById(slotId);
+  if(!el) return;
+  try{
+    var r = await gasPost({action:'getSignatureImage', fileId:fileId});
+    if(!r.ok) throw new Error(r.error || 'Tải ảnh lỗi');
+    var d = r.data;
+    el.innerHTML = '<img src="data:'+d.mimeType+';base64,'+d.base64+'" alt="" style="max-width:100%;max-height:120px;object-fit:contain">';
+  }catch(e){
+    el.innerHTML = '<span style="color:#dc2626;font-size:10.5px">⚠ '+e.message+'</span>';
+  }
+}
+
+function pickSignature(type, maGV, hoTenGV){
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/png,image/jpeg';
+  inp.onchange = function(){
+    var f = inp.files && inp.files[0];
+    if(!f) return;
+    if(f.size > 300*1024){
+      if(!confirm('⚠ File '+(f.size/1024).toFixed(0)+'KB lớn hơn 300KB khuyến nghị.\n\nTiếp tục tải lên?')) return;
+    }
+    if(f.type !== 'image/png'){
+      if(!confirm('⚠ File không phải PNG ('+(f.type||'?')+').\n\nKhuyến nghị PNG nền trong để không tạo hộp trắng đè nội dung học bạ.\n\nVẫn tải lên?')) return;
+    }
+    _doUploadSig(type, f, maGV, hoTenGV);
+  };
+  inp.click();
+}
+
+async function _doUploadSig(type, file, maGV, hoTenGV){
+  loader('Đang tải ảnh chữ ký…');
+  try{
+    var b64 = await new Promise(function(res, rej){
+      var reader = new FileReader();
+      reader.onload = function(){
+        var s = String(reader.result);
+        var i = s.indexOf(',');
+        res(i >= 0 ? s.substring(i+1) : s);
+      };
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+    var r = await gasPost({
+      action:   'uploadSignature',
+      type:     type,
+      maGV:     maGV || '',
+      hoTenGV:  hoTenGV || '',
+      base64:   b64,
+      mimeType: file.type || 'image/png'
+    });
+    loader();
+    if(!r.ok) throw new Error(r.error || 'Upload lỗi');
+    toast('✅ Đã lưu ảnh chữ ký', 'ok');
+    loadSignatures();
+  }catch(e){
+    loader();
+    toast('❌ '+e.message, 'err');
+  }
+}
+
+async function deleteSignature(type, maGV){
+  var msg = type === 'GVCN' ? 'Xoá ảnh chữ ký GVCN này?' :
+            type === 'HT'   ? 'Xoá ảnh chữ ký Hiệu trưởng?' :
+                              'Xoá ảnh dấu trường?';
+  if(!confirm(msg + '\n(File trên Drive sẽ vào thùng rác — có thể khôi phục trong 30 ngày)')) return;
+  loader('Đang xoá…');
+  try{
+    var r = await gasPost({action:'deleteSignature', type:type, maGV:maGV || ''});
+    loader();
+    if(!r.ok) throw new Error(r.error || 'Xoá lỗi');
+    toast('✅ Đã xoá', 'ok');
+    loadSignatures();
+  }catch(e){
+    loader();
+    toast('❌ '+e.message, 'err');
+  }
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // END qlcl-app.js — không có adapter remap action vì backend QLCL_V3.0 dùng
