@@ -172,6 +172,67 @@ const _DSHS_CACHE_KEY = 'qlcl_sb_v7'; // 2026-05-09: bump v6→v7 force refresh 
 const _DSHS_CACHE_TTL = 60*1000;  // 2026-05-08: giảm 5 phút → 1 phút (safety net cho cross-machine sync)
 const _DSHS_DIRTY_KEY = '_dshs_dirty';  // 2026-05-08: flag set bởi Hồ sơ số khi admin import/save HS → QLCL force refresh
 
+// ═══ SKELETON LOADING STATE (2026-05-10) ═══
+// _dshsLoading=true: chưa có cache + đang gọi API → renderHS/updS hiện skeleton
+// _dshsFromCache=true: đã hiển thị bằng cache cũ, đang refresh ngầm → hiện badge nhỏ
+var _dshsLoading = false;
+var _dshsFromCache = false;
+
+// Đọc cache trực tiếp, KHÔNG kiểm TTL (dùng cho stale-while-revalidate)
+function _readDSHSCacheStale(){
+  try{
+    var c = JSON.parse(localStorage.getItem(_DSHS_CACHE_KEY)||'null');
+    if(c && Array.isArray(c.data) && c.data.length){
+      return {data: c.data, ts: c.ts || 0, fresh: (Date.now() - (c.ts||0)) < _DSHS_CACHE_TTL};
+    }
+  }catch(e){}
+  return null;
+}
+
+function _showSkeletonStats(){
+  ['c-tot','c-nam','c-nu','c-nhap','c-chua'].forEach(function(id){
+    var el = T(id); if(el) el.innerHTML = '<span class="skel">000</span>';
+  });
+}
+
+function _showSkeletonHS(){
+  var tb = T('hs-tb'); if(!tb) return;
+  var widths = [[20],[44],[160],[72],[34],[120]];
+  var rows = '';
+  for(var i=0;i<6;i++){
+    rows += '<tr class="skel-row">';
+    widths.forEach(function(w){
+      rows += '<td><span class="skel" style="width:'+w[0]+'px"></span></td>';
+    });
+    rows += '</tr>';
+  }
+  tb.innerHTML = rows;
+  if(T('hs-rc')) T('hs-rc').textContent = '';
+}
+
+function _showRefreshBadge(){
+  var b = T('dshs-refresh-badge'); if(b) b.style.display = 'inline-flex';
+}
+function _hideRefreshBadge(){
+  var b = T('dshs-refresh-badge'); if(b) b.style.display = 'none';
+}
+
+// Refresh DSHS ngầm sau khi đã render bằng cache cũ
+function _refreshDSHSBackground(){
+  _showRefreshBadge();
+  loadDSHSFromHSS(true).then(function(data){
+    if(data && data.length){
+      SB = data;
+      _dshsFromCache = false;
+      if(typeof updateAll === 'function') updateAll();
+    }
+  }).catch(function(){
+    // Im lặng — vẫn dùng cache cũ
+  }).then(function(){
+    _hideRefreshBadge();
+  });
+}
+
 function _mapHSSStudent(s, idx){
   // 2026-05-08 fix: API có thể trả "Lớp 1A" hoặc "1A". Chuẩn hoá về "1A" (no prefix) để
   // khớp với value dropdown bldLop/myBldLop (= "1A"). Render UI tự thêm "Lớp " prefix.
@@ -489,15 +550,31 @@ function loginOK(isGuestMode){
   }
   // ⭐ 2026-05-08: đồng bộ mọi nơi hiển thị kỳ ngay khi loginOK (init + sau login)
   if(typeof _updatePeriodUI==='function') _updatePeriodUI();
-  // 2026-05-07 Phase 3: tải DSHS thật từ HSS API trước khi initApp
-  loadDSHSFromHSS(false).then(function(data){
-    if (data && data.length) SB = data;  // nếu API trả rỗng vẫn giữ SB hiện tại (cache hoặc fallback inline)
+  // 2026-05-10 stale-while-revalidate:
+  //   1) Có cache (kể cả expired) → dùng ngay → render UI tức thì → refresh ngầm nếu cũ
+  //   2) Không có cache → bật skeleton → initApp → gọi API → khi xong updateAll
+  var cached = _readDSHSCacheStale();
+  if(cached){
+    SB = cached.data;
+    _dshsFromCache = !cached.fresh;
+    _dshsLoading = false;
     initApp();
-  }).catch(function(e){
-    // Lỗi mạng + không có cache → vẫn initApp với SB hiện tại (rỗng hoặc legacy inline)
-    try{ toast('⚠️ Không tải được DSHS từ Hồ sơ số: '+e.message,'warn'); }catch(_){}
-    initApp();
-  });
+    if(!cached.fresh){
+      _refreshDSHSBackground();
+    }
+  } else {
+    _dshsLoading = true;
+    initApp(); // SB rỗng → renderHS/updS sẽ hiện skeleton vì _dshsLoading=true
+    loadDSHSFromHSS(false).then(function(data){
+      _dshsLoading = false;
+      if(data && data.length) SB = data;
+      if(typeof updateAll === 'function') updateAll();
+    }).catch(function(e){
+      _dshsLoading = false;
+      try{ toast('⚠️ Không tải được DSHS từ Hồ sơ số: '+e.message,'warn'); }catch(_){}
+      if(typeof updateAll === 'function') updateAll();
+    });
+  }
 }
 
 // 2026-05-07 Phase 3: nút bấm để admin force refresh DSHS từ HSS
@@ -828,7 +905,10 @@ function initApp(){
 function merge(){allS=mySB().map(function(s){var merged=Object.assign({},s,grades[s.ma]||{});merged.ma=String(s.ma);return merged;});}
 function updateAll(){merge();buildSide();hsFil();dFil();updS();updP();renderSt();renderTK(tkKF);}
 function _saveGradesToStorage(){try{allGrades[curPeriod]=grades;localStorage.setItem('_allGrades',JSON.stringify(allGrades));}catch(e){}}
-function updS(){var ms=mySB();var d=allS.filter(isDone).length;T('c-nhap').textContent=d;T('c-chua').textContent=ms.length-d;T('c-tot').textContent=ms.length;T('c-nam').textContent=ms.filter(function(s){return s.gt==='Nam';}).length;T('c-nu').textContent=ms.filter(function(s){return s.gt==='Nữ';}).length;}
+function updS(){
+  if(_dshsLoading && !allS.length){ _showSkeletonStats(); return; }
+  var ms=mySB();var d=allS.filter(isDone).length;T('c-nhap').textContent=d;T('c-chua').textContent=ms.length-d;T('c-tot').textContent=ms.length;T('c-nam').textContent=ms.filter(function(s){return s.gt==='Nam';}).length;T('c-nu').textContent=ms.filter(function(s){return s.gt==='Nữ';}).length;
+}
 function updP(){var ms=mySB();var d=allS.filter(isDone).length,p=ms.length?Math.round(d/ms.length*100):0;if(T('s-prog'))T('s-prog').textContent=d+'/'+ms.length;if(T('s-pb'))T('s-pb').style.width=p+'%';if(T('s-pct'))T('s-pct').textContent=p+'%';if(T('sb-tot'))T('sb-tot').textContent=ms.length;}
 
 // SIDEBAR + NAV
@@ -897,6 +977,8 @@ function hsFil(){
   });hsP=1;renderHS();
 }
 function renderHS(){
+  // Skeleton: chưa có data + đang load lần đầu → hiện shimmer thay vì "Không tìm thấy"
+  if(_dshsLoading && !allS.length){ _showSkeletonHS(); return; }
   var tot=hsF.length,rows=hsF.slice((hsP-1)*PZ,hsP*PZ),tb=T('hs-tb');
   if(!tot){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">🔍</div><p>Không tìm thấy</p></div></td></tr>';T('hs-rc').textContent='';return;}
   // 2026-05-06: BỎ nút Sửa/Xoá HS — QLCL chỉ READ-ONLY DSHS.

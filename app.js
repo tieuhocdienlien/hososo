@@ -1040,36 +1040,142 @@
     document.getElementById('studentsPanel').classList.remove('active');
     document.getElementById('classes').scrollIntoView({behavior:'smooth'});
   }
+  // 2026-05-10: helper exposed cho onclick — sau khi login CBGV, fetch lại field
+  // nhạy cảm rồi re-render bảng (mở khoá ngày sinh / xóm / SĐT / cha mẹ).
+  window._refreshStudents = function(){
+    if (!currentClass) return;
+    if (typeof loadStudentsAuthed === 'function') {
+      loadStudentsAuthed(true).then(function(){
+        if (currentClass) renderStudents(currentClass.students);
+      }).catch(function(err){
+        console.warn('[_refreshStudents] loadStudentsAuthed lỗi:', err && err.message);
+        if (currentClass) renderStudents(currentClass.students);
+      });
+    } else {
+      renderStudents(currentClass.students);
+    }
+  };
+
+  // 2026-05-10: Khôi phục sau cleanup ngày 10/05 đã xoá nhầm.
+  // Gọi action `studentsAuthed` (POST + sessionToken) để lấy field nhạy cảm
+  // (hamlet, phone, father, mother, ward, province, ethnic, religion, ...) →
+  // merge vào window.CLASSES[].students[] tại chỗ. Sau khi merge, render lại
+  // sẽ thấy data thật thay vì 🔒.
+  // Cache theo username: nếu đổi user → tự động fetch lại.
+  function loadStudentsAuthed(force){
+    return new Promise(function(resolve, reject){
+      var cu = getCU() || {};
+      var cuKey = cu.username || '';
+      if (!cuKey || !cu.sessionToken){
+        reject(new Error('Chưa đăng nhập CBGV'));
+        return;
+      }
+      if (!force && window._studentsAuthedFor === cuKey){
+        resolve({ ok:true, cached:true });
+        return;
+      }
+      if (typeof API_URL === 'undefined' || !API_URL){
+        reject(new Error('Chưa cấu hình API_URL'));
+        return;
+      }
+      var body = {
+        action: 'studentsAuthed',
+        user: cuKey,
+        role: cu.role || '',
+        sessionToken: cu.sessionToken
+      };
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(body)
+      }).then(function(r){ return r.text(); }).then(function(t){
+        var res;
+        try { res = JSON.parse(t); }
+        catch(e){ reject(new Error('Backend trả không phải JSON')); return; }
+        if (!res || res.ok !== true || !Array.isArray(res.data)){
+          reject(new Error((res && res.error) || 'Backend không trả danh sách'));
+          return;
+        }
+        // Index theo (classCode|studentCode) để merge nhanh
+        var idx = {};
+        res.data.forEach(function(s){
+          var k = (s.classCode || '') + '|' + (s.studentCode || '');
+          idx[k] = s;
+        });
+        var sensitiveFields = ['hamlet','birthplace','phone','father','fatherYear','mother','motherYear','ward','province','address','ethnic','religion'];
+        var merged = 0;
+        (window.CLASSES || []).forEach(function(cls){
+          (cls.students || []).forEach(function(stu){
+            var k = (stu.classCode || cls.name || '') + '|' + (stu.studentCode || '');
+            var src = idx[k];
+            if (src){
+              sensitiveFields.forEach(function(f){
+                if (src[f] !== undefined && src[f] !== null && src[f] !== '') stu[f] = src[f];
+              });
+              merged++;
+            }
+          });
+        });
+        window._studentsAuthedFor = cuKey;
+        console.log('[loadStudentsAuthed] Đã merge', merged, 'HS với data nhạy cảm');
+        resolve({ ok:true, merged:merged });
+      }).catch(reject);
+    });
+  }
+  window.loadStudentsAuthed = loadStudentsAuthed;
   function renderStudents(list){
     const wrap = document.getElementById('stTableWrap');
     if(!list.length){
       wrap.innerHTML = '<div class="st-empty">Không tìm thấy học sinh phù hợp.</div>';
       return;
     }
-    wrap.innerHTML = `<table class="st-table">
+    // 2026-05-10: Khách (chưa login CBGV) → khoá ngày sinh, xóm/chỗ ở, SĐT, cha/mẹ
+    // theo Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân của trẻ em.
+    // Hiện 🔒 thay vì '–' để không gây hiểu nhầm "data trống".
+    const isGuest = !_hasLevel('gv');
+    const lock = '<span class="st-lock" title="Đăng nhập CBGV để xem">🔒</span>';
+    const banner = isGuest ? `
+      <div class="st-guest-banner">
+        <div class="st-guest-text">
+          <span class="st-guest-emoji">🔒</span>
+          <span><b>Đang xem ở chế độ công khai.</b> Để xem ngày sinh, xóm/chỗ ở, SĐT phụ huynh, cha mẹ — vui lòng đăng nhập tài khoản cán bộ, giáo viên.</span>
+        </div>
+        <button class="st-login-btn" onclick="requireAuth('gv', _refreshStudents)">
+          <span class="st-login-ico">🔓</span>
+          <span>Đăng nhập CBGV</span>
+        </button>
+      </div>` : '';
+    wrap.innerHTML = banner + `<table class="st-table">
       <thead><tr><th>STT</th><th>Họ và tên</th><th>Ngày sinh</th><th>Giới tính</th><th>Xóm</th><th>SĐT phụ huynh</th></tr></thead>
       <tbody>${list.map((s, i) => {
         const isFemale = /nữ|nu/i.test(s.gender);
         const init = initials(s.name);
         const rowId = 'st' + i;
+        const dobCell     = isGuest ? lock : escapeHtml(s.dob || '–');
+        const hamletCell  = isGuest ? lock : escapeHtml(s.hamlet || '–');
+        const phoneCell   = isGuest ? lock : escapeHtml(s.phone || '–');
+        const ethnicCell  = isGuest ? lock : (escapeHtml(s.ethnic || '–') + ' / ' + escapeHtml(s.religion || '–'));
+        const addressCell = isGuest ? lock : escapeHtml([s.hamlet, s.ward, s.province].filter(Boolean).join(', ') || '–');
+        const fatherCell  = isGuest ? lock : (escapeHtml(s.father || '–') + (s.fatherYear ? ' ('+escapeHtml(s.fatherYear)+')' : ''));
+        const motherCell  = isGuest ? lock : (escapeHtml(s.mother || '–') + (s.motherYear ? ' ('+escapeHtml(s.motherYear)+')' : ''));
         return `<tr class="main" id="${rowId}" onclick="toggleStudent('${rowId}', ${i})">
           <td class="st-idx" data-lbl="STT">${i+1}</td>
           <td class="st-name-cell" data-lbl="HS">
             <span class="st-avatar ${isFemale?'female':''}">${init}</span>
             <span class="st-name">${escapeHtml(s.name)}</span>
           </td>
-          <td data-lbl="Ngày sinh">${escapeHtml(s.dob)}</td>
+          <td data-lbl="Ngày sinh">${dobCell}</td>
           <td data-lbl="Giới tính"><span class="st-gender ${isFemale?'f':'m'}">${escapeHtml(s.gender)}</span></td>
-          <td data-lbl="Xóm">${escapeHtml(s.hamlet || '–')}</td>
-          <td data-lbl="SĐT">${escapeHtml(s.phone || '–')}</td>
+          <td data-lbl="Xóm">${hamletCell}</td>
+          <td data-lbl="SĐT">${phoneCell}</td>
         </tr>
         <tr class="st-detail-row" id="${rowId}_d" style="display:none">
           <td colspan="6"><div class="st-detail-inner">
             <div class="st-field"><strong>Mã học sinh</strong><span>${escapeHtml(s.studentCode || '–')}</span></div>
-            <div class="st-field"><strong>Dân tộc / Tôn giáo</strong><span>${escapeHtml(s.ethnic || '–')} / ${escapeHtml(s.religion || '–')}</span></div>
-            <div class="st-field"><strong>Địa chỉ thường trú</strong><span>${escapeHtml([s.hamlet, s.ward, s.province].filter(Boolean).join(', ') || '–')}</span></div>
-            <div class="st-field"><strong>Họ tên cha</strong><span>${escapeHtml(s.father || '–')} ${s.fatherYear ? '('+escapeHtml(s.fatherYear)+')' : ''}</span></div>
-            <div class="st-field"><strong>Họ tên mẹ</strong><span>${escapeHtml(s.mother || '–')} ${s.motherYear ? '('+escapeHtml(s.motherYear)+')' : ''}</span></div>
+            <div class="st-field"><strong>Dân tộc / Tôn giáo</strong><span>${ethnicCell}</span></div>
+            <div class="st-field"><strong>Địa chỉ thường trú</strong><span>${addressCell}</span></div>
+            <div class="st-field"><strong>Họ tên cha</strong><span>${fatherCell}</span></div>
+            <div class="st-field"><strong>Họ tên mẹ</strong><span>${motherCell}</span></div>
           </div></td>
         </tr>`;
       }).join('')}</tbody></table>`;
@@ -1725,203 +1831,6 @@
     return s;
   }
 
-  // ----- In theo mẫu -----
-  function printMCOverview(){
-    const host = document.getElementById('mcPrintHost');
-    if(!host) return;
-    const cfg = (STATS && STATS.config) || {};
-    const schoolName = cfg.name || 'Trường Tiểu học';
-    const schoolAddr = cfg.address || '';
-    const schoolYear = cfg.schoolYear || '2025 - 2026';
-
-    // Tách Xã / Tỉnh từ address: "Xã Quảng Châu, Tỉnh Nghệ An"
-    const parts = schoolAddr.split(',').map(s => s.trim()).filter(Boolean);
-    const xa = parts[0] || '';                     // "Xã Quảng Châu"
-    const xaShort = xa.replace(/^Xã\s*/i,'').trim(); // "Quảng Châu"
-    const ubndLine = xa ? ('UBND ' + xa.toUpperCase()) : 'UBND XÃ';
-    const schoolUpper = schoolName.toUpperCase();
-
-    const grouped = _mcGroupByTC('');
-    let rows = '';
-    TC_ORDER.forEach(tc => {
-      if(!grouped[tc]) return;
-      rows += '<tr class="mc-p-tc"><td colspan="7">'+escapeHtml('Tiêu chuẩn '+tc.substr(2)+': '+(TC_NAMES[tc]||''))+'</td></tr>';
-      Object.keys(grouped[tc]).sort().forEach(tchi => {
-        const tchiKey = _safeCell(tchi);
-        rows += '<tr class="mc-p-tchi"><td colspan="7">'+escapeHtml('Tiêu chí '+tchiKey+'. '+(TCHI_NAMES[tchiKey]||''))+'</td></tr>';
-        grouped[tc][tchi].forEach((m, mi) => {
-          rows += '<tr>'+
-            '<td style="text-align:center">'+(mi+1)+'</td>'+
-            '<td style="text-align:center;font-weight:600">'+escapeHtml(_safeCell(m.code))+'</td>'+
-            '<td>'+escapeHtml(_safeCell(m.name))+'</td>'+
-            '<td>'+escapeHtml(_safeCell(m.issued))+'</td>'+
-            '<td>'+escapeHtml(_safeCell(m.issuer)||schoolName)+'</td>'+
-            '<td style="text-align:center">'+escapeHtml(_safeCell(m.hssCode))+'</td>'+
-            '<td>'+escapeHtml(_safeCell(m.note))+'</td>'+
-          '</tr>';
-        });
-      });
-    });
-
-    const today = new Date();
-    const dateStr = 'ngày '+String(today.getDate()).padStart(2,'0')+
-                    ' tháng '+String(today.getMonth()+1).padStart(2,'0')+
-                    ' năm '+today.getFullYear();
-
-    host.innerHTML =
-      '<div class="mc-p-header">'+
-        '<div>'+
-          '<b>'+escapeHtml(ubndLine)+'</b>'+
-          '<b>'+escapeHtml(schoolUpper)+'</b>'+
-        '</div>'+
-        '<div>'+
-          '<b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b>'+
-          '<b class="italic" style="font-weight:700">Độc lập - Tự do - Hạnh phúc</b>'+
-        '</div>'+
-      '</div>'+
-      '<div class="mc-p-title">'+
-        '<h1>BẢNG MÃ HÓA MINH CHỨNG</h1>'+
-        '<h2>KIỂM ĐỊNH CHẤT LƯỢNG GIÁO DỤC VÀ CÔNG NHẬN ĐẠT CHUẨN QUỐC GIA</h2>'+
-      '</div>'+
-      '<div class="mc-p-sub">(Theo Thông tư số 17/2018/TT-BGDĐT ngày 22/8/2018, sửa đổi, bổ sung bởi Thông tư số 22/2024/TT-BGDĐT; Hướng dẫn tại Công văn số 5942/BGDĐT-QLCL ngày 28/12/2018 của Bộ Giáo dục và Đào tạo)</div>'+
-      '<div class="mc-p-year">Năm học: '+escapeHtml(schoolYear)+'</div>'+
-      '<table><colgroup>'+
-        '<col style="width:4%"><col style="width:10%"><col style="width:30%">'+
-        '<col style="width:13%"><col style="width:22%"><col style="width:10%">'+
-        '<col style="width:11%">'+
-      '</colgroup><thead><tr>'+
-        '<th>STT</th>'+
-        '<th>Mã minh chứng</th>'+
-        '<th>Tên minh chứng</th>'+
-        '<th>Số, ngày ban hành</th>'+
-        '<th>Nơi ban hành hoặc nhóm, cá nhân được khảo sát</th>'+
-        '<th>Mã HSS liên quan</th>'+
-        '<th>Ghi chú</th>'+
-      '</tr></thead><tbody>'+rows+'</tbody></table>'+
-      '<div class="mc-p-foot">'+
-        '<div class="mc-p-sign">'+
-          '<div class="place">'+escapeHtml(xaShort||'')+', '+dateStr+'</div>'+
-          '<div class="role">HIỆU TRƯỞNG</div>'+
-          '<div class="gap"></div>'+
-        '</div>'+
-        '<div class="clear"></div>'+
-      '</div>';
-
-    // Đổi document.title để trình duyệt lấy làm tên file PDF mặc định,
-    // khôi phục lại sau khi đóng hộp thoại in.
-    const _origTitle = document.title;
-    const _fileTitle = 'Danh muc Minh chung - ' + schoolName;
-    document.title = _fileTitle;
-    const _restore = () => { document.title = _origTitle; window.removeEventListener('afterprint', _restore); };
-    window.addEventListener('afterprint', _restore);
-    setTimeout(_restore, 60000); // fallback an toàn sau 60s
-
-    window.print();
-  }
-
-  // 2026-05-09: Tải Word (.doc) cho Bảng mã hóa Minh chứng — output đẹp hơn
-  // copy/paste vào báo cáo. Cấu trúc giống printMCOverview nhưng standalone HTML.
-  function exportMCWord(){
-    if (!MINHCHUNG || !MINHCHUNG.length) { alert('Chưa có dữ liệu Minh chứng để xuất.'); return; }
-    var cfg = (STATS && STATS.config) || {};
-    var schoolName = cfg.name || 'Trường Tiểu học';
-    var schoolAddr = cfg.address || '';
-    var schoolYear = cfg.schoolYear || '2025 - 2026';
-    var parts = schoolAddr.split(',').map(function(s){return s.trim();}).filter(Boolean);
-    var xa = parts[0] || '';
-    var xaShort = xa.replace(/^Xã\s*/i,'').trim();
-    var ubndLine = xa ? ('UBND ' + xa.toUpperCase()) : 'UBND XÃ';
-    var schoolUpper = schoolName.toUpperCase();
-
-    var grouped = _mcGroupByTC('');
-    var rowsHtml = '';
-    var totalMC = 0, totalLinked = 0;
-    TC_ORDER.forEach(function(tc){
-      if (!grouped[tc]) return;
-      rowsHtml += '<tr><td colspan="7" style="background:#1e6b54;color:white;padding:7px 10px;font-weight:700;font-size:11.5pt">'
-        + escapeHtml('Tiêu chuẩn ' + tc.substr(2) + ': ' + (TC_NAMES[tc] || ''))
-        + '</td></tr>';
-      Object.keys(grouped[tc]).sort().forEach(function(tchi){
-        var tchiKey = _safeCell(tchi);
-        rowsHtml += '<tr><td colspan="7" style="background:#eaf5ef;color:#1e6b54;padding:5px 10px;font-weight:700;font-style:italic">'
-          + escapeHtml('Tiêu chí ' + tchiKey + '. ' + (TCHI_NAMES[tchiKey] || ''))
-          + '</td></tr>';
-        grouped[tc][tchi].forEach(function(m, mi){
-          totalMC++;
-          if (m.hssCode && String(m.hssCode).trim()) totalLinked++;
-          rowsHtml += '<tr style="page-break-inside:avoid">'
-            + '<td style="padding:5px 6px;text-align:center;border:0.5pt solid #888">' + (mi+1) + '</td>'
-            + '<td style="padding:5px 6px;text-align:center;font-weight:600;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.code)) + '</td>'
-            + '<td style="padding:5px 8px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.name)) + '</td>'
-            + '<td style="padding:5px 6px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.issued)) + '</td>'
-            + '<td style="padding:5px 6px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.issuer) || schoolName) + '</td>'
-            + '<td style="padding:5px 6px;text-align:center;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.hssCode)) + '</td>'
-            + '<td style="padding:5px 6px;border:0.5pt solid #888">' + escapeHtml(_safeCell(m.note)) + '</td>'
-            + '</tr>';
-        });
-      });
-    });
-
-    var today = new Date();
-    var dateStr = 'ngày ' + String(today.getDate()).padStart(2,'0')
-                + ' tháng ' + String(today.getMonth()+1).padStart(2,'0')
-                + ' năm ' + today.getFullYear();
-
-    var styles = ''
-      + '@page{size:A4 landscape;margin:1.5cm}'
-      + 'body{font-family:"Times New Roman",serif;font-size:11pt;color:#222;margin:0}'
-      + '.head{display:table;width:100%;margin-bottom:8pt}'
-      + '.head>div{display:table-cell;width:50%;vertical-align:top;text-align:center}'
-      + '.head b{display:block;font-size:11pt}'
-      + '.title{text-align:center;margin:18pt 0 6pt}'
-      + '.title h1{font-size:16pt;font-weight:700;margin:4pt 0;letter-spacing:.5px}'
-      + '.title h2{font-size:13pt;font-weight:700;margin:4pt 0}'
-      + '.sub{text-align:center;font-style:italic;font-size:10pt;margin:4pt 30pt;line-height:1.5}'
-      + '.year{text-align:center;font-weight:700;font-size:11pt;margin:8pt 0 12pt}'
-      + 'table{width:100%;border-collapse:collapse;font-family:"Times New Roman",serif;font-size:10.5pt}'
-      + 'thead th{background:#1e6b54;color:white;padding:8px 6px;border:0.5pt solid #1e6b54;font-weight:700;font-size:10.5pt;text-align:center}'
-      + '.sign{margin-top:24pt;text-align:right;page-break-inside:avoid}'
-      + '.sign .place{font-style:italic;margin-bottom:4pt}'
-      + '.sign .role{font-weight:700;font-size:11pt;text-transform:uppercase;margin-bottom:60pt}';
-
-    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Bảng mã hóa Minh chứng — ' + escapeHtml(schoolName) + '</title>'
-      + '<style>' + styles + '</style></head><body>'
-      + '<div class="head">'
-      + '<div><b>' + escapeHtml(ubndLine) + '</b><b>' + escapeHtml(schoolUpper) + '</b></div>'
-      + '<div><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><b style="font-style:italic">Độc lập - Tự do - Hạnh phúc</b></div>'
-      + '</div>'
-      + '<div class="title"><h1>BẢNG MÃ HÓA MINH CHỨNG</h1>'
-      + '<h2>KIỂM ĐỊNH CHẤT LƯỢNG GIÁO DỤC VÀ CÔNG NHẬN ĐẠT CHUẨN QUỐC GIA</h2></div>'
-      + '<div class="sub">(Theo Thông tư số 17/2018/TT-BGDĐT ngày 22/8/2018, sửa đổi, bổ sung bởi Thông tư số 22/2024/TT-BGDĐT; Hướng dẫn tại Công văn số 5942/BGDĐT-QLCL ngày 28/12/2018)</div>'
-      + '<div class="year">Năm học: ' + escapeHtml(schoolYear) + ' &nbsp;·&nbsp; ' + totalMC + ' minh chứng &nbsp;·&nbsp; ' + totalLinked + ' đã liên kết HSS</div>'
-      + '<table><thead><tr>'
-      + '<th style="width:5%">STT</th>'
-      + '<th style="width:11%">Mã minh chứng</th>'
-      + '<th style="width:32%">Tên minh chứng</th>'
-      + '<th style="width:13%">Số, ngày ban hành</th>'
-      + '<th style="width:20%">Nơi ban hành / nhóm khảo sát</th>'
-      + '<th style="width:9%">Mã HSS</th>'
-      + '<th style="width:10%">Ghi chú</th>'
-      + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
-      + '<div class="sign">'
-      + '<div class="place">' + escapeHtml(xaShort || '') + ', ' + dateStr + '</div>'
-      + '<div class="role">HIỆU TRƯỞNG</div>'
-      + '<div>(Ký, ghi rõ họ tên, đóng dấu)</div>'
-      + '</div></body></html>';
-
-    var blob = new Blob(['﻿', html], { type: 'application/msword' });
-    var schoolSlug = schoolName.replace(/[^\p{L}\d]+/gu, '_').replace(/^_+|_+$/g, '');
-    var d = new Date();
-    var dateSlug = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    var fname = 'BangMaHoaMinhChung-' + schoolSlug + '-' + dateSlug + '.doc';
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = fname;
-    document.body.appendChild(a); a.click();
-    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
-  }
-  window.exportMCWord = exportMCWord;
-
   // ============ ADMIN MINH CHỨNG ============
   let _mcRawRows = [];
 
@@ -2128,13 +2037,13 @@
 '.head-tbl .cong-hoa { font-weight: bold; }' +
 '.head-tbl .slogan { font-weight: bold; }' +
 '.head-underline { display: inline-block; border-bottom: 1.5pt solid #000; min-width: 55%; margin-top: 3pt; }' +
-'.doc-title { text-align: center; font-size: 15pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5pt; margin-top: 12pt; }' +
-'.doc-subtitle { text-align: center; font-size: 13pt; font-weight: bold; text-transform: uppercase; margin-top: 4pt; }' +
+'.doc-title { text-align: center; font-size: 15pt; font-weight: bold; letter-spacing: 0.5pt; margin-top: 12pt; }' +
+'.doc-subtitle { text-align: center; font-size: 13pt; font-weight: bold; margin-top: 4pt; }' +
 '.doc-law { text-align: center; font-size: 11.5pt; font-style: italic; margin-top: 6pt; padding: 0 40pt; }' +
 '.doc-year { text-align: center; font-size: 13pt; margin-top: 6pt; font-weight: bold; }' +
 'table.mc { width: 100%; border-collapse: collapse; margin-top: 12pt; font-size: 11pt; }' +
 'table.mc th, table.mc td { border: 1pt solid #000; padding: 5pt 6pt; vertical-align: middle; }' +
-'table.mc thead th { background: #e5f4ec; font-weight: bold; text-align: center; text-transform: uppercase; font-size: 10.5pt; mso-number-format: "\@"; }' +
+'table.mc thead th { background: #e5f4ec; font-weight: bold; text-align: center; font-size: 10.5pt; mso-number-format: "\@"; }' +
 'table.mc .c-num { width: 4%; text-align: center; }' +
 'table.mc .c-code { width: 11%; text-align: center; }' +
 'table.mc .c-name { width: 34%; }' +
@@ -2147,7 +2056,7 @@
 '.sign-block { width: 100%; margin-top: 14pt; }' +
 '.sign-block .sign-cell { text-align: center; width: 35%; float: right; font-size: 13pt; }' +
 '.sign-block .sign-cell .date { font-style: italic; }' +
-'.sign-block .sign-cell .title { font-weight: bold; text-transform: uppercase; margin-top: 2pt; }' +
+'.sign-block .sign-cell .title { font-weight: bold; margin-top: 2pt; }' +
 '.sign-block .sign-cell .space { height: 50pt; }' +
 '</style></head>' +
 '<body><div class="WordSection1">' +
@@ -2166,19 +2075,19 @@
 '</tr></table>' +
 // Title block
 '<div class="doc-title">BẢNG MÃ HOÁ MINH CHỨNG</div>' +
-'<div class="doc-subtitle">Kiểm định chất lượng giáo dục và công nhận đạt chuẩn quốc gia</div>' +
+'<div class="doc-subtitle">KIỂM ĐỊNH CHẤT LƯỢNG GIÁO DỤC VÀ CÔNG NHẬN ĐẠT CHUẨN QUỐC GIA</div>' +
 '<div class="doc-law">(Theo Thông tư số 17/2018/TT-BGDĐT ngày 22/8/2018, sửa đổi, bổ sung bởi Thông tư số 22/2024/TT-BGDĐT; Hướng dẫn tại Công văn số 5942/BGDĐT-QLCL ngày 28/12/2018 của Bộ Giáo dục và Đào tạo)</div>' +
 '<div class="doc-year">Năm học: ' + escapeHtml(schoolYear) + '</div>' +
 // Main table
 '<table class="mc">' +
   '<thead><tr>' +
     '<th class="c-num">STT</th>' +
-    '<th class="c-code">Mã minh chứng</th>' +
-    '<th class="c-name">Tên minh chứng</th>' +
-    '<th class="c-issued">Số, ngày ban hành</th>' +
-    '<th class="c-issuer">Nơi ban hành hoặc nhóm, cá nhân được khảo sát</th>' +
-    '<th class="c-hss">Mã HSS liên quan</th>' +
-    '<th class="c-note">Ghi chú</th>' +
+    '<th class="c-code">MÃ MINH CHỨNG</th>' +
+    '<th class="c-name">TÊN MINH CHỨNG</th>' +
+    '<th class="c-issued">SỐ, NGÀY BAN HÀNH</th>' +
+    '<th class="c-issuer">NƠI BAN HÀNH HOẶC NHÓM, CÁ NHÂN ĐƯỢC KHẢO SÁT</th>' +
+    '<th class="c-hss">MÃ HSS LIÊN QUAN</th>' +
+    '<th class="c-note">GHI CHÚ</th>' +
   '</tr></thead>' +
   '<tbody>' + tableBody + '</tbody>' +
 '</table>' +
@@ -2187,7 +2096,7 @@
   '<td style="width:60%"></td>' +
   '<td style="width:40%;text-align:center">' +
     '<div style="font-style:italic">' + escapeHtml(placeStr + ', ' + dateStr) + '</div>' +
-    '<div style="font-weight:bold;text-transform:uppercase;margin-top:2pt">HIỆU TRƯỞNG</div>' +
+    '<div style="font-weight:bold;margin-top:2pt">HIỆU TRƯỞNG</div>' +
     '<div style="height:55pt"></div>' +
   '</td>' +
 '</tr></table>' +

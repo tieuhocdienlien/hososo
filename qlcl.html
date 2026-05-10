@@ -15,7 +15,7 @@
      được 2 chữ ký ở 2 cột TT27). Thay bằng phương án post-process: template đã
      có drawing anchor floating ở đúng vị trí (copy từ file mẫu của thầy), FE chỉ
      thay BYTES của 3 PNG trong /word/media/ — vị trí giữ nguyên 100%. -->
-<link rel="stylesheet" href="qlcl-style.css?v=2026.05.09-mobile-diem-hb">
+<link rel="stylesheet" href="qlcl-style.css?v=2026.05.10-skeleton-cache">
 <style>
 /* Eye toggle cho password input — 2026-05-09 */
 .pw-wrap{position:relative;display:block}
@@ -164,6 +164,7 @@ function pwToggle(btn){
       <div class="hdr-ky-sub" id="hky-sub">Trường Tiểu học Diễn Liên · Năm học 2025–2026</div>
     </div>
     <div class="hdr-ky-badge" id="hky-badge"><span class="dot"></span><span id="hky-period">Giữa HK2</span></div>
+    <span id="dshs-refresh-badge" class="dshs-refresh-badge" style="display:none"><span class="spin">🔄</span> Đang cập nhật DSHS</span>
   </div>
   <div class="cgrid">
     <div class="ccard"><div class="cc-ico" style="background:var(--blue-xl)">📚</div><div><div class="cc-val" id="c-tot">0</div><div class="cc-lbl">Tổng HS</div></div></div>
@@ -613,7 +614,7 @@ function pwToggle(btn){
 </script>
 
 <!-- ⭐ Logic JS chính QLCL v2 — tách ra để cache + maintain (Refactor 2026-05-05) -->
-<script src="qlcl-app.js?v=2026.05.09-mobile-polish" defer></script>
+<script src="qlcl-app.js?v=2026.05.10-skeleton-cache" defer></script>
 
 </body>
 </html>

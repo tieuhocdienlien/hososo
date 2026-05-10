@@ -318,6 +318,16 @@ code{font-family:monospace;font-size:12px;background:var(--slate7);padding:2px 6
 .empty{padding:48px 24px;text-align:center;color:var(--slate3)}
 .ei{font-size:36px;margin-bottom:8px}
 
+/* Skeleton loading (2026-05-10) — hiện shimmer khi chờ DSHS lần đầu */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skel{display:inline-block;background:linear-gradient(90deg,#e2e8f0 0%,#f1f5f9 40%,#e2e8f0 80%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:6px;color:transparent!important;vertical-align:middle;min-height:1em}
+.cc-val .skel{height:24px;min-width:48px}
+.skel-row td{padding:14px 8px;background:transparent}
+.skel-row .skel{height:14px}
+@keyframes pulse-soft{0%,100%{opacity:1}50%{opacity:.55}}
+.dshs-refresh-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:14px;background:#fef3c7;color:#92400e;font-size:11px;font-weight:600;margin-left:10px;animation:pulse-soft 1.6s ease-in-out infinite;border:1px solid #fcd34d}
+.dshs-refresh-badge .spin{display:inline-block;animation:spin 1s linear infinite}
+
 /* Học bạ */
 .hb-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);border:1px solid var(--slate6);padding:16px;margin-bottom:10px;transition:var(--transition)}
 .hb-card:hover{box-shadow:var(--shadow-md);border-color:var(--violet)}

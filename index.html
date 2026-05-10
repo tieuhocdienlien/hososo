@@ -71,7 +71,7 @@
   (document.head || document.documentElement).appendChild(s);
 })();
 </script>
-<link rel="stylesheet" href="style.css?v=2026.05.10-qlcl-v1-cleanup">
+<link rel="stylesheet" href="style.css?v=2026.05.10-guest-lock">
 <style>
 /* Eye toggle cho password input — 2026-05-09 */
 .pw-wrap{position:relative;display:block}
@@ -932,26 +932,84 @@ function pwToggle(btn){
           <button class="mc-hero-btn" id="mcLegalBtn" onclick="toggleLegalRefs(event)">
             📜 <span>Căn cứ pháp lý</span> <span class="caret">▾</span>
             <div class="mc-legal-pop" id="mcLegalPop" onclick="event.stopPropagation()">
-              <a href="https://thuvienphapluat.vn/van-ban/Giao-duc/Thong-tu-17-2018-TT-BGDDT-kiem-dinh-chat-luong-giao-duc-va-cong-nhan-dat-chuan-truong-tieu-hoc-367508.aspx" target="_blank" rel="noopener">
-                <b>TT 17/2018/TT-BGDĐT</b>
-                <span>Quy định KĐCLGD &amp; công nhận đạt chuẩn quốc gia đối với trường tiểu học</span>
-              </a>
-              <a href="https://thuvienphapluat.vn/van-ban/Giao-duc/Thong-tu-22-2024-TT-BGDDT-sua-doi-Thong-tu-17-2018-TT-BGDDT-18-2018-TT-BGDDT-19-2018-TT-BGDDT-634983.aspx" target="_blank" rel="noopener">
-                <b>TT 22/2024/TT-BGDĐT</b>
-                <span>Sửa đổi TT 17/2018, 18/2018, 19/2018 — hiệu lực 25/01/2025</span>
-              </a>
-              <a href="https://vqa.moet.gov.vn/vi/laws/detail/Thong-tu-so-17-2018-TT-BGDDT-ngay-22-8-2018-cua-Bo-Giao-duc-va-Dao-tao-ban-hanh-Quy-dinh-ve-kiem-dinh-chat-luong-giao-duc-va-cong-nhan-dat-chuan-quoc-gia-doi-voi-truong-tieu-hoc-15/" target="_blank" rel="noopener">
-                <b>CV 5932/BGDĐT-QLCL</b>
-                <span>Hướng dẫn tự đánh giá &amp; đánh giá ngoài cấp Tiểu học</span>
-              </a>
-              <a href="https://luatvietnam.vn/giao-duc/van-ban-hop-nhat-11-vbhn-bgddt-2024-hop-nhat-thong-tu-quy-dinh-kiem-dinh-chat-luong-giao-duc-truong-tieu-hoc-387077-d5.html" target="_blank" rel="noopener">
-                <b>VBHN 11/VBHN-BGDĐT (2024)</b>
-                <span>Văn bản hợp nhất — phiên bản thuận tiện tra cứu</span>
-              </a>
+              <div class="legal-section">
+                <div class="legal-section-title">Văn bản KĐCLGD trường tiểu học</div>
+                <div class="legal-item">
+                  <b>Thông tư 17/2018/TT-BGDĐT</b>
+                  <span><span class="legal-date">22/8/2018</span>Quy định về kiểm định chất lượng giáo dục và công nhận đạt chuẩn quốc gia đối với trường tiểu học (văn bản gốc).</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 22/2024/TT-BGDĐT</b>
+                  <span><span class="legal-date">10/12/2024 · hiệu lực 25/01/2025</span>Sửa đổi, bổ sung Thông tư 17/2018, 18/2018, 19/2018 — cập nhật tiêu chí cơ sở vật chất, cán bộ giáo viên và kết quả giáo dục.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Văn bản hợp nhất 11/VBHN-BGDĐT</b>
+                  <span><span class="legal-date">2024</span>Hợp nhất Thông tư 17/2018 và Thông tư 22/2024 — phiên bản hoàn chỉnh, thuận tiện tra cứu khi viết báo cáo TĐG.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Công văn 5932/BGDĐT-QLCL</b>
+                  <span><span class="legal-date">28/12/2018</span>Hướng dẫn tự đánh giá và đánh giá ngoài trường tiểu học theo quy trình 7 bước.</span>
+                </div>
+              </div>
+
+              <div class="legal-section">
+                <div class="legal-section-title">Văn bản nền tảng giáo dục tiểu học</div>
+                <div class="legal-item">
+                  <b>Luật Giáo dục 2019</b>
+                  <span><span class="legal-date">Luật 43/2019/QH14 · 14/6/2019</span>Căn cứ pháp lý cao nhất, làm cơ sở cho toàn bộ hoạt động giáo dục và KĐCLGD.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 28/2020/TT-BGDĐT</b>
+                  <span><span class="legal-date">04/9/2020</span>Ban hành Điều lệ trường tiểu học — cơ sở để đánh giá tổ chức, quản lý nhà trường (Tiêu chuẩn 1).</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 32/2018/TT-BGDĐT</b>
+                  <span><span class="legal-date">26/12/2018</span>Ban hành Chương trình Giáo dục phổ thông 2018 — căn cứ đánh giá hoạt động và kết quả giáo dục (Tiêu chuẩn 5).</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 27/2020/TT-BGDĐT</b>
+                  <span><span class="legal-date">04/9/2020</span>Quy định đánh giá học sinh tiểu học (3 mức T/H/C) — căn cứ minh chứng kết quả giáo dục.</span>
+                </div>
+              </div>
+
+              <div class="legal-section">
+                <div class="legal-section-title">Cán bộ quản lý, giáo viên (Tiêu chuẩn 2)</div>
+                <div class="legal-item">
+                  <b>Thông tư 14/2018/TT-BGDĐT</b>
+                  <span><span class="legal-date">20/7/2018</span>Quy định Chuẩn hiệu trưởng cơ sở giáo dục phổ thông.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 20/2018/TT-BGDĐT</b>
+                  <span><span class="legal-date">22/8/2018</span>Quy định Chuẩn nghề nghiệp giáo viên cơ sở giáo dục phổ thông.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 02/2021/TT-BGDĐT</b>
+                  <span><span class="legal-date">02/02/2021</span>Quy định mã số, tiêu chuẩn chức danh nghề nghiệp và bổ nhiệm, xếp lương giáo viên tiểu học công lập.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 08/2023/TT-BGDĐT</b>
+                  <span><span class="legal-date">14/4/2023</span>Sửa đổi, bổ sung Thông tư 02/2021 (và TT 01, 03, 04/2021) — cập nhật mã số, tiêu chuẩn CDNN.</span>
+                </div>
+              </div>
+
+              <div class="legal-section">
+                <div class="legal-section-title">Cơ sở vật chất, thiết bị (Tiêu chuẩn 3)</div>
+                <div class="legal-item">
+                  <b>Thông tư 13/2020/TT-BGDĐT</b>
+                  <span><span class="legal-date">26/5/2020</span>Quy định tiêu chuẩn cơ sở vật chất các trường mầm non, tiểu học, THCS, THPT và trường phổ thông có nhiều cấp học.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 23/2024/TT-BGDĐT</b>
+                  <span><span class="legal-date">10/12/2024</span>Sửa đổi, bổ sung Thông tư 13/2020 và Thông tư 14/2020 — cập nhật tiêu chuẩn CSVC, phòng học bộ môn.</span>
+                </div>
+                <div class="legal-item">
+                  <b>Thông tư 37/2021/TT-BGDĐT</b>
+                  <span><span class="legal-date">30/12/2021</span>Ban hành Danh mục thiết bị dạy học tối thiểu cấp Tiểu học theo Chương trình GDPT 2018.</span>
+                </div>
+              </div>
             </div>
           </button>
-          <button class="mc-hero-btn" onclick="printMCOverview()">🖨️ <span>In theo mẫu</span></button>
-          <button class="mc-hero-btn" onclick="exportMCWord()" title="Tải file Word (.doc) để chỉnh sửa và đính kèm báo cáo">📄 <span>Tải Word</span></button>
+          <button class="mc-hero-btn" onclick="exportMCExcel()" title="Tải file Word (.doc) — mẫu chuẩn KĐCLGD theo TT 17/2018 + TT 22/2024">📄 <span>Tải Word</span></button>
         </div>
         <div class="mc-stats" id="mcStats"></div>
         <div class="mc-search">
@@ -963,8 +1021,6 @@ function pwToggle(btn){
   </div>
 </div>
 
-<!-- ===== PRINT HOST (dành riêng cho in) ===== -->
-<div class="mc-print-host" id="mcPrintHost"></div>
 
 <!-- ===== TỔNG QUAN DANH MỤC HSS ===== -->
 <div class="admin-overlay" id="catalogOverlay" onclick="if(event.target===this)closeCatalogOverview()" style="display:none">
@@ -7073,6 +7129,6 @@ else boot();
 
 
 <!-- ⭐ Logic JS chính — tách ra để cache hiệu quả + dễ maintain (Refactor 2026-05-05) -->
-<script src="app.js?v=2026.05.10-qlcl-v1-cleanup" defer></script>
+<script src="app.js?v=2026.05.10-restore-loadauthed" defer></script>
 </body>
 </html>
